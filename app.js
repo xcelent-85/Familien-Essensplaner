@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.4";
+const APP_BUILD_ID="2026-11-22.5";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -224,12 +224,14 @@ function offerWords(value){
 function offerAliasPhrases(ingredient){
   const text=normalizeOfferText(ingredient);
   const groups=[
-    {test:/\b(?:hackfleisch|hack|rinderhack|gemischtes hack)\b/,aliases:["hackfleisch","hack","rinderhack","rinderhackfleisch","gemischtes hack","gemischtes hackfleisch","hackfleisch gemischt"]},
-    {test:/\b(?:mohre|mohren|karotte|karotten)\b/,aliases:["möhre","möhren","karotte","karotten","bundmöhren","bundkarotten"]},
-    {test:/\b(?:spaghetti|nudeln|penne|pasta)\b/,aliases:["spaghetti","spaghettoni","nudeln","pasta","penne"]},
-    {test:/\b(?:gehackte tomaten|stuckige tomaten|tomatenstucke|tomaten)\b/,aliases:["gehackte tomaten","stückige tomaten","tomatenstücke","pizzatomaten","tomaten in stücken","tomaten gehackt","tomaten"]},
-    {test:/\b(?:tomatenmark|tomatenpuree|tomatenkonzentrat|tomatenpaste)\b/,aliases:["tomatenmark","tomatenpüree","tomatenkonzentrat","tomatenpaste"]},
-    {test:/\b(?:zwiebel|zwiebeln)\b/,aliases:["zwiebel","zwiebeln","rote zwiebeln","gemüsezwiebel"]},
+    {test:/\\b(?:hackfleisch|hack|rinderhack|gemischtes hack)\\b/,aliases:["hackfleisch","hack","rinderhack","rinderhackfleisch","gemischtes hack","gemischtes hackfleisch","hackfleisch gemischt"]},
+    {test:/\\b(?:mohre|mohren|karotte|karotten)\\b/,aliases:["möhre","möhren","karotte","karotten","bundmöhren","bundkarotten","suppenmöhre","suppenmöhren"]},
+    {test:/\\bspaghetti\\b/,aliases:["spaghetti","spaghettoni"]},
+    {test:/\\bpenne\\b/,aliases:["penne"]},
+    {test:/\\b(?:nudeln|pasta|teigwaren)\\b/,aliases:["nudeln","pasta","teigwaren","spaghetti","penne","fusilli","farfalle","maccheroni","rigatoni"]},
+    {test:/\\b(?:gehackte tomaten|stuckige tomaten|tomatenstucke)\\b/,aliases:["gehackte tomaten","stückige tomaten","tomatenstücke","pizzatomaten","tomaten in stücken","tomaten gehackt"]},
+    {test:/\\b(?:tomatenmark|tomatenpuree|tomatenkonzentrat|tomatenpaste)\\b/,aliases:["tomatenmark","tomatenpüree","tomatenkonzentrat","tomatenpaste"]},
+    {test:/\\b(?:zwiebel|zwiebeln)\\b/,aliases:["zwiebel","zwiebeln","rote zwiebeln","gemüsezwiebel"]},
   ];
   const group=groups.find(item=>item.test.test(text));
   return group?group.aliases:[String(ingredient||"").trim()];
