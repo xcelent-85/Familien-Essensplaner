@@ -270,20 +270,23 @@ $("#search-meal-offers").addEventListener("click",async()=>{
   }
   button.disabled=true;message.textContent="Angebote werden bei den angebundenen Märkten gesucht …";results.innerHTML="";
   try{
-    const {data,error}=await supabaseClient.functions.invoke("offer-source-v2",{method:"GET"});
+    const zipInput=$("#offer-search-zip")?.value.trim()||"16816";
+    if(!/^\\d{5}$/.test(zipInput)){message.textContent="Bitte eine gültige fünfstellige Postleitzahl eingeben.";button.disabled=false;return;}
+    const searchQueries=[...new Set(currentShoppingIngredients.map(value=>String(value||"").trim()).filter(Boolean))].slice(0,8);
+    const {data,error}=await supabaseClient.functions.invoke("offer-source-v2",{body:{zip:zipInput,queries:searchQueries}});
     if(error)throw error;
     const sources=Array.isArray(data?.results)?data.results:[];
-    const candidates=sources.flatMap(source=>(source.candidates||[]).map(candidate=>({...candidate,sourceName:source.name,sourceReachable:source.reachable})));
+    const candidates=sources.flatMap(source=>(source.candidates||[]).map(candidate=>({...candidate,sourceName:candidate.publisherName||source.name,sourceReachable:source.reachable})));
     const matches=findOfferMatches(currentShoppingIngredients,candidates);
     if(!matches.length){
       results.innerHTML='<p class="notice">Bei den aktuell geprüften Angebotsquellen wurde kein eindeutiger Treffer für eure Zutaten gefunden. Das bedeutet nicht, dass die Produkte nicht im Markt erhältlich sind.</p>';
     }else{
       results.innerHTML=matches.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0)).map(item=>
-        '<article class="offer-item"><div><strong>'+escapeHtml(item.productName)+'</strong><span>'+escapeHtml(item.sourceName||item.sourceId||"Angebotsquelle")+' · passend zu: '+escapeHtml(item.matchedIngredients.join(", "))+(item.regionality==="not_confirmed_for_neuruppin"?" · regional nicht bestätigt":" · Vorschlag, bitte Prospekt prüfen")+'</span><a href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle öffnen ↗</a></div><strong class="offer-price">'+Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"})+'</strong></article>'
+        '<article class="offer-item"><div><strong>'+escapeHtml(item.productName)+'</strong><span>'+escapeHtml(item.sourceName||item.sourceId||"Angebotsquelle")+' · passend zu: '+escapeHtml(item.matchedIngredients.join(", "))+(item.regionality==="not_confirmed_for_neuruppin"?" · regional nicht bestätigt":" · regionale Verfügbarkeit bitte prüfen")+'</span><a href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle öffnen ↗</a></div><strong class="offer-price">'+Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"})+'</strong></article>'
       ).join("");
     }
     const unreachable=sources.filter(source=>!source.reachable).length;
-    message.textContent=matches.length+" passende Angebotsvorschläge gefunden · "+sources.length+" Quellen geprüft"+(unreachable?" · "+unreachable+" Quellen nicht erreichbar":"")+".";
+    message.textContent=matches.length+" passende Angebotsvorschläge für PLZ "+zipInput+" gefunden · "+sources.length+" Quellen geprüft"+(unreachable?" · "+unreachable+" Quellen nicht erreichbar":"")+".";
     const sourceDiagnostics=sources.map(source=>{
       const sourceCandidates=source.candidates||[];
       const count=Number(source.candidateCount??sourceCandidates.length)||0;
