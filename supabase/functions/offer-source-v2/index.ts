@@ -214,6 +214,18 @@ function roundPrice(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
+function extractQuantityCondition(text: string): string | undefined {
+  const patterns = [
+    /(?:ab|bei\s+(?:einem?\s+)?kauf\s+von|beim\s+kauf\s+von|mindestens|nur\s+bei\s+abnahme\s+von)\s+(\d{1,3})\s*(?:stück|stk\.?|packungen|packungen?)/i,
+    /(?:kauf|abnahme)\s+von\s+(\d{1,3})\s*(?:stück|stk\.?|packungen?)/i,
+  ];
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) return match[0].replace(/\s+/g, " ").trim();
+  }
+  return undefined;
+}
+
 function parsePriceTokens(block: string, allowNoCurrency: boolean): number[] {
   const values: number[] = [];
   const currencyPattern = /(?:€\s*)?(\d{1,4})[.,](\d{2}|[–-])\s*€?/g;
@@ -322,10 +334,12 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
     const key = name.toLocaleLowerCase("de-DE") + "|" + price + "|" + (cardPrice ?? "");
     if (seen.has(key)) continue;
     seen.add(key);
+    const quantityCondition = extractQuantityCondition(text);
     candidates.push({
       productName: name,
       price: roundPrice(price),
       ...(cardPrice !== undefined ? { cardPrice: roundPrice(cardPrice), cardRequired: true } : {}),
+      ...(quantityCondition ? { quantityCondition, requiresMultiplePurchase: true } : {}),
       currency: "EUR",
       context: text,
       sourceId: source.id,
