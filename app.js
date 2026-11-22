@@ -106,6 +106,66 @@ async function loadOrCreateFamily(user){
   currentFamilyId=members[0].family_id;await loadDishes();
   showMessage("Familiensammlung verbunden. "+visibleDishes.length+" Gerichte dauerhaft gespeichert.");
 }
+
+let weekOffset=0;
+let currentWeekMeals=[];
+const weekDays=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag"];
+function getWeekDates(){
+  const monday=new Date();monday.setHours(12,0,0,0);
+  monday.setDate(monday.getDate()-((monday.getDay()+6)%7)+(weekOffset*7));
+  return weekDays.map((name,index)=>{const date=new Date(monday);date.setDate(monday.getDate()+index);return {name,date,iso:date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0")};});
+}
+function renderWeekPlan(){
+  const dates=getWeekDates(),first=dates[0].date,last=dates[4].date;
+  const format=date=>date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+  $("#week-label").textContent=format(first)+" – "+format(last);
+  const dishes=visibleDishes.length?visibleDishes:starterDishes;
+  $("#week-grid").innerHTML=dates.map(day=>{
+    const meal=currentWeekMeals.find(item=>item.planned_for===day.iso);
+    const options='<option value="">Noch kein Gericht ausgewählt</option>'+dishes.map(dish=>'<option value="'+escapeHtml(dish.id||dish.title)+'" '+((meal&&(meal.dish_id===dish.id||meal.preview_title===dish.title))?'selected':'')+'>'+escapeHtml(dish.title)+'</option>').join("");
+    return '<div class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><label>Abendessen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label><label>Portionen<input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+(meal?.servings||3)+'"></label></div>';
+  }).join("");
+  $("#week-help").textContent=currentFamilyId?"Wählt für jeden Tag ein Gericht. Änderungen werden erst nach Klick auf „Wochenplan speichern“ übernommen.":"Vorschau: Zum dauerhaften Speichern bitte anmelden.";
+  $("#save-week-plan").disabled=!currentFamilyId;
+}
+async function loadWeekPlan(){
+  if(!currentFamilyId){currentWeekMeals=[];renderWeekPlan();return;}
+  const dates=getWeekDates();
+  const {data,error}=await supabaseClient.from("weekly_meals").select("id,dish_id,planned_for,servings").eq("family_id",currentFamilyId).eq("meal_slot","dinner").gte("planned_for",dates[0].iso).lte("planned_for",dates[4].iso);
+  if(error){$("#week-message").textContent="Wochenplan konnte nicht geladen werden: "+error.message;return;}
+  currentWeekMeals=data||[];renderWeekPlan();
+}
+$("#show-week-plan").addEventListener("click",async()=>{
+  $("#weekly-section").hidden=false;
+  if(currentFamilyId)await loadWeekPlan();else{currentWeekMeals=[];renderWeekPlan();}
+  $("#weekly-section").scrollIntoView({behavior:"smooth",block:"start"});
+});
+$("#previous-week").addEventListener("click",async()=>{weekOffset--;if(currentFamilyId)await loadWeekPlan();else renderWeekPlan();});
+$("#next-week").addEventListener("click",async()=>{weekOffset++;if(currentFamilyId)await loadWeekPlan();else renderWeekPlan();});
+$("#save-week-plan").addEventListener("click",async()=>{
+  if(!currentFamilyId||!currentUser){$("#week-message").textContent="Bitte zuerst anmelden.";return;}
+  const dates=getWeekDates();
+  const meals=dates.map(day=>{
+    const select=document.querySelector('.week-dish-select[data-date="'+day.iso+'"]');
+    const servings=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
+    return {day,dishId:select?.value||"",servings:Math.max(1,Math.min(30,Number(servings?.value)||3))};
+  }).filter(item=>item.dishId);
+  const invalid=meals.find(item=>!visibleDishes.some(dish=>dish.id===item.dishId));
+  if(invalid){$("#week-message").textContent="Bitte zuerst anmelden und eure Gerichte laden.";return;}
+  const button=$("#save-week-plan");button.disabled=true;$("#week-message").textContent="Speichere Wochenplan …";
+  const {error:deleteError}=await supabaseClient.from("weekly_meals").delete().eq("family_id",currentFamilyId).eq("meal_slot","dinner").gte("planned_for",dates[0].iso).lte("planned_for",dates[4].iso);
+  if(deleteError){button.disabled=false;$("#week-message").textContent="Speichern fehlgeschlagen: "+deleteError.message;return;}
+  let insertError=null;
+  if(meals.length){
+    const {error}=await supabaseClient.from("weekly_meals").insert(meals.map(item=>({family_id:currentFamilyId,dish_id:item.dishId,planned_for:item.day.iso,meal_slot:"dinner",servings:item.servings,created_by:currentUser.id})));
+    insertError=error;
+  }
+  button.disabled=false;
+  if(insertError){$("#week-message").textContent="Der Plan konnte nicht vollständig gespeichert werden: "+insertError.message;return;}
+  $("#week-message").textContent=meals.length+" Abendessen gespeichert.";
+  await loadWeekPlan();
+});
+
 if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
   supabaseClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
   supabaseClient.auth.getSession().then(async({data,error})=>{if(error)showMessage(error.message);setSession(data?.session);if(data?.session?.user)await loadOrCreateFamily(data.session.user);});
