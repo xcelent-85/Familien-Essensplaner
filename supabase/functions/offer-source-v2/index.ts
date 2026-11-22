@@ -530,6 +530,140 @@ function extractCandidates(html: string, source: StoreSource) {
   }).slice(0, 200);
 }
 
+
+
+type KaufdaLocation = { zip: string; city: string; lat: number; lng: number };
+
+async function resolveKaufdaLocation(zipInput: string): Promise<KaufdaLocation> {
+  const zip = /^\d{5}$/.test(zipInput) ? zipInput : "16816";
+  if (zip === "16816") return { zip, city: "Neuruppin", lat: 52.9211097, lng: 12.8002556 };
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("postalcode", zip);
+  url.searchParams.set("country", "Germany");
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("limit", "1");
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Familien-Essensplaner/1.0 (regional grocery offer lookup)",
+      "Accept": "application/json",
+      "Accept-Language": "de",
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) throw new Error("PLZ-Ort konnte nicht ermittelt werden (Geocoding HTTP " + response.status + ").");
+  const rows = await response.json();
+  if (!Array.isArray(rows) || !rows.length) throw new Error("Für die Postleitzahl " + zip + " wurde kein Ort gefunden.");
+  const row = rows[0];
+  const address = row.address ?? {};
+  const city = address.city ?? address.town ?? address.village ?? address.municipality ?? address.suburb ?? address.county ?? "";
+  const lat = Number(row.lat);
+  const lng = Number(row.lon);
+  if (!city || !Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error("Für die Postleitzahl " + zip + " konnten Ort und Koordinaten nicht vollständig ermittelt werden.");
+  return { zip, city: String(city), lat, lng };
+}
+
+function extractBalancedJson(source: string, openingIndex: number): string | null {
+  const start = source.indexOf("{", openingIndex);
+  if (start < 0) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < source.length; i++) {
+    const ch = source[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+    } else {
+      if (ch === '"') inString = true;
+      else if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) return source.slice(start, i + 1);
+      }
+    }
+  }
+  return null;
+}
+
+function parseKaufdaPage(html: string) {
+  const pagePos = html.indexOf('"pageInformation":{');
+  if (pagePos < 0) throw new Error("KaufDA pageInformation wurde nicht gefunden.");
+  const json = extractBalancedJson(html, pagePos);
+  if (!json) throw new Error("KaufDA pageInformation ist unvollständig.");
+  const page = JSON.parse(json);
+  const contents = page?.searchResults?.contents;
+  if (!contents || !Array.isArray(contents.offers)) throw new Error("KaufDA-Angebotsdaten fehlen in pageInformation.");
+  const brochures = Array.isArray(contents.brochures) ? contents.brochures : [];
+  const brochureById = new Map<string, any>();
+  for (const item of brochures) {
+    const content = item?.content;
+    if (content?.id) brochureById.set(String(content.id), content);
+  }
+  return { offers: contents.offers, brochures };
+}
+
+async function fetchKaufdaCandidates(query: string, location: KaufdaLocation) {
+  const url = new URL("https://www.kaufda.de/search");
+  url.searchParams.set("query", query);
+  url.searchParams.set("lat", String(location.lat));
+  url.searchParams.set("lng", String(location.lng));
+  url.searchParams.set("city", location.city);
+  url.searchParams.set("zip", location.zip);
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; Familien-Essensplaner/2.0)",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "de-DE,de;q=0.9,en;q=0.8",
+    },
+    signal: AbortSignal.timeout(18000),
+  });
+  if (!response.ok) throw new Error("KaufDA HTTP " + response.status);
+  const html = await response.text();
+  const parsed = parseKaufdaPage(html);
+  const brochureById = new Map<string, any>();
+  for (const item of parsed.brochures) {
+    const content = item?.content;
+    if (content?.id) brochureById.set(String(content.id), content);
+  }
+  const candidates = parsed.offers.flatMap((offer: any) => {
+    const price = Number(offer?.prices?.mainPrice);
+    const productName = String(offer?.title ?? "").trim();
+    const publisherName = String(offer?.publisherName ?? "").trim();
+    if (!productName || !publisherName || !Number.isFinite(price) || price <= 0 || price > 1000) return [];
+    if (!isRelevantFoodCandidate(productName, { id: "kaufda", name: "KaufDA", url: url.toString(), scope: "regional_prospect", priceMode: "first" })) return [];
+    const parentId = String(offer?.parentContent?.id ?? "");
+    const brochure = brochureById.get(parentId);
+    return [{
+      productName,
+      brand: offer?.brand ? String(offer.brand) : null,
+      price: roundPrice(price),
+      currency: String(offer?.prices?.currencyCode ?? "EUR"),
+      priceByBaseUnit: offer?.prices?.priceByBaseUnit ? String(offer.prices.priceByBaseUnit) : null,
+      sourceId: "kaufda",
+      sourceUrl: url.toString(),
+      sourceName: "KaufDA · " + publisherName,
+      retailerId: String(offer?.publisherId ?? publisherName),
+      publisherName,
+      offerId: String(offer?.id ?? ""),
+      imageUrl: offer?.offerImages?.url?.normal ?? offer?.offerImages?.url?.thumbnail ?? null,
+      brochureId: parentId || null,
+      brochureTitle: brochure?.title ?? null,
+      brochurePage: offer?.parentContent?.page?.number ?? null,
+      brochurePageCount: brochure?.pageCount ?? null,
+      publishedFrom: brochure?.publishedFrom ?? null,
+      publishedUntil: brochure?.publishedUntil ?? null,
+      validFrom: brochure?.validFrom ?? null,
+      validUntil: brochure?.validUntil ?? null,
+      regionality: "regional_search_result_not_independently_verified",
+      confidence: "review_required",
+      extractionMethod: "kaufda_pageinformation_json",
+      matchedQuery: query,
+    }];
+  });
+  return { candidates, offerCount: parsed.offers.length, brochureCount: parsed.brochures.length, url: url.toString() };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -539,6 +673,54 @@ Deno.serve(async (req: Request) => {
       status: 405,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  }
+
+  const requestUrl = new URL(req.url);
+  const zip = requestUrl.searchParams.get("zip") ?? "16816";
+  const queries = [...new Set(requestUrl.searchParams.getAll("q").map((value) => value.trim()).filter(Boolean))].slice(0, 8);
+  let kaufdaResult: Record<string, unknown>;
+  try {
+    const location = await resolveKaufdaLocation(zip);
+    const kaufdaQueries = queries.length ? queries : [];
+    const kaufdaBatches = await Promise.all(kaufdaQueries.map(async (query) => {
+      try {
+        return { query, ...(await fetchKaufdaCandidates(query, location)), reachable: true, error: null };
+      } catch (error) {
+        return { query, candidates: [], offerCount: 0, brochureCount: 0, url: null, reachable: false, error: error instanceof Error ? error.message : "KaufDA-Abruf fehlgeschlagen" };
+      }
+    }));
+    kaufdaResult = {
+      id: "kaufda",
+      name: "KaufDA · PLZ " + location.zip + " (" + location.city + ")",
+      scope: "regional_prospect",
+      retailerId: "kaufda",
+      priority: 1,
+      sourceUrl: "https://www.kaufda.de/search",
+      reachable: kaufdaBatches.some((item) => item.reachable),
+      status: null,
+      candidateCount: kaufdaBatches.reduce((sum, item) => sum + item.candidates.length, 0),
+      rawOfferCount: kaufdaBatches.reduce((sum, item) => sum + item.offerCount, 0),
+      brochureCount: kaufdaBatches.reduce((sum, item) => sum + item.brochureCount, 0),
+      queries: kaufdaBatches,
+      candidates: kaufdaBatches.flatMap((item) => item.candidates),
+      location,
+      checkedAt: new Date().toISOString(),
+      note: "KaufDA-Suchergebnisse zur eingegebenen PLZ. Regionale Filialverfügbarkeit bitte vor Verwendung prüfen; Kandidaten bleiben Vorschläge.",
+    };
+  } catch (error) {
+    kaufdaResult = {
+      id: "kaufda",
+      name: "KaufDA · PLZ " + zip,
+      scope: "regional_prospect",
+      retailerId: "kaufda",
+      priority: 1,
+      sourceUrl: "https://www.kaufda.de/search",
+      reachable: false,
+      candidateCount: 0,
+      candidates: [],
+      error: error instanceof Error ? error.message : "PLZ konnte nicht aufgelöst werden.",
+      checkedAt: new Date().toISOString(),
+    };
   }
 
   const results = await Promise.all(SOURCES.map(async (source) => {
@@ -595,7 +777,8 @@ Deno.serve(async (req: Request) => {
     ok: true,
     version: 2,
     purpose: "Vergleich regionaler MeinProspekt-Angebotsseiten mit bisherigen Händlerquellen. Kandidaten bleiben ungeprüft und werden nicht automatisch für die Essensplanung freigegeben.",
-    results,
+    results: [...results, kaufdaResult],
+    request: { zip, queries },
   }), {
     headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
   });
