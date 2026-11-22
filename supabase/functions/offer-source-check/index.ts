@@ -74,6 +74,52 @@ function getStructuredOffers(html: string) {
   return found.slice(0, 100);
 }
 
+
+function getOfferCandidates(text: string, storeAliases: string[]) {
+  const offers: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
+  const price = String.raw`(?:ab\\s*)?(\\d{1,4}(?:[.,]\\d{2})?)\\s*€`;
+
+  for (const alias of storeAliases) {
+    const escapedAlias = alias.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\function getPriceCandidates(text: string) {");
+    const pattern = new RegExp(String.raw`([^€]{2,180}?)\\s+${escapedAlias}\\s+${price}`, "gi");
+    for (const match of text.matchAll(pattern)) {
+      const rawPrefix = match[1] ?? "";
+      const previousPrice = rawPrefix.match(/(?:€\\s*\\d{1,4}(?:[.,]\\d{2})?|\\d{1,4}(?:[.,]\\d{2})?\\s*€)[^€]*$/);
+      let name = previousPrice ? rawPrefix.slice(previousPrice.index! + previousPrice[0].length) : rawPrefix;
+      name = name
+        .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|l|ml)\\s*=\\s*[\\d.,]+/gi, " ")
+        .replace(/\\b(?:UVP|statt|bisher)\\b/gi, " ")
+        .replace(/\\s+/g, " ")
+        .replace(/^[^A-Za-zÄÖÜäöüß0-9]+/, "")
+        .replace(/[^A-Za-zÄÖÜäöüß0-9)]+$/, "")
+        .trim();
+      if (name.length < 3) continue;
+      name = name.slice(-100).trim();
+
+      const amount = match[2];
+      const key = (name + "|" + amount).toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const nonFood = /(?:smartphone|samsung|matratze|rollo|leuchte|werkzeug|spielzeug|weihnachtsfigur|elektronik|haushaltsgerät|kleidung|schuhe)/i.test(name);
+      const likelyFood = /(?:milch|käse|quark|joghurt|fleisch|rind|hähnchen|huhn|schwein|wurst|fisch|obst|gemüse|mandarine|tomate|kartoffel|rosenkohl|nudel|reis|mehl|brot|brötchen|margarine|butter|sauce|soße|eistee|getränk|cola|schokolade|pudding|erdnuss|frutti|cevapcici|rouladen|suppen|pizza|tiefkühl|tortellini|eier|öl|sahne|frischkäse)/i.test(name);
+
+      offers.push({
+        productName: name,
+        price: amount.replace(",", "."),
+        currency: "EUR",
+        storeLabel: alias,
+        productType: nonFood ? "non_food" : likelyFood ? "food" : "unknown",
+        extractionMethod: "store_price_pattern",
+        confidence: likelyFood && !nonFood ? "medium" : "review_required",
+      });
+      if (offers.length >= 100) return offers;
+    }
+  }
+  return offers;
+}
+
 function getPriceCandidates(text: string) {
   const candidates: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
@@ -123,6 +169,8 @@ Deno.serve(async (req: Request) => {
       const text = htmlToText(html);
       const structuredOffers = response.ok ? getStructuredOffers(html) : [];
       const priceCandidates = response.ok ? getPriceCandidates(text) : [];
+      const offerAliases = source.id === "lidl" ? ["Lidl"] : source.id === "rewe-neuruppin" ? ["REWE"] : source.id === "netto-marken-discount" ? ["Netto Marken-Discount"] : [];
+      const offerCandidates = response.ok ? getOfferCandidates(text, offerAliases) : [];
 
       return {
         id: source.id,
@@ -159,7 +207,7 @@ Deno.serve(async (req: Request) => {
 
   return new Response(JSON.stringify({
     ok: true,
-    purpose: "Erste Angebotsdatenerkennung: strukturierte Produktangebote und Preis-Kontexttreffer. Preis-Kontexttreffer muessen vor Verwendung geprueft werden; dies ist noch keine vollstaendige Prospektauswertung.",
+    purpose: "Erste Angebotsdatenerkennung mit Produkt-/Preis-Kandidaten. Automatisch erkannte Lebensmittel sind vor der Einkaufsplanung stichprobenartig zu pruefen; dies ist noch keine vollstaendige Prospektauswertung.",
     results,
   }), {
     headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
