@@ -114,6 +114,61 @@ const SOURCES: StoreSource[] = [
     retailerId: "netto-scottie",
     priority: 1,
   },
+
+  {
+    id: "aldi-nord-aktionspreis",
+    name: "ALDI Nord (Aktionspreis, regional nicht bestätigt)",
+    url: "https://www.aktionspreis.de/prospekt/aldi-nord-angebote",
+    scope: "national",
+    priceMode: "first",
+    retailerId: "aldi-nord",
+    priority: 2,
+  },
+  {
+    id: "lidl-aktionspreis",
+    name: "Lidl (Aktionspreis, regional nicht bestätigt)",
+    url: "https://www.aktionspreis.de/prospekt/lidl-angebote",
+    scope: "national",
+    priceMode: "first",
+    retailerId: "lidl",
+    priority: 2,
+  },
+  {
+    id: "kaufland-aktionspreis",
+    name: "Kaufland (Aktionspreis, regional nicht bestätigt)",
+    url: "https://www.aktionspreis.de/prospekt/kaufland-angebote",
+    scope: "national",
+    priceMode: "first",
+    retailerId: "kaufland",
+    priority: 2,
+  },
+  {
+    id: "rewe-aktionspreis",
+    name: "REWE (Aktionspreis, regional nicht bestätigt)",
+    url: "https://www.aktionspreis.de/prospekt/rewe-angebote",
+    scope: "national",
+    priceMode: "first",
+    retailerId: "rewe",
+    priority: 2,
+  },
+  {
+    id: "netto-marken-discount-aktionspreis",
+    name: "Netto Marken-Discount (Aktionspreis, regional nicht bestätigt)",
+    url: "https://www.aktionspreis.de/prospekt/netto-marken-discount-angebote",
+    scope: "national",
+    priceMode: "first",
+    retailerId: "netto-marken-discount",
+    priority: 2,
+  },
+  {
+    id: "netto-scottie-aktionspreis",
+    name: "Netto mit Scottie (Aktionspreis, regional nicht bestätigt)",
+    url: "https://www.aktionspreis.de/prospekt/netto-angebote",
+    scope: "national",
+    priceMode: "first",
+    retailerId: "netto-scottie",
+    priority: 2,
+  },
 ];
 
 function decodeEntities(value: string): string {
@@ -243,10 +298,50 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
   return candidates;
 }
 
+
+function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
+  if (!source.id.endsWith("-aktionspreis")) return [];
+  const candidates: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
+  for (const match of html.matchAll(/<a\\b[^>]*>([\\s\\S]*?)<\\/a>/gi)) {
+    const block = cleanText(match[1]);
+    if (block.length < 8 || block.length > 300) continue;
+    const prices = parsePriceTokens(block, false);
+    if (!prices.length) continue;
+    const name = block
+      .replace(/\\b\\d{1,3}\\s*%\\s*/g, " ")
+      .replace(/(?:ab\\s*)?\\d{1,4}[.,]\\d{2}\\s*€/gi, " ")
+      .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l)\\b/gi, " ")
+      .replace(/\\b(?:je|pro)\\s+(?:kg|l|100 g)\\b/gi, " ")
+      .replace(/\\s+/g, " ")
+      .trim()
+      .slice(0, 110);
+    if (name.length < 3) continue;
+    const key = name.toLocaleLowerCase("de-DE") + "|" + prices[0];
+    if (seen.has(key)) continue;
+    seen.add(key);
+    candidates.push({
+      productName: name,
+      price: prices[0],
+      currency: "EUR",
+      context: block.slice(0, 240),
+      sourceId: source.id,
+      sourceUrl: source.url,
+      extractionMethod: "aktionspreis_offer_link_candidate",
+      retailerId: source.retailerId ?? source.id,
+      sourcePriority: source.priority ?? 2,
+      regionality: "not_confirmed_for_neuruppin",
+      confidence: "review_required",
+    });
+  }
+  return candidates;
+}
+
 function extractCandidates(html: string, source: StoreSource) {
   const primary = extractHeadingCandidates(html, source);
   const secondary = extractKauflandLinkCandidates(html, source);
-  const merged = [...primary, ...secondary];
+  const tertiary = extractAktionspreisLinkCandidates(html, source);
+  const merged = [...primary, ...secondary, ...tertiary];
   const seen = new Set<string>();
   return merged.filter((item) => {
     const key = String(item.productName).toLocaleLowerCase("de-DE") + "|" + String(item.price);
