@@ -82,7 +82,7 @@ dishForm.addEventListener("submit",async event=>{
   else result=await supabaseClient.from("dishes").insert({...payload,family_id:currentFamilyId,created_by:currentUser.id});
   $("#save-dish-button").disabled=false;
   if(result.error){setDishFormMessage("Speichern fehlgeschlagen: "+result.error.message);return;}
-  dishForm.hidden=true;resetDishForm();showMessage(editingDishId?"Gericht aktualisiert.":"Gericht hinzugefügt.");await loadDishes();
+  const wasEditing=Boolean(editingDishId);dishForm.hidden=true;resetDishForm();showMessage(wasEditing?"Gericht aktualisiert.":"Gericht hinzugefügt.");await loadDishes();
 });
 function setSession(session){
   currentUser=session?.user||null;
