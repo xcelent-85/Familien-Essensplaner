@@ -198,6 +198,7 @@ function renderShoppingList(){
     });
   });
   const list=[...totals.values()].sort((a,b)=>a.name.localeCompare(b.name,"de"));
+  currentShoppingIngredients=list.map(item=>item.name);
   const container=$("#shopping-list-items");
   container.innerHTML=list.length?list.map((item,index)=>{
     const quantity=item.amount===null?"":(Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" "));
@@ -208,6 +209,56 @@ function renderShoppingList(){
   $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
 }
 $("#create-shopping-list").addEventListener("click",renderShoppingList);
+
+let currentShoppingIngredients=[];
+function normalizeOfferWords(value){
+  const stopWords=new Set(["frisch","gehackte","gehackt","klein","kleine","gross","große","mittel","zum","für","und","oder","dose","dosen","packung","packungen","stück","stk"]);
+  return String(value||"").toLocaleLowerCase("de-DE").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/ß/g,"ss").replace(/[^a-z0-9]+/g," ").trim().split(/\s+/)
+    .filter(word=>word.length>=3&&!stopWords.has(word))
+    .map(word=>word.length>5?word.replace(/(ern|en|er|es|e|n|s)$/,""):word);
+}
+function findOfferMatches(ingredients,candidates){
+  return candidates.map(candidate=>{
+    const productWords=normalizeOfferWords(candidate.productName+" "+(candidate.context||""));
+    const matched=ingredients.filter(ingredient=>{
+      const words=normalizeOfferWords(ingredient);
+      return words.some(word=>productWords.some(productWord=>productWord===word||productWord.startsWith(word)||word.startsWith(productWord)));
+    });
+    return matched.length?{...candidate,matchedIngredients:matched}:null;
+  }).filter(Boolean);
+}
+$("#search-meal-offers").addEventListener("click",async()=>{
+  const button=$("#search-meal-offers"),message=$("#meal-offer-message"),results=$("#meal-offer-results");
+  if(!currentShoppingIngredients.length){
+    message.textContent="Bitte zuerst eine Einkaufsliste aus ausgewählten Gerichten erstellen.";
+    return;
+  }
+  if(!supabaseClient){
+    message.textContent="Die Verbindung zum Angebotsdienst ist nicht verfügbar. Bitte Seite neu laden.";
+    return;
+  }
+  button.disabled=true;message.textContent="Angebote werden bei den angebundenen Märkten gesucht …";results.innerHTML="";
+  try{
+    const {data,error}=await supabaseClient.functions.invoke("offer-source-v2",{method:"GET"});
+    if(error)throw error;
+    const sources=Array.isArray(data?.results)?data.results:[];
+    const candidates=sources.flatMap(source=>(source.candidates||[]).map(candidate=>({...candidate,sourceName:source.name,sourceReachable:source.reachable})));
+    const matches=findOfferMatches(currentShoppingIngredients,candidates);
+    if(!matches.length){
+      results.innerHTML='<p class="notice">Bei den aktuell geprüften Angebotsquellen wurde kein eindeutiger Treffer für eure Zutaten gefunden. Das bedeutet nicht, dass die Produkte nicht im Markt erhältlich sind.</p>';
+    }else{
+      results.innerHTML=matches.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0)).map(item=>
+        '<article class="offer-item"><div><strong>'+escapeHtml(item.productName)+'</strong><span>'+escapeHtml(item.sourceName||item.sourceId||"Angebotsquelle")+' · passend zu: '+escapeHtml(item.matchedIngredients.join(", "))+(item.regionality==="not_confirmed_for_neuruppin"?" · regional nicht bestätigt":" · Vorschlag, bitte Prospekt prüfen")+'</span><a href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle öffnen ↗</a></div><strong class="offer-price">'+Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"})+'</strong></article>'
+      ).join("");
+    }
+    const unreachable=sources.filter(source=>!source.reachable).length;
+    message.textContent=matches.length+" passende Angebotsvorschläge gefunden · "+sources.length+" Quellen geprüft"+(unreachable?" · "+unreachable+" Quellen nicht erreichbar":"")+".";
+  }catch(error){
+    console.error("Angebotssuche fehlgeschlagen:",error);
+    message.textContent="Angebotssuche fehlgeschlagen: "+(error?.message||"Unbekannter Fehler");
+  }finally{button.disabled=false;}
+});
 
 // Angebotsverwaltung: lokale Vormerkung als erster Schritt zur Angebotsintegration.
 const OFFER_STORAGE_KEY="familien-essensplaner-offers-v1";
