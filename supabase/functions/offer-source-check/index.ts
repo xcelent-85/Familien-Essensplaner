@@ -75,7 +75,7 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
 
   for (const alias of storeAliases) {
     const escapedAlias = alias.replace(/[.*+?\x24{}()|[\]\\]/g, "\\$&");
-    const pattern = new RegExp("([^€]{2,180}?)\\s+" + escapedAlias + "\\s+(?:ab\\s*)?(\\d{1,4}(?:[.,]\\d{2})?)\\s*€", "gi");
+    const pattern = new RegExp("([^€]{2,420}?)\\s+" + escapedAlias + "\\s+(?:ab\\s*)?(\\d{1,4}(?:[.,]\\d{2})?)\\s*€", "gi");
     for (const match of text.matchAll(pattern)) {
       const rawPrefix = match[1] ?? "";
       const previousPrice = rawPrefix.match(/(?:€\s*\d{1,4}(?:[.,]\d{2})?|\d{1,4}(?:[.,]\d{2})?\s*€)[^€]*$/);
