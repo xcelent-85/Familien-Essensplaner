@@ -81,11 +81,12 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
       const previousPrice = rawPrefix.match(/(?:€\s*\d{1,4}(?:[.,]\d{2})?|\d{1,4}(?:[.,]\d{2})?\s*€)[^€]*$/);
       let name = previousPrice ? rawPrefix.slice(previousPrice.index! + previousPrice[0].length) : rawPrefix;
       name = name
-        .replace(/^.*?Angebote aus dem [\s\S]*?Prospekt in [^ ]+\s+/i, "")
-        .replace(/^\s*\d{1,2}\.\s+\w+.*?Veröffentlicht wurde der Prospekt[\s\S]*?\.\s*/i, "")
-        .replace(/\(?\s*\d+(?:[.,]\d+)?\s*\/\s*(?:kg|g|l|ml)\s*\)?/gi, " ")
+        .replace(/^.*?Prospekt in [A-Za-zÄÖÜäöüß-]+\s+/i, "")
+        .replace(/^.*?Veröffentlicht wurde der Prospekt[\s\S]*?\.\s*/i, "")
+        .replace(/\(?\s*(?:App:\s*)?\d+(?:[.,]\d+)?\s*\/\s*(?:kg|g|l|ml)\s*\)?/gi, " ")
         .replace(/\(?\s*\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml)\s*=\s*[\d.,]+[^)]*\)?/gi, " ")
-        .replace(/\b(?:UVP|statt|bisher|App:)\b/gi, " ")
+        .replace(/\b(?:UVP|statt|bisher|App:)\b[^€]*/gi, " ")
+        .replace(/^.*?\b(?:Sonntag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag),?\s+den\s+\d{1,2}\.\s+\w+\s+\d{4}\.\s*/i, "")
         .replace(/\s+/g, " ")
         .replace(/^[^A-Za-zÄÖÜäöüß0-9]+/, "")
         .replace(/[^A-Za-zÄÖÜäöüß0-9)]+$/, "")
