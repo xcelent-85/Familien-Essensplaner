@@ -303,17 +303,17 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
   if (!source.id.endsWith("-aktionspreis")) return [];
   const candidates: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
-  for (const match of html.matchAll(/<a\\b[^>]*>([\\s\\S]*?)<\\/a>/gi)) {
+  for (const match of html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)) {
     const block = cleanText(match[1]);
     if (block.length < 8 || block.length > 300) continue;
     const prices = parsePriceTokens(block, false);
     if (!prices.length) continue;
     const name = block
-      .replace(/\\b\\d{1,3}\\s*%\\s*/g, " ")
-      .replace(/(?:ab\\s*)?\\d{1,4}[.,]\\d{2}\\s*€/gi, " ")
-      .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l)\\b/gi, " ")
-      .replace(/\\b(?:je|pro)\\s+(?:kg|l|100 g)\\b/gi, " ")
-      .replace(/\\s+/g, " ")
+      .replace(/\b\d{1,3}\s*%\s*/g, " ")
+      .replace(/(?:ab\s*)?\d{1,4}[.,]\d{2}\s*€/gi, " ")
+      .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l)\b/gi, " ")
+      .replace(/\b(?:je|pro)\s+(?:kg|l|100 g)\b/gi, " ")
+      .replace(/\s+/g, " ")
       .trim()
       .slice(0, 110);
     if (name.length < 3) continue;
