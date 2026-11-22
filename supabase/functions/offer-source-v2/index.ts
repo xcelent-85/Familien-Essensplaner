@@ -376,7 +376,10 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
 }
 
 function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
-  if (!source.id.endsWith("-aktionspreis") && !source.id.endsWith("-meinprospekt")) return [];
+  // MeinProspekt verwendet eigene Angebotskarten. Der allgemeine Link-Parser
+  // erfasst dort auch Navigation und Seitenelemente und bleibt bis zum
+  // speziellen OfferGrid-Parser deaktiviert.
+  if (!source.id.endsWith("-aktionspreis")) return [];
   const candidates: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
   for (const match of html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)) {
@@ -418,7 +421,9 @@ function extractCandidates(html: string, source: StoreSource) {
   // Netto-Marken-Discount-Filialseiten enthalten Navigations-, Filial- und Bewertungsdaten,
   // aber keine zuverlässig erkennbaren Angebotskarten. Dort keine Überschriften auswerten.
   // Für Netto bleiben die getrennten Prospektquellen (MeinProspekt/Aktionspreis) aktiv.
-  const primary = source.id === "kaufland-neuruppin" || source.id === "netto-marken-discount"
+  const primary = source.id === "kaufland-neuruppin"
+    || source.id === "netto-marken-discount"
+    || source.id.endsWith("-meinprospekt")
     ? []
     : extractHeadingCandidates(html, source);
   const secondary = extractKauflandLinkCandidates(html, source);
