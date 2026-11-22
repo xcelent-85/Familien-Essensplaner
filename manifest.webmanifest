@@ -1,0 +1,4 @@
+{
+"name":"Familien-Essensplaner","short_name":"Essensplaner","description":"Gemeinsamer Familien-Essensplaner mit Einkaufsoptimierung","lang":"de","start_url":"./","scope":"./","display":"standalone","background_color":"#f5f7f3","theme_color":"#315c45",
+"icons":[{"src":"./assets/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
