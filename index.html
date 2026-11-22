@@ -10,7 +10,7 @@
 .auth-form input{width:100%;padding:13px;border:1px solid #ccd5cd;border-radius:10px;font:inherit}
 .auth-actions{display:flex;gap:10px;flex-wrap:wrap}.auth-actions button{border:0;border-radius:10px;padding:12px 17px;background:#315c45;color:white;font:inherit;font-weight:600;cursor:pointer}
 .auth-actions button.secondary{background:#edf2ed;color:#315c45}.auth-message{min-height:24px;font-size:.92rem;color:#315c45}.auth-user{font-weight:600;color:#315c45}
-</style></head>
+.dish-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0 16px}.dish-toolbar .notice{margin:0;flex:1}.button-green{background:var(--green);color:#fff}.dish-editor{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;margin:14px 0 18px;display:grid;gap:13px}.dish-editor h3{margin:0;font-size:17px}.dish-editor label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#506257}.dish-editor input,.dish-editor textarea{width:100%;padding:11px;border:1px solid #ccd5cd;border-radius:9px;font:inherit;font-size:14px;color:#26352d}.dish-editor textarea{resize:vertical}.dish-form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.dish-actions{display:flex;gap:7px;margin-top:12px}.dish-actions button{border:1px solid #dce5dc;border-radius:8px;background:#f4f7f3;color:var(--green-dark);padding:7px 9px;font-size:11px;font-weight:700;cursor:pointer}.dish-actions button.delete{color:#9a3c35}.dish-details{margin-top:10px;font-size:11px;color:var(--muted);line-height:1.5}.dish-details summary{cursor:pointer;color:var(--green);font-weight:700}.dish-details p{white-space:pre-line;margin:6px 0}.dish-card{min-width:0}@media(max-width:700px){.dish-form-grid{grid-template-columns:repeat(2,1fr)}.dish-toolbar{align-items:stretch;flex-direction:column}}\n</style></head>
 <body>
 <header class="topbar"><a class="brand" href="./"><span class="brand-icon">食</span><span>Familien<span class="brand-light">Essensplaner</span></span></a><div class="account-area"><span class="sync-status" id="sync-status"><i></i> Verbindung wird gestartet</span><button class="avatar" type="button" aria-label="Benutzerkonto">F</button></div></header>
 <main class="page">
@@ -28,7 +28,25 @@
 <article class="feature-card"><div class="feature-symbol">👨‍👩‍👧</div><h3>Als Familie verbunden</h3><p>Zwei eigene Konten, ein gemeinsamer Plan und automatisch abgeglichene Änderungen.</p><span class="coming-soon">Familienverknüpfung folgt</span></article>
 <article class="feature-card"><div class="feature-symbol">🏷️</div><h3>Angebote vergleichen</h3><p>Die Wochenangebote eurer Märkte bei der Essensauswahl berücksichtigen.</p><span class="coming-soon">Kommt in einer späteren Ausbaustufe</span></article>
 </section>
-<section class="dishes-section" id="dishes-section" hidden><div class="section-heading compact"><div><p class="eyebrow">ERSTE IDEENSAMMLUNG</p><h2>Gerichte zum Ausprobieren</h2></div><span class="version" id="dish-count"></span></div><div class="dish-grid" id="dish-grid"></div><p class="notice">Dies sind zunächst Beispieldaten. Die gemeinsame, dauerhaft gespeicherte Gerichtesammlung richten wir als nächsten Schritt ein.</p></section>
+<section class="dishes-section" id="dishes-section" hidden>
+<div class="section-heading compact"><div><p class="eyebrow">EURE IDEENSAMMLUNG</p><h2>Gerichte verwalten</h2></div><span class="version" id="dish-count"></span></div>
+<div class="dish-toolbar"><p id="dish-help" class="notice">Zum dauerhaften Hinzufügen und Bearbeiten bitte anmelden.</p><button class="button button-green" id="add-dish-button" type="button" hidden>+ Gericht hinzufügen</button></div>
+<form class="dish-editor" id="dish-form" hidden>
+<h3 id="dish-form-title">Neues Gericht</h3>
+<div class="dish-form-grid">
+<label>Gerichtname *<input id="dish-title" maxlength="100" required placeholder="z. B. Gemüse-Lasagne"></label>
+<label>Kategorie<input id="dish-category" maxlength="40" placeholder="z. B. Italienisch"></label>
+<label>Vorbereitung (Min.)<input id="dish-prep" type="number" min="0" max="600" value="10"></label>
+<label>Koch-/Backzeit (Min.)<input id="dish-cook" type="number" min="0" max="600" value="10"></label>
+<label>Portionen<input id="dish-servings" type="number" min="1" max="30" value="3"></label>
+</div>
+<label>Zutaten und Mengen (je eine Zeile)<textarea id="dish-ingredients" rows="4" placeholder="300 g Nudeln&#10;1 Dose Tomaten&#10;1 Zwiebel"></textarea></label>
+<label>Zubereitung<textarea id="dish-instructions" rows="3" placeholder="Kurze Beschreibung der Zubereitung (optional)"></textarea></label>
+<div class="auth-actions"><button type="submit" id="save-dish-button">Speichern</button><button type="button" class="secondary" id="cancel-dish-button">Abbrechen</button></div>
+<p class="auth-message" id="dish-form-message" role="status"></p>
+</form>
+<div class="dish-grid" id="dish-grid"></div>
+</section>
 <footer><span>Familien-Essensplaner</span><span>Gemeinsam planen. Besser einkaufen. Lecker essen.</span></footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
