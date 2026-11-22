@@ -15,22 +15,22 @@ const SOURCES = [
 
 function htmlToText(html: string): string {
   return html
-    .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
-    .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;|&#160;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&euro;/gi, "€")
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&quot;/gi, '"')
-    .replace(/&#(\\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
-    .replace(/\\s+/g, " ")
+    .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function getStructuredOffers(html: string) {
   const found: Array<Record<string, unknown>> = [];
-  const scripts = html.matchAll(/<script[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi);
+  const scripts = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
 
   function visit(value: unknown) {
     if (Array.isArray(value)) {
@@ -74,16 +74,16 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
   const seen = new Set<string>();
 
   for (const alias of storeAliases) {
-    const escapedAlias = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const pattern = new RegExp("([^€]{2,180}?)\\\\s+" + escapedAlias + "\\\\s+(?:ab\\\\s*)?(\\\\d{1,4}(?:[.,]\\\\d{2})?)\\\\s*€", "gi");
+    const escapedAlias = alias.replace(/[.*+?\x24{}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp("([^€]{2,180}?)\\s+" + escapedAlias + "\\s+(?:ab\\s*)?(\\d{1,4}(?:[.,]\\d{2})?)\\s*€", "gi");
     for (const match of text.matchAll(pattern)) {
       const rawPrefix = match[1] ?? "";
-      const previousPrice = rawPrefix.match(/(?:€\\s*\\d{1,4}(?:[.,]\\d{2})?|\\d{1,4}(?:[.,]\\d{2})?\\s*€)[^€]*$/);
+      const previousPrice = rawPrefix.match(/(?:€\s*\d{1,4}(?:[.,]\d{2})?|\d{1,4}(?:[.,]\d{2})?\s*€)[^€]*$/);
       let name = previousPrice ? rawPrefix.slice(previousPrice.index! + previousPrice[0].length) : rawPrefix;
       name = name
-        .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g|l|ml)\\s*=\\s*[\\d.,]+/gi, " ")
-        .replace(/\\b(?:UVP|statt|bisher)\\b/gi, " ")
-        .replace(/\\s+/g, " ")
+        .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml)\s*=\s*[\d.,]+/gi, " ")
+        .replace(/\b(?:UVP|statt|bisher)\b/gi, " ")
+        .replace(/\s+/g, " ")
         .replace(/^[^A-Za-zÄÖÜäöüß0-9]+/, "")
         .replace(/[^A-Za-zÄÖÜäöüß0-9)]+$/, "")
         .trim();
@@ -116,13 +116,13 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
 function getPriceCandidates(text: string) {
   const candidates: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
-  const pricePattern = /(?:€\\s*\\d{1,4}(?:[.,]\\d{2})?|\\d{1,4}(?:[.,]\\d{2})?\\s*€)/g;
+  const pricePattern = /(?:€\s*\d{1,4}(?:[.,]\d{2})?|\d{1,4}(?:[.,]\d{2})?\s*€)/g;
   for (const match of text.matchAll(pricePattern)) {
     const index = match.index ?? 0;
     const start = Math.max(0, index - 95);
     const end = Math.min(text.length, index + match[0].length + 75);
-    const snippet = text.slice(start, end).replace(/\\s+/g, " ").trim();
-    const key = match[0].replace(/\\s/g, "") + "|" + snippet;
+    const snippet = text.slice(start, end).replace(/\s+/g, " ").trim();
+    const key = match[0].replace(/\s/g, "") + "|" + snippet;
     if (seen.has(key)) continue;
     seen.add(key);
     candidates.push({
@@ -169,7 +169,7 @@ Deno.serve(async (req: Request) => {
         sourceUrl: source.url,
         reachable: response.ok,
         status: response.status,
-        title: html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1]?.replace(/<[^>]+>/g, "").trim() ?? null,
+        title: html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/<[^>]+>/g, "").trim() ?? null,
         structuredOffers,
         priceCandidates,
         offerCandidates,
