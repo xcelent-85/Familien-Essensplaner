@@ -282,6 +282,12 @@ $("#search-meal-offers").addEventListener("click",async()=>{
     }
     const unreachable=sources.filter(source=>!source.reachable).length;
     message.textContent=matches.length+" passende Angebotsvorschläge gefunden · "+sources.length+" Quellen geprüft"+(unreachable?" · "+unreachable+" Quellen nicht erreichbar":"")+".";
+    const sourceDiagnostics=sources.map(source=>{
+      const names=(source.candidates||[]).slice(0,8).map(candidate=>escapeHtml(candidate.productName||"Unbenannt"));
+      const count=Number(source.candidateCount??(source.candidates||[]).length)||0;
+      return '<div class="source-diagnostic"><strong>'+escapeHtml(source.name||source.id||"Quelle")+'</strong><span>'+(source.reachable?"Erreichbar":"Nicht erreichbar")+' · '+count+' Produkte</span>'+(names.length?'<small>'+names.join(" · ")+'</small>':'<small>Keine Produktkandidaten geliefert</small>')+'</div>';
+    }).join("");
+    results.insertAdjacentHTML("beforeend",'<details class="offer-diagnostics"><summary>Technische Quellenprüfung anzeigen</summary><p class="notice">Hier siehst du, welche Produktnamen die Angebotsquellen tatsächlich geliefert haben. Die Anzeige dient der Fehlersuche.</p>'+sourceDiagnostics+'</details>');
   }catch(error){
     console.error("Angebotssuche fehlgeschlagen:",error);
     message.textContent="Angebotssuche fehlgeschlagen: "+(error?.message||"Unbekannter Fehler");
