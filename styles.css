@@ -35,4 +35,10 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .merchant-offers{padding:0 10px 10px;border-top:1px solid #eef1ed}
 .merchant-offers .offer-item{border:0;border-bottom:1px solid #eef1ed;border-radius:0;padding:12px 6px}
 .merchant-offers .offer-item:last-child{border-bottom:0}
+.ingredient-offer-group{padding:10px 6px 4px;border-bottom:1px solid #e8eee9}
+.ingredient-offer-group:last-child{border-bottom:0}
+.ingredient-offer-group h4{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 4px;font-size:13px;color:#294a37}
+.ingredient-offer-group h4 span{font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap}
+.ingredient-offer-group .offer-item{padding:9px 4px}
+
 @media(max-width:520px){.merchant-recommendation{padding:15px}.merchant-recommendation h3{font-size:19px}.merchant-group>summary{padding:12px}.merchant-group-action{font-size:10px}}
