@@ -15,3 +15,24 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .shopping-section{margin-top:30px}.shopping-list-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}.shopping-item{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer}.shopping-item input{width:18px;height:18px;accent-color:var(--green);flex:0 0 auto}.shopping-item span{display:grid;gap:3px}.shopping-item strong{font-size:13px;font-weight:650}.shopping-item small{font-size:10px;color:var(--muted)}.shopping-item:has(input:checked){opacity:.55}.shopping-item:has(input:checked) strong{text-decoration:line-through}@media(max-width:520px){.shopping-list-items{grid-template-columns:1fr}}
 
 .offers-section{margin-top:42px}.offer-source-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}.offer-source{display:grid;gap:6px;text-decoration:none;background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px;color:var(--green-dark)}.offer-source strong{font-size:13px}.offer-source span{font-size:11px;color:var(--muted)}.offer-source:hover{border-color:var(--green)}.offer-form{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px;margin:16px 0;display:grid;gap:13px}.offer-form h3{margin:0;font-size:16px}.offer-form-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.offer-form label{display:grid;gap:6px;font-size:11px;font-weight:700;color:#506257}.offer-form input,.offer-form select{width:100%;min-width:0;padding:10px;border:1px solid #ccd5cd;border-radius:8px;font:inherit;font-size:12px;color:#26352d;background:white}.offer-form .auth-message{margin:0}.offer-list-heading{margin-top:22px}.offer-list{display:grid;gap:8px}.offer-item{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px 14px}.offer-item>div{display:grid;gap:4px;flex:1;min-width:0}.offer-item>div strong{font-size:13px}.offer-item>div span{font-size:11px;color:var(--muted)}.offer-price{font-size:14px;color:var(--green-dark);white-space:nowrap}.offer-delete{border:0;background:#f4eeee;color:#9a3c35;border-radius:7px;width:28px;height:28px;font-size:19px;cursor:pointer}@media(max-width:900px){.offer-source-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.offer-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.offer-source-grid,.offer-form-grid{grid-template-columns:1fr}.offer-item{gap:8px;padding:10px}.offer-price{font-size:12px}}
+
+/* Übersichtlicher Händlervergleich der Angebotsprüfung */
+.merchant-recommendation{background:#eaf1eb;border:1px solid #d7e4d9;border-radius:14px;padding:18px 20px;margin:16px 0 20px}
+.merchant-kicker{font-size:10px;font-weight:800;letter-spacing:1.1px;color:#55745e;margin:0 0 7px}
+.merchant-recommendation h3{font-size:21px;margin:0 0 7px;color:#294a37}
+.merchant-recommendation p{font-size:13px;line-height:1.5;margin:0 0 7px;color:#40594a}
+.merchant-recommendation small{font-size:11px;color:#66786c}
+.merchant-results-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 0 10px}
+.merchant-results-heading h3{font-size:17px;margin:0}
+.merchant-results-heading span{font-size:11px;color:var(--muted)}
+.merchant-group{background:#fff;border:1px solid var(--line);border-radius:12px;margin:9px 0;overflow:hidden}
+.merchant-group>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer;list-style:none}
+.merchant-group>summary::-webkit-details-marker{display:none}
+.merchant-group>summary>span:first-child{display:grid;gap:4px}
+.merchant-group>summary strong{font-size:14px;color:#294a37}
+.merchant-group>summary small{font-size:11px;color:var(--muted)}
+.merchant-group-action{font-size:11px;font-weight:700;color:var(--green);white-space:nowrap}
+.merchant-offers{padding:0 10px 10px;border-top:1px solid #eef1ed}
+.merchant-offers .offer-item{border:0;border-bottom:1px solid #eef1ed;border-radius:0;padding:12px 6px}
+.merchant-offers .offer-item:last-child{border-bottom:0}
+@media(max-width:520px){.merchant-recommendation{padding:15px}.merchant-recommendation h3{font-size:19px}.merchant-group>summary{padding:12px}.merchant-group-action{font-size:10px}}
