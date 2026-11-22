@@ -246,7 +246,7 @@ function parsePriceTokens(block: string, allowNoCurrency: boolean): number[] {
 function isRelevantFoodCandidate(name: string, source: StoreSource): boolean {
   // Alkoholfreie Getränke bleiben erlaubt. Alkohol sowie Drogerie-, Haushalts-,
   // Tier- und Non-Food-Artikel werden ausgeschlossen.
-  if (!/alkoholfrei/i.test(name) && /\b(?:bier|pils|helles|radler|veltins|sekt|prosecco|wein|blanchet|likör|whisky|whiskey|schnaps|vodka|wodka|rum|gin|spirituose)\b/i.test(name)) return false;
+  if (!/alkoholfrei/i.test(name) && /\b(?:bier|pils|helles|radler|veltins|büble|light live|sekt|prosecco|wein|blanchet|likör|whisky|whiskey|schnaps|vodka|wodka|rum|gin|spirituose)\b/i.test(name)) return false;
   if (/\b(?:waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps|tabs)?|geschirrspül(?:mittel|tabs)|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|deo(?:spray)?|deodorant|kosmetik|shampoo|duschgel|zahnpasta|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|pflanze|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name)) return false;
   if (source.retailerId === "aldi-nord" || source.id === "aldi-nord") {
     return !/\b(?:pflanzen|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name);
