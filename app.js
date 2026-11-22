@@ -312,7 +312,7 @@ function buildMerchantOfferSummary(matches){
     const completeSelection=pricedCheapest.length===ingredientGroups.length&&ingredientGroups.length>0&&currencies.length===1;
     const selectionTotal=completeSelection?pricedCheapest.reduce((sum,item)=>sum+Number(item.price),0):null;
     return {...merchant,ingredientCount:merchant.ingredients.size,ingredientNames:[...merchant.ingredients.values()],ingredientGroups,selectionTotal,selectionCurrency:currencies.length===1?currencies[0]:null,pricedIngredientCount:pricedCheapest.length};
-  }).sort((a,b)=>b.ingredientCount-a.ingredientCount||b.offers.length-a.offers.length||a.name.localeCompare(b.name,"de"));
+  }).sort((a,b)=>b.ingredientCount-a.ingredientCount||(a.selectionTotal===null?1:b.selectionTotal===null?-1:a.selectionTotal-b.selectionTotal)||b.offers.length-a.offers.length||a.name.localeCompare(b.name,"de"));
 }
 $("#search-meal-offers").addEventListener("click",async()=>{
   const button=$("#search-meal-offers"),message=$("#meal-offer-message"),results=$("#meal-offer-results");
@@ -343,7 +343,7 @@ $("#search-meal-offers").addEventListener("click",async()=>{
       const topIngredientCount=best.ingredientCount;
       const leaders=merchants.filter(merchant=>merchant.ingredientCount===topIngredientCount);
       const summaryText=leaders.length>1
-        ?'Gemeinsam größte Zutatenabdeckung: '+leaders.map(merchant=>merchant.name).join(' und ')+' decken jeweils '+topIngredientCount+' von '+currentShoppingIngredients.length+' Zutaten ab. '+best.name+' liegt bei gleicher Abdeckung wegen der höheren Angebotszahl vorne.'
+        ?'Gemeinsam größte Zutatenabdeckung: '+leaders.map(merchant=>merchant.name).join(' und ')+' decken jeweils '+topIngredientCount+' von '+currentShoppingIngredients.length+' Zutaten ab. '+best.name+' wird bei gleicher Abdeckung '+(best.selectionTotal!==null?'wegen der günstigsten berechenbaren Auswahl':'wegen der höheren Angebotszahl')+' hervorgehoben.'
         :'Hier gibt es die größte Abdeckung eurer Einkaufsliste: '+best.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten mit '+best.offers.length+' unterschiedlichen Angebotsvorschlägen.';
       const bestSelectionLabel=best.selectionTotal!==null?best.selectionTotal.toLocaleString("de-DE",{style:"currency",currency:best.selectionCurrency||"EUR"}):"nicht vollständig berechenbar";
       const summary='<section class="merchant-recommendation"><p class="merchant-kicker">EINKAUFSEMPFEHLUNG · PLZ '+escapeHtml(zipInput)+'</p><h3>'+escapeHtml(best.name)+'</h3><p>'+summaryText+'</p><small>Die günstigste Auswahl nimmt je Zutat nur das preiswerteste gefundene Angebot. Der Betrag ist ein Vergleichswert, kein garantierter Warenkorbpreis; Packungsgrößen und benötigte Mengen sind nicht berücksichtigt.</small></section>';
@@ -358,7 +358,7 @@ $("#search-meal-offers").addEventListener("click",async()=>{
         }).join("");
         const selectionLabel=merchant.selectionTotal!==null?merchant.selectionTotal.toLocaleString("de-DE",{style:"currency",currency:merchant.selectionCurrency||"EUR"}):"nicht vollständig berechenbar";
         const selectionDetail="Günstigste Auswahl: "+selectionLabel+(merchant.pricedIngredientCount<merchant.ingredientCount?" ("+merchant.pricedIngredientCount+" von "+merchant.ingredientCount+" Zutaten mit Preis)":"");
-        return '<details class="merchant-group"'+(index===0?' open':'')+'><summary><span><strong>'+escapeHtml(merchant.name)+'</strong><small>'+merchant.ingredientCount+' Zutaten · '+merchant.offers.length+' Angebote · '+escapeHtml(selectionDetail)+'</small></span><span class="merchant-group-action">'+(index===0?'Bester Treffer':'Angebote ansehen')+'</span></summary><div class="merchant-offers">'+ingredientSections+'</div></details>';
+        return '<details class="merchant-group"><summary><span class="merchant-summary-main"><strong>'+escapeHtml(merchant.name)+'</strong><small>'+merchant.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten · '+merchant.offers.length+' Angebote</small><small class="merchant-selection">'+escapeHtml(selectionDetail)+'</small></span><span class="merchant-group-action">Details ansehen</span></summary><div class="merchant-offers">'+ingredientSections+'</div></details>';
       }).join("");
       results.innerHTML=summary+'<div class="merchant-results-heading"><h3>Händlervergleich</h3><span>'+matches.length+' eindeutige Angebote</span></div>'+merchantCards;
     }
