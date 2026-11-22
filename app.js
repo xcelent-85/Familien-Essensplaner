@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.6";
+const APP_BUILD_ID="2026-11-22.7";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -271,7 +271,7 @@ $("#search-meal-offers").addEventListener("click",async()=>{
   button.disabled=true;message.textContent="Angebote werden bei den angebundenen Märkten gesucht …";results.innerHTML="";
   try{
     const zipInput=$("#offer-search-zip")?.value.trim()||"16816";
-    if(!/^\\d{5}$/.test(zipInput)){message.textContent="Bitte eine gültige fünfstellige Postleitzahl eingeben.";button.disabled=false;return;}
+    if(!/^\d{5}$/.test(zipInput)){message.textContent="Bitte eine gültige fünfstellige Postleitzahl eingeben.";button.disabled=false;return;}
     const searchQueries=[...new Set(currentShoppingIngredients.map(value=>String(value||"").trim()).filter(Boolean))].slice(0,8);
     const {data,error}=await supabaseClient.functions.invoke("offer-source-v2",{body:{zip:zipInput,queries:searchQueries}});
     if(error)throw error;
