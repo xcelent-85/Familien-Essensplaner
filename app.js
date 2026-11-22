@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.14";
+const APP_BUILD_ID="2026-11-22.15";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -118,6 +118,19 @@ function getWeekDates(){
   monday.setDate(monday.getDate()-((monday.getDay()+6)%7)+(weekOffset*7));
   return weekDays.map((name,index)=>{const date=new Date(monday);date.setDate(monday.getDate()+index);return {name,date,iso:date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0")};});
 }
+function renderWeekIngredients(day,dish,servings){
+  const target=$("#week-ingredients-"+day.iso);
+  if(!target)return;
+  if(!dish){target.innerHTML='<p class="week-ingredients-empty">Noch keine Zutaten – wähle ein Abendessen.</p>';return;}
+  const ingredients=Array.isArray(dish.ingredients)?dish.ingredients:[];
+  if(!ingredients.length){target.innerHTML='<p class="week-ingredients-empty">Keine Zutaten hinterlegt</p>';return;}
+  const factor=Math.max(1,Number(servings)||3)/(Number(dish.servings)||3);
+  target.innerHTML='<strong class="week-ingredients-title">Zutaten</strong>'+ingredients.map(line=>{
+    const item=parseShoppingIngredient(line,factor);
+    const quantity=item.amount===null?"":Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" ");
+    return '<label class="week-ingredient"><input type="checkbox"><span>'+escapeHtml(quantity+item.name)+'</span></label>';
+  }).join("");
+}
 function renderWeekPlan(){
   const dates=getWeekDates(),first=dates[0].date,last=dates[4].date;
   const format=date=>date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
@@ -126,11 +139,29 @@ function renderWeekPlan(){
   $("#week-grid").innerHTML=dates.map(day=>{
     const meal=currentWeekMeals.find(item=>item.planned_for===day.iso);
     const options='<option value="">Noch kein Gericht ausgewählt</option>'+dishes.map(dish=>'<option value="'+escapeHtml(dish.id||dish.title)+'" '+((meal&&(meal.dish_id===dish.id||meal.preview_title===dish.title))?'selected':'')+'>'+escapeHtml(dish.title)+'</option>').join("");
-    return '<div class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><label>Abendessen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label><label>Portionen<input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+(meal?.servings||3)+'"></label></div>';
+    const selectedDish=meal?dishes.find(dish=>dish.id===meal.dish_id||dish.title===meal.preview_title):null;
+    const servings=meal?.servings||3;
+    const ingredientMarkup=selectedDish&&Array.isArray(selectedDish.ingredients)&&selectedDish.ingredients.length?'<strong class="week-ingredients-title">Zutaten</strong>'+selectedDish.ingredients.map(line=>{
+      const item=parseShoppingIngredient(line,servings/(Number(selectedDish.servings)||3));
+      const quantity=item.amount===null?"":Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" ");
+      return '<label class="week-ingredient"><input type="checkbox"><span>'+escapeHtml(quantity+item.name)+'</span></label>';
+    }).join(""):'<p class="week-ingredients-empty">Noch keine Zutaten – wähle ein Abendessen.</p>';
+    return '<div class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><label>Abendessen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label><label>Portionen<input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'"></label><div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></div>';
   }).join("");
-  $("#week-help").textContent=currentFamilyId?"Wählt für jeden Tag ein Gericht. Änderungen werden erst nach Klick auf „Wochenplan speichern“ übernommen.":"Vorschau: Zum dauerhaften Speichern bitte anmelden.";
+  $("#week-help").textContent=currentFamilyId?"Wählt für jeden Tag ein Gericht. Die Zutaten erscheinen direkt darunter. Änderungen werden erst nach Klick auf „Wochenplan speichern“ übernommen.":"Vorschau: Zum dauerhaften Speichern bitte anmelden.";
   $("#save-week-plan").disabled=!currentFamilyId;
 }
+$("#week-grid").addEventListener("change",event=>{
+  const control=event.target.closest(".week-dish-select,.week-servings");
+  if(!control)return;
+  const day=getWeekDates().find(item=>item.iso===control.dataset.date);
+  if(!day)return;
+  const dishes=visibleDishes.length?visibleDishes:starterDishes;
+  const select=document.querySelector('.week-dish-select[data-date="'+day.iso+'"]');
+  const servings=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
+  const dish=dishes.find(item=>String(item.id||item.title)===(select?.value||""));
+  renderWeekIngredients(day,dish,servings?.value||3);
+});
 async function loadWeekPlan(){
   if(!currentFamilyId){currentWeekMeals=[];renderWeekPlan();return;}
   const dates=getWeekDates();
@@ -190,29 +221,24 @@ function renderShoppingList(){
   });
   const totals=new Map(),missing=[];
   const formatQuantity=item=>item.amount===null?"":(Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" "));
-  const dailyCards=selected.map((entry,index)=>{
-    if(!entry)return '<article class="shopping-day-card shopping-day-empty"><div class="shopping-day-heading"><strong>'+escapeHtml(dates[index].name)+'</strong><span>'+escapeHtml(dates[index].date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}))+'</span></div><p>Kein Gericht geplant</p></article>';
-    const {day,dish,servings}=entry;
+  selected.filter(Boolean).forEach(({day,dish,servings})=>{
     const base=Number(dish.servings)||3;
     const ingredients=Array.isArray(dish.ingredients)?dish.ingredients:[];
     if(!ingredients.length)missing.push(dish.title);
-    const dailyItems=ingredients.map((line,index)=>{
+    ingredients.forEach(line=>{
       const item=parseShoppingIngredient(line,servings/base);
       const existing=totals.get(item.key);
       if(existing&&item.amount!==null&&existing.amount!==null)existing.amount+=item.amount;
       else if(!existing)totals.set(item.key,{...item,days:[day.name]});
       else if(!existing.days.includes(day.name))existing.days.push(day.name);
-      return '<label class="shopping-item"><input type="checkbox" data-shopping-day="'+day.iso+'" data-shopping-ingredient="'+index+'"><span><strong>'+escapeHtml(formatQuantity(item)+item.name)+'</strong></span></label>';
-    }).join("");
-    return '<article class="shopping-day-card"><div class="shopping-day-heading"><strong>'+escapeHtml(day.name)+'</strong><span>'+escapeHtml(day.date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}))+'</span></div><h3>'+escapeHtml(dish.title)+'</h3><div class="shopping-day-items">'+(dailyItems||'<p class="shopping-day-missing">Keine Zutaten hinterlegt</p>')+'</div></article>';
-  }).join("");
+    });
+  });
   const list=[...totals.values()].sort((a,b)=>a.name.localeCompare(b.name,"de"));
   currentShoppingIngredients=list.map(item=>item.name);
   const container=$("#shopping-list-items");
   container.innerHTML=list.length?list.map((item,index)=>{
     return '<label class="shopping-item"><input type="checkbox" data-shopping-item="'+index+'"><span><strong>'+escapeHtml(formatQuantity(item)+item.name)+'</strong><small>'+escapeHtml(item.days.join(", "))+'</small></span></label>';
   }).join(""):'<p class="notice">Wähle im Wochenplan zuerst mindestens ein Gericht aus.</p>';
-  $("#shopping-day-columns").innerHTML=dailyCards;
   $("#shopping-list-note").textContent=selected.filter(Boolean).length+" Gerichte berücksichtigt · "+list.length+" zusammengefasste Zutatenpositionen"+(missing.length?" · Für "+[...new Set(missing)].join(", ")+" fehlen noch Zutatenangaben.":"");
   $("#shopping-section").hidden=false;
   $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
