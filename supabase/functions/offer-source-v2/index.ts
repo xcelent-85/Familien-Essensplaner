@@ -244,12 +244,15 @@ function parsePriceTokens(block: string, allowNoCurrency: boolean): number[] {
 }
 
 function isRelevantFoodCandidate(name: string, source: StoreSource): boolean {
-  // ALDI-Angebotsseiten enthalten auch Drogerie-, Haushalts-, Tier-, Pflanzen- und Alkoholangebote.
-  // Diese Artikel sollen nicht in die Lebensmittelauswahl des Essensplaners gelangen.
-  if (source.retailerId !== "aldi-nord" && source.id !== "aldi-nord") return true;
-  return !/\b(?:waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps)?|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|pflanze|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?|whisky|whiskey|sekt|wein|likör|bier|schnaps|vodka|rum|gin)\b/i.test(name);
+  // Alkoholfreie Getränke bleiben erlaubt. Alkohol sowie Drogerie-, Haushalts-,
+  // Tier- und Non-Food-Artikel werden ausgeschlossen.
+  if (!/alkoholfrei/i.test(name) && /\b(?:bier|pils|helles|radler|veltins|sekt|prosecco|wein|blanchet|likör|whisky|whiskey|schnaps|vodka|wodka|rum|gin|spirituose)\b/i.test(name)) return false;
+  if (/\b(?:waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps|tabs)?|geschirrspül(?:mittel|tabs)|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|deo(?:spray)?|deodorant|kosmetik|shampoo|duschgel|zahnpasta|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|pflanze|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name)) return false;
+  if (source.retailerId === "aldi-nord" || source.id === "aldi-nord") {
+    return !/\b(?:pflanzen|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name);
+  }
+  return true;
 }
-
 function extractHeadingCandidates(html: string, source: StoreSource) {
   const headings = [...html.matchAll(/<(h[2-6])\b[^>]*>([\s\S]*?)<\/\1>/gi)];
   const candidates: Array<Record<string, unknown>> = [];
@@ -389,13 +392,16 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
     if (!prices.length) continue;
     const name = block
       .replace(/\b\d{1,3}\s*%\s*/g, " ")
+      .replace(/\b(?:tiefstpreis|uvp)\b/gi, " ")
       .replace(/(?:ab\s*)?\d{1,4}[.,]\d{2}\s*€/gi, " ")
+      .replace(/\b\d+(?:[.,]\d+)?\s*(?:€\s*)?(?:je|pro)\s*(?:kg|l|100\s*g|stück)\b/gi, " ")
+      .replace(/\b\d+\s*(?:[-–]\s*\d+)?\s*(?:g|kg|ml|l)\b/gi, " ")
       .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l)\b/gi, " ")
-      .replace(/\b(?:je|pro)\s+(?:kg|l|100 g)\b/gi, " ")
+      .replace(/\s*[-–]\s*(?=\s|$)/g, " ")
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 110);
-    if (name.length < 3) continue;
+    if (name.length < 3 || !isRelevantFoodCandidate(name, source)) continue;
     const key = name.toLocaleLowerCase("de-DE") + "|" + prices[0];
     if (seen.has(key)) continue;
     seen.add(key);
@@ -424,6 +430,7 @@ function extractCandidates(html: string, source: StoreSource) {
   const primary = source.id === "kaufland-neuruppin"
     || source.id === "netto-marken-discount"
     || source.id.endsWith("-meinprospekt")
+    || source.id.endsWith("-aktionspreis")
     ? []
     : extractHeadingCandidates(html, source);
   const secondary = extractKauflandLinkCandidates(html, source);
