@@ -406,6 +406,10 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
       // Verbliebene Grundpreis-Einheiten entfernen, wenn der Preis davor bereits entfernt wurde.
       .replace(/\bje\s*(?:kg|l|liter|100\s*g|stück)\b/gi, " ")
       .replace(/\bpro\s*(?:kg|l|liter|100\s*g|stück)\b/gi, " ")
+      // Mengenbereiche mit Einheit vollständig entfernen (z. B. 26 - 92g oder 750 - 1000ml).
+      .replace(/\\b\\d+(?:[.,]\\d+)?\\s*[-–]\\s*\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l)\\b/gi, " ")
+      // Mengenbereiche in Klammern entfernen (z. B. (750 - 1000ml) oder (69 - 140g)).
+      .replace(/\\(\\s*\\d+(?:[.,]\\d+)?\\s*[-–]\\s*\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l)\\s*\\)/gi, " ")
       // Dezimalmengen vollständig entfernen (z. B. 102,5g).
       .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l)\b/gi, " ")
       // Grundpreis je Stück inklusive Zahlenwert entfernen.
