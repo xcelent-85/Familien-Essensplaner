@@ -211,44 +211,42 @@ function renderShoppingList(){
 $("#create-shopping-list").addEventListener("click",renderShoppingList);
 
 let currentShoppingIngredients=[];
-function normalizeOfferWords(value){
-  const stopWords=new Set(["frisch","gehackte","gehackt","klein","kleine","gross","große","mittel","zum","für","und","oder","dose","dosen","packung","packungen","stück","stk"]);
-  return String(value||"").toLocaleLowerCase("de-DE").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .replace(/ß/g,"ss").replace(/[^a-z0-9]+/g," ").trim().split(/\s+/)
-    .filter(word=>word.length>=3&&!stopWords.has(word))
-    .map(word=>word.length>5?word.replace(/(ern|en|er|es|e|n|s)$/,""):word);
+function normalizeOfferText(value){
+  return String(value||"").toLocaleLowerCase("de-DE").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")
+    .replace(/ß/g,"ss").replace(/[^a-z0-9]+/g," ").trim();
+}
+function offerWords(value){
+  return normalizeOfferText(value).split(/\\s+/).filter(word=>word.length>=2);
 }
 function offerAliasPhrases(ingredient){
-  const words=normalizeOfferWords(ingredient);
-  const text=words.join(" ");
+  const text=normalizeOfferText(ingredient);
   const groups=[
-    {test:/\b(?:hackfleisch|hack|rinderhack|gemischtes hack)\b/,aliases:["hackfleisch","hack","rinderhack","gemischtes hack","gemischtes hackfleisch"]},
-    {test:/\b(?:mohre|mohren|karotte|karotten)\b/,aliases:["möhre","möhren","karotte","karotten"]},
-    {test:/\b(?:spaghetti|nudeln|penne|pasta)\b/,aliases:["spaghetti","spaghettoni","nudeln","pasta","penne"]},
-    {test:/\b(?:gehackte tomaten|tomaten)\b/,aliases:["gehackte tomaten","stückige tomaten","tomatenstücke","pizzatomaten","tomaten in stücken","tomaten"]},
-    {test:/\b(?:tomatenmark|tomatenpuree|tomatenkonzentrat)\b/,aliases:["tomatenmark","tomatenpüree","tomatenkonzentrat","tomatenpaste"]},
-    {test:/\b(?:zwiebel|zwiebeln)\b/,aliases:["zwiebel","zwiebeln","rote zwiebeln","gemüsezwiebel"]},
+    {test:/\\b(?:hackfleisch|hack|rinderhack|gemischtes hack)\\b/,aliases:["hackfleisch","hack","rinderhack","rinderhackfleisch","gemischtes hack","gemischtes hackfleisch","hackfleisch gemischt"]},
+    {test:/\\b(?:mohre|mohren|karotte|karotten)\\b/,aliases:["möhre","möhren","karotte","karotten","bundmöhren","bundkarotten"]},
+    {test:/\\b(?:spaghetti|nudeln|penne|pasta)\\b/,aliases:["spaghetti","spaghettoni","nudeln","pasta","penne"]},
+    {test:/\\b(?:gehackte tomaten|stuckige tomaten|tomatenstucke|tomaten)\\b/,aliases:["gehackte tomaten","stückige tomaten","tomatenstücke","pizzatomaten","tomaten in stücken","tomaten gehackt","tomaten"]},
+    {test:/\\b(?:tomatenmark|tomatenpuree|tomatenkonzentrat|tomatenpaste)\\b/,aliases:["tomatenmark","tomatenpüree","tomatenkonzentrat","tomatenpaste"]},
+    {test:/\\b(?:zwiebel|zwiebeln)\\b/,aliases:["zwiebel","zwiebeln","rote zwiebeln","gemüsezwiebel"]},
   ];
   const group=groups.find(item=>item.test.test(text));
   return group?group.aliases:[String(ingredient||"").trim()];
 }
 function phraseMatches(product,alias){
-  const productWords=normalizeOfferWords(product);
-  const aliasWords=normalizeOfferWords(alias);
+  const productWords=offerWords(product);
+  const aliasWords=offerWords(alias);
   if(!productWords.length||!aliasWords.length||aliasWords.length>productWords.length)return false;
   return productWords.some((_word,index)=>aliasWords.every((word,offset)=>productWords[index+offset]===word));
 }
 function findOfferMatches(ingredients,candidates){
   return candidates.map(candidate=>{
     const productName=String(candidate.productName||"");
+    const productWords=offerWords(productName);
     const matched=ingredients.filter(ingredient=>{
       const aliases=offerAliasPhrases(ingredient);
       if(aliases.some(alias=>phraseMatches(productName,alias)))return true;
-      // Für Zutaten ohne hinterlegte Synonyme bleibt ein vorsichtiger Wortvergleich.
       if(aliases.length===1&&aliases[0]===String(ingredient||"").trim()){
-        const words=normalizeOfferWords(ingredient);
-        const productWords=normalizeOfferWords(productName);
-        return words.some(word=>productWords.some(productWord=>productWord===word));
+        const words=offerWords(ingredient);
+        return words.some(word=>productWords.includes(word));
       }
       return false;
     });
