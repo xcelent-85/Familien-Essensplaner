@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.8";
+const APP_BUILD_ID="2026-11-22.9";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -274,10 +274,22 @@ function deduplicateOfferMatches(matches){
   });
   return [...unique.values()];
 }
+function canonicalFoodMerchant(value){
+  const name=String(value||"").trim();
+  const key=normalizeOfferKey(name);
+  if(/\\baldi nord\\b/.test(key)||key==="aldi nord")return "ALDI Nord";
+  if(/^lidl(?: |$)/.test(key))return "Lidl";
+  if(/^kaufland(?: |$)/.test(key))return "Kaufland";
+  if(/^rewe(?: |$)/.test(key))return "REWE";
+  if(/^netto marken discount(?: |$)/.test(key))return "Netto Marken-Discount";
+  if(/^netto mit (?:dem )?scottie(?: |$)/.test(key))return "Netto mit Scottie";
+  return null;
+}
 function buildMerchantOfferSummary(matches){
   const merchants=new Map();
   matches.forEach(item=>{
-    const name=String(item.sourceName||item.sourceId||"Angebotsquelle").trim();
+    const name=canonicalFoodMerchant(item.sourceName||item.sourceId);
+    if(!name)return;
     if(!merchants.has(name))merchants.set(name,{name,offers:[],ingredients:new Map()});
     const merchant=merchants.get(name);
     merchant.offers.push(item);
@@ -304,7 +316,7 @@ $("#search-meal-offers").addEventListener("click",async()=>{
     const {data,error}=await supabaseClient.functions.invoke("offer-source-v2",{body:{zip:zipInput,queries:searchQueries}});
     if(error)throw error;
     const sources=Array.isArray(data?.results)?data.results:[];
-    const candidates=sources.flatMap(source=>(source.candidates||[]).map(candidate=>({...candidate,sourceName:candidate.publisherName||source.name,sourceReachable:source.reachable})));
+    const candidates=sources.flatMap(source=>(source.candidates||[]).map(candidate=>({...candidate,sourceName:canonicalFoodMerchant(candidate.publisherName||source.name),sourceReachable:source.reachable})).filter(candidate=>candidate.sourceName));
     const rawMatches=findOfferMatches(currentShoppingIngredients,candidates);
     const matches=deduplicateOfferMatches(rawMatches);
     const merchants=buildMerchantOfferSummary(matches);
