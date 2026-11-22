@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.7";
+const APP_BUILD_ID="2026-11-22.8";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -258,6 +258,34 @@ function findOfferMatches(ingredients,candidates){
     return matched.length?{...candidate,matchedIngredients:matched}:null;
   }).filter(Boolean);
 }
+function normalizeOfferKey(value){
+  return String(value||"").toLocaleLowerCase("de").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+}
+function deduplicateOfferMatches(matches){
+  const unique=new Map();
+  matches.forEach(item=>{
+    const key=[item.sourceName||item.sourceId,item.productName,item.price,item.currency||"EUR",item.size||item.unit||""].map(normalizeOfferKey).join("|");
+    const existing=unique.get(key);
+    if(!existing){unique.set(key,{...item,matchedIngredients:[...(item.matchedIngredients||[])]});return;}
+    const ingredients=new Map((existing.matchedIngredients||[]).map(value=>[normalizeOfferKey(value),value]));
+    (item.matchedIngredients||[]).forEach(value=>ingredients.set(normalizeOfferKey(value),value));
+    existing.matchedIngredients=[...ingredients.values()];
+    if(!existing.sourceUrl&&item.sourceUrl)existing.sourceUrl=item.sourceUrl;
+  });
+  return [...unique.values()];
+}
+function buildMerchantOfferSummary(matches){
+  const merchants=new Map();
+  matches.forEach(item=>{
+    const name=String(item.sourceName||item.sourceId||"Angebotsquelle").trim();
+    if(!merchants.has(name))merchants.set(name,{name,offers:[],ingredients:new Map()});
+    const merchant=merchants.get(name);
+    merchant.offers.push(item);
+    (item.matchedIngredients||[]).forEach(value=>merchant.ingredients.set(normalizeOfferKey(value),value));
+  });
+  return [...merchants.values()].map(merchant=>({...merchant,ingredientCount:merchant.ingredients.size,ingredientNames:[...merchant.ingredients.values()]}))
+    .sort((a,b)=>b.ingredientCount-a.ingredientCount||b.offers.length-a.offers.length||a.name.localeCompare(b.name,"de"));
+}
 $("#search-meal-offers").addEventListener("click",async()=>{
   const button=$("#search-meal-offers"),message=$("#meal-offer-message"),results=$("#meal-offer-results");
   if(!currentShoppingIngredients.length){
@@ -277,16 +305,24 @@ $("#search-meal-offers").addEventListener("click",async()=>{
     if(error)throw error;
     const sources=Array.isArray(data?.results)?data.results:[];
     const candidates=sources.flatMap(source=>(source.candidates||[]).map(candidate=>({...candidate,sourceName:candidate.publisherName||source.name,sourceReachable:source.reachable})));
-    const matches=findOfferMatches(currentShoppingIngredients,candidates);
+    const rawMatches=findOfferMatches(currentShoppingIngredients,candidates);
+    const matches=deduplicateOfferMatches(rawMatches);
+    const merchants=buildMerchantOfferSummary(matches);
     if(!matches.length){
       results.innerHTML='<p class="notice">Bei den aktuell geprüften Angebotsquellen wurde kein eindeutiger Treffer für eure Zutaten gefunden. Das bedeutet nicht, dass die Produkte nicht im Markt erhältlich sind.</p>';
     }else{
-      results.innerHTML=matches.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0)).map(item=>
-        '<article class="offer-item"><div><strong>'+escapeHtml(item.productName)+'</strong><span>'+escapeHtml(item.sourceName||item.sourceId||"Angebotsquelle")+' · passend zu: '+escapeHtml(item.matchedIngredients.join(", "))+(item.regionality==="not_confirmed_for_neuruppin"?" · regional nicht bestätigt":" · regionale Verfügbarkeit bitte prüfen")+'</span><a href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle öffnen ↗</a></div><strong class="offer-price">'+Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"})+'</strong></article>'
-      ).join("");
+      const best=merchants[0];
+      const summary='<section class="merchant-recommendation"><p class="merchant-kicker">EINKAUFSEMPFEHLUNG · PLZ '+escapeHtml(zipInput)+'</p><h3>'+escapeHtml(best.name)+'</h3><p>Hier gibt es die größte Abdeckung eurer Einkaufsliste: <strong>'+best.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten</strong> mit '+best.offers.length+' unterschiedlichen Angebotsvorschlägen.</p><small>Sortiert nach Zutatenabdeckung, danach Anzahl der Angebote. Preise werden wegen unterschiedlicher Packungsgrößen nicht pauschal addiert.</small></section>';
+      const merchantCards=merchants.map((merchant,index)=>{
+        const items=merchant.offers.slice().sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0)).map(item=>
+          '<article class="offer-item"><div><strong>'+escapeHtml(item.productName)+'</strong><span>Passt zu: '+escapeHtml((item.matchedIngredients||[]).join(", "))+(item.regionality==="not_confirmed_for_neuruppin"?" · regional nicht bestätigt":" · regionale Verfügbarkeit bitte prüfen")+'</span><a href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle öffnen ↗</a></div><strong class="offer-price">'+(Number.isFinite(Number(item.price))?Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"}):"Preis prüfen")+'</strong></article>'
+        ).join("");
+        return '<details class="merchant-group"'+(index===0?' open':'')+'><summary><span><strong>'+escapeHtml(merchant.name)+'</strong><small>'+merchant.ingredientCount+' Zutaten · '+merchant.offers.length+' Angebote</small></span><span class="merchant-group-action">'+(index===0?'Bester Treffer':'Angebote ansehen')+'</span></summary><div class="merchant-offers">'+items+'</div></details>';
+      }).join("");
+      results.innerHTML=summary+'<div class="merchant-results-heading"><h3>Händlervergleich</h3><span>'+matches.length+' eindeutige Angebote</span></div>'+merchantCards;
     }
     const unreachable=sources.filter(source=>!source.reachable).length;
-    message.textContent=matches.length+" passende Angebotsvorschläge für PLZ "+zipInput+" gefunden · "+sources.length+" Quellen geprüft"+(unreachable?" · "+unreachable+" Quellen nicht erreichbar":"")+".";
+    message.textContent=matches.length+" eindeutige Angebotsvorschläge für PLZ "+zipInput+" gefunden · "+sources.length+" Quellen geprüft"+(unreachable?" · "+unreachable+" Quellen nicht erreichbar":"")+".";
     const sourceDiagnostics=sources.map(source=>{
       const sourceCandidates=source.candidates||[];
       const count=Number(source.candidateCount??sourceCandidates.length)||0;
