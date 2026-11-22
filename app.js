@@ -1,16 +1,16 @@
 const starterDishes = [
-  {title:"Spaghetti Bolognese",category:"Italienisch",prep_minutes:10,cook_minutes:20},
-  {title:"Hähnchen-Gemüse-Pfanne",category:"Pfanne",prep_minutes:10,cook_minutes:10},
-  {title:"Kartoffelgratin mit Salat",category:"Vegetarisch",prep_minutes:15,cook_minutes:30},
-  {title:"Wraps mit Hähnchen",category:"Schnell",prep_minutes:10,cook_minutes:10},
-  {title:"Nudel-Schinken-Auflauf",category:"Ofengericht",prep_minutes:10,cook_minutes:25},
-  {title:"Curry mit Reis",category:"Vegetarisch",prep_minutes:10,cook_minutes:15},
-  {title:"Frikadellen mit Kartoffeln",category:"Klassiker",prep_minutes:15,cook_minutes:20},
-  {title:"Ofengemüse mit Feta",category:"Vegetarisch",prep_minutes:10,cook_minutes:20},
-  {title:"Tomatensuppe mit Brot",category:"Schnell",prep_minutes:5,cook_minutes:15},
-  {title:"Lachs mit Ofenkartoffeln",category:"Fisch",prep_minutes:10,cook_minutes:20},
-  {title:"Penne in Tomatensoße",category:"Italienisch",prep_minutes:5,cook_minutes:15},
-  {title:"Bauernomelett",category:"Schnell",prep_minutes:5,cook_minutes:10}
+  {title:"Spaghetti Bolognese",category:"Italienisch",prep_minutes:10,cook_minutes:20,servings:3,ingredients:["300 g Spaghetti","300 g Hackfleisch","1 Zwiebel","1 Möhre","1 Dose gehackte Tomaten","2 EL Tomatenmark"]},
+  {title:"Hähnchen-Gemüse-Pfanne",category:"Pfanne",prep_minutes:10,cook_minutes:10,servings:3,ingredients:["400 g Hähnchenbrust","1 Paprika","1 Zucchini","1 Zwiebel","2 EL Öl","200 g Reis"]},
+  {title:"Kartoffelgratin mit Salat",category:"Vegetarisch",prep_minutes:15,cook_minutes:30,servings:3,ingredients:["800 g Kartoffeln","200 ml Sahne","150 g geriebener Käse","1 Kopf grüner Salat","2 EL Essig","2 EL Öl"]},
+  {title:"Wraps mit Hähnchen",category:"Schnell",prep_minutes:10,cook_minutes:10,servings:3,ingredients:["3 Weizentortillas","300 g Hähnchenbrust","1 Paprika","1 kleine Dose Mais","100 g Joghurt","1 Salatgurke"]},
+  {title:"Nudel-Schinken-Auflauf",category:"Ofengericht",prep_minutes:10,cook_minutes:25,servings:3,ingredients:["300 g Nudeln","150 g Kochschinken","200 ml Sahne","150 g geriebener Käse","1 Ei"]},
+  {title:"Curry mit Reis",category:"Vegetarisch",prep_minutes:10,cook_minutes:15,servings:3,ingredients:["200 g Reis","1 Dose Kichererbsen","1 Dose Kokosmilch","300 g Gemüse","2 EL Currypaste"]},
+  {title:"Frikadellen mit Kartoffeln",category:"Klassiker",prep_minutes:15,cook_minutes:20,servings:3,ingredients:["400 g Hackfleisch","1 Ei","1 Zwiebel","3 EL Paniermehl","700 g Kartoffeln","1 EL Öl"]},
+  {title:"Ofengemüse mit Feta",category:"Vegetarisch",prep_minutes:10,cook_minutes:20,servings:3,ingredients:["2 Paprika","1 Zucchini","500 g Kartoffeln","200 g Feta","2 EL Öl"]},
+  {title:"Tomatensuppe mit Brot",category:"Schnell",prep_minutes:5,cook_minutes:15,servings:3,ingredients:["2 Dosen gehackte Tomaten","1 Zwiebel","500 ml Gemüsebrühe","100 ml Sahne","1 Baguette"]},
+  {title:"Lachs mit Ofenkartoffeln",category:"Fisch",prep_minutes:10,cook_minutes:20,servings:3,ingredients:["3 Lachsfilets","700 g Kartoffeln","1 Zitrone","2 EL Öl","150 g Joghurt"]},
+  {title:"Penne in Tomatensoße",category:"Italienisch",prep_minutes:5,cook_minutes:15,servings:3,ingredients:["300 g Penne","1 Dose gehackte Tomaten","1 Zwiebel","2 EL Tomatenmark","50 g Parmesan"]},
+  {title:"Bauernomelett",category:"Schnell",prep_minutes:5,cook_minutes:10,servings:3,ingredients:["6 Eier","400 g Kartoffeln","1 Paprika","1 Zwiebel","100 ml Milch"]}
 ];
 const $=selector=>document.querySelector(selector);
 const showButton=$("#show-dishes"),dishSection=$("#dishes-section"),dishGrid=$("#dish-grid");
@@ -165,6 +165,49 @@ $("#save-week-plan").addEventListener("click",async()=>{
   $("#week-message").textContent=meals.length+" Abendessen gespeichert.";
   await loadWeekPlan();
 });
+
+function parseShoppingIngredient(line, factor){
+  const text=String(line||"").trim();
+  const match=text.match(/^([0-9]+(?:[.,][0-9]+)?)\\s*(kg|g|l|ml|EL|TL|Stück|Stk\\.?|Dose|Dosen|Packung|Packungen)?\\s+(.+)$/i);
+  if(!match)return {name:text,amount:null,unit:"",key:text.toLocaleLowerCase("de-DE")};
+  const amount=Number(match[1].replace(",","."))*factor;
+  const unit=(match[2]||"").toLowerCase();
+  const name=match[3].trim();
+  return {name,amount,unit,key:(name+"|"+unit).toLocaleLowerCase("de-DE")};
+}
+function renderShoppingList(){
+  const dates=getWeekDates();
+  const dishes=visibleDishes.length?visibleDishes:starterDishes;
+  const selected=dates.map(day=>{
+    const select=document.querySelector('.week-dish-select[data-date="'+day.iso+'"]');
+    const servingsInput=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
+    const value=select?.value||"";
+    const dish=dishes.find(item=>String(item.id||item.title)===value);
+    return dish?{day,dish,servings:Math.max(1,Number(servingsInput?.value)||3)}:null;
+  }).filter(Boolean);
+  const totals=new Map(),missing=[];
+  selected.forEach(({day,dish,servings})=>{
+    const base=Number(dish.servings)||3;
+    if(!Array.isArray(dish.ingredients)||!dish.ingredients.length){missing.push(dish.title);return;}
+    dish.ingredients.forEach(line=>{
+      const item=parseShoppingIngredient(line,servings/base);
+      const existing=totals.get(item.key);
+      if(existing&&item.amount!==null&&existing.amount!==null)existing.amount+=item.amount;
+      else if(!existing)totals.set(item.key,{...item,days:[day.name]});
+      else if(!existing.days.includes(day.name))existing.days.push(day.name);
+    });
+  });
+  const list=[...totals.values()].sort((a,b)=>a.name.localeCompare(b.name,"de"));
+  const container=$("#shopping-list-items");
+  container.innerHTML=list.length?list.map((item,index)=>{
+    const quantity=item.amount===null?"":(Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" "));
+    return '<label class="shopping-item"><input type="checkbox" data-shopping-item="'+index+'"><span><strong>'+escapeHtml(quantity+item.name)+'</strong><small>'+escapeHtml(item.days.join(", "))+'</small></span></label>';
+  }).join(""):'<p class="notice">Wähle im Wochenplan zuerst mindestens ein Gericht aus.</p>';
+  $("#shopping-list-note").textContent=selected.length+" Gerichte berücksichtigt · "+list.length+" Zutatenpositionen"+(missing.length?" · Für "+missing.join(", ")+" fehlen noch Zutatenangaben.":"");
+  $("#shopping-section").hidden=false;
+  $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("#create-shopping-list").addEventListener("click",renderShoppingList);
 
 if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
   supabaseClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
