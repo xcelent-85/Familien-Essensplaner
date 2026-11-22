@@ -253,7 +253,7 @@ function parsePriceTokens(block: string, allowNoCurrency: boolean): number[] {
 function isRelevantFoodCandidate(name: string, source: StoreSource): boolean {
   // Alkoholfreie Getränke bleiben erlaubt. Alkohol sowie Drogerie-, Haushalts-,
   // Tier- und Non-Food-Artikel werden ausgeschlossen.
-  if (!/alkoholfrei/i.test(name) && /\b(?:bier|pils|helles|radler|veltins|büble|light live|sekt|prosecco|wein|blanchet|likör|whisky|whiskey|schnaps|vodka|wodka|rum|gin|sarti|aperitif|spirituose)\b/i.test(name)) return false;
+  if (!/alkoholfrei/i.test(name) && /\b(?:bier|pils|helles|radler|veltins|büble|light live|sekt|prosecco|wein|glühwein|gluehwein|blanchet|likör|whisky|whiskey|schnaps|vodka|wodka|rum|gin|sarti|aperitif|spirituose)\b/i.test(name)) return false;
   if (/\b(?:somat|waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps|tabs)?|geschirrspül(?:mittel|tabs)|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|klebestift(?:e)?|kleber|tesa|kugelschreiber|druckerpapier|heft(?:e)?|ordner|marker|deo(?:spray)?|deodorant|kosmetik|shampoo|duschgel|zahnpasta|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|pflanze|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?|rc[- ]?(?:fahrzeug|auto|modell)|frischhaltedosen?|schnellkochtopf|kochtopf|pfanne|geschirr|haushaltswaren|küchenhelfer|spielzeug|modellbau)\b/i.test(name)) return false;
   if (source.retailerId === "aldi-nord" || source.id === "aldi-nord") {
     return !/\b(?:pflanzen|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name);
@@ -474,6 +474,8 @@ function extractNettoMeinProspektOfferGridCandidates(html: string, source: Store
 
     // MeinProspekt-Karten zeigen Marke und Produktname in getrennten p-Elementen.
     const name = paragraphs.slice(-2).join(" ").replace(/\s+/g, " ").trim().slice(0, 110);
+    // Datums- und Gültigkeitstexte aus dem Prospekt-Footer sind keine Produktnamen.
+    if (/\b(?:mo|di|mi|do|fr|sa|so)\.\s*\d{1,2}\.\d{1,2}|\b(?:gültig bis|gültig vom|weitere angebote|top angebote|dein markt)\b/i.test(name)) continue;
     if (name.length < 3 || !isRelevantFoodCandidate(name, source)) continue;
     // Zusätzliche Absicherung gegen typische Schreibwaren-/Büroartikel in Prospektkarten.
     if (/\b(?:klebestift(?:e)?|kleber|tesa|kugelschreiber|druckerpapier|heft(?:e)?|ordner|marker)\b/i.test(name)) continue;
