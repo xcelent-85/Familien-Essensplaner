@@ -1,7 +1,7 @@
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://xcelent-85.github.io",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
 type StoreSource = {
@@ -668,7 +668,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
-  if (req.method !== "GET") {
+  if (req.method !== "GET" && req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Nur GET ist erlaubt." }), {
       status: 405,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -676,8 +676,14 @@ Deno.serve(async (req: Request) => {
   }
 
   const requestUrl = new URL(req.url);
-  const zip = requestUrl.searchParams.get("zip") ?? "16816";
-  const queries = [...new Set(requestUrl.searchParams.getAll("q").map((value) => value.trim()).filter(Boolean))].slice(0, 8);
+  const requestBody = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+  const zipInput = typeof requestBody.zip === "string" ? requestBody.zip : requestUrl.searchParams.get("zip");
+  const zip = zipInput ?? "16816";
+  const bodyQueries = Array.isArray(requestBody.queries) ? requestBody.queries : [];
+  const queries = [...new Set([
+    ...requestUrl.searchParams.getAll("q"),
+    ...bodyQueries.filter((value: unknown): value is string => typeof value === "string"),
+  ].map((value) => value.trim()).filter(Boolean))].slice(0, 8);
   let kaufdaResult: Record<string, unknown>;
   try {
     const location = await resolveKaufdaLocation(zip);
