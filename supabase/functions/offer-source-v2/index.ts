@@ -426,7 +426,7 @@ function extractCandidates(html: string, source: StoreSource) {
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).slice(0, 120);
+  }).slice(0, 200);
 }
 
 Deno.serve(async (req: Request) => {
