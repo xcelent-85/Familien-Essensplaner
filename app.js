@@ -209,6 +209,51 @@ function renderShoppingList(){
 }
 $("#create-shopping-list").addEventListener("click",renderShoppingList);
 
+// Angebotsverwaltung: lokale Vormerkung als erster Schritt zur Angebotsintegration.
+const OFFER_STORAGE_KEY="familien-essensplaner-offers-v1";
+function readOffers(){
+  try{return JSON.parse(localStorage.getItem(OFFER_STORAGE_KEY)||"[]");}
+  catch(error){return [];}
+}
+let savedOffers=readOffers();
+function renderOffers(){
+  const list=$("#offer-list");
+  if(!list)return;
+  $("#offer-count").textContent=savedOffers.length+" Angebote";
+  if(!savedOffers.length){
+    list.innerHTML='<p class="notice">Noch keine Angebote eingetragen. Öffne oben einen Prospekt und füge passende Lebensmittel hinzu.</p>';
+    return;
+  }
+  list.innerHTML=savedOffers.slice().sort((a,b)=>a.store.localeCompare(b.store,"de")||a.product.localeCompare(b.product,"de")).map(item=>
+    '<article class="offer-item"><div><strong>'+escapeHtml(item.product)+'</strong><span>'+escapeHtml(item.store)+(item.size?" · "+escapeHtml(item.size):"")+(item.until?" · gültig bis "+escapeHtml(new Date(item.until+"T12:00:00").toLocaleDateString("de-DE")):"")+'</span></div><strong class="offer-price">'+item.price.toLocaleString("de-DE",{style:"currency",currency:"EUR"})+'</strong><button type="button" class="offer-delete" data-offer-id="'+item.id+'" aria-label="Angebot löschen">×</button></article>'
+  ).join("");
+}
+$("#show-offers").addEventListener("click",()=>{
+  $("#offers-section").hidden=false;
+  renderOffers();
+  $("#offers-section").scrollIntoView({behavior:"smooth",block:"start"});
+});
+$("#offer-form").addEventListener("submit",event=>{
+  event.preventDefault();
+  const product=$("#offer-product").value.trim();
+  const price=Number($("#offer-price").value.replace(",","."));
+  if(!product||!Number.isFinite(price)||price<=0){$("#offer-message").textContent="Bitte Produkt und einen gültigen Preis eintragen.";return;}
+  savedOffers.push({id:String(Date.now())+"-"+Math.random().toString(36).slice(2,7),store:$("#offer-store").value,product,price,size:$("#offer-size").value.trim(),until:$("#offer-until").value});
+  try{localStorage.setItem(OFFER_STORAGE_KEY,JSON.stringify(savedOffers));}
+  catch(error){$("#offer-message").textContent="Speichern im Browser ist nicht möglich. Bitte Speicherplatz oder Browsereinstellungen prüfen.";return;}
+  $("#offer-form").reset();
+  $("#offer-message").textContent="Angebot wurde auf diesem Gerät gespeichert.";
+  renderOffers();
+});
+$("#offer-list").addEventListener("click",event=>{
+  const button=event.target.closest("[data-offer-id]");
+  if(!button)return;
+  savedOffers=savedOffers.filter(item=>item.id!==button.dataset.offerId);
+  localStorage.setItem(OFFER_STORAGE_KEY,JSON.stringify(savedOffers));
+  renderOffers();
+});
+renderOffers();
+
 if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
   supabaseClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
   supabaseClient.auth.getSession().then(async({data,error})=>{if(error)showMessage(error.message);setSession(data?.session);if(data?.session?.user)await loadOrCreateFamily(data.session.user);});
