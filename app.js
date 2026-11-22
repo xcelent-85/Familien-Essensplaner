@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.11";
+const APP_BUILD_ID="2026-11-22.12";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
