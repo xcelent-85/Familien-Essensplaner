@@ -168,7 +168,7 @@ $("#save-week-plan").addEventListener("click",async()=>{
 
 function parseShoppingIngredient(line, factor){
   const text=String(line||"").trim();
-  const match=text.match(/^([0-9]+(?:[.,][0-9]+)?)\s*(kg|g|l|ml|EL|TL|Stück|Stk\\.?|Dose|Dosen|Packung|Packungen)?\s+(.+)$/i);
+  const match=text.match(/^([0-9]+(?:[.,][0-9]+)?)\s*(kg|g|l|ml|EL|TL|Stück|Stk\.?|Dose|Dosen|Packung|Packungen)?\s+(.+)$/i);
   if(!match)return {name:text,amount:null,unit:"",key:text.toLocaleLowerCase("de-DE")};
   const amount=Number(match[1].replace(",","."))*factor;
   const unit=(match[2]||"").toLowerCase();
