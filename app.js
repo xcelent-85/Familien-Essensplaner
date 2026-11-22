@@ -277,7 +277,7 @@ function deduplicateOfferMatches(matches){
 function canonicalFoodMerchant(value){
   const name=String(value||"").trim();
   const key=normalizeOfferKey(name);
-  if(/\\baldi nord\\b/.test(key)||key==="aldi nord")return "ALDI Nord";
+  if(/\baldi nord\b/.test(key)||key==="aldi nord")return "ALDI Nord";
   if(/^lidl(?: |$)/.test(key))return "Lidl";
   if(/^kaufland(?: |$)/.test(key))return "Kaufland";
   if(/^rewe(?: |$)/.test(key))return "REWE";
