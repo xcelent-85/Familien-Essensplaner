@@ -222,12 +222,12 @@ function offerAliasPhrases(ingredient){
   const words=normalizeOfferWords(ingredient);
   const text=words.join(" ");
   const groups=[
-    {test:/\\b(?:hackfleisch|hack|rinderhack|gemischtes hack)\\b/,aliases:["hackfleisch","hack","rinderhack","gemischtes hack","gemischtes hackfleisch"]},
-    {test:/\\b(?:mohre|mohren|karotte|karotten)\\b/,aliases:["möhre","möhren","karotte","karotten"]},
-    {test:/\\b(?:spaghetti|nudeln|penne|pasta)\\b/,aliases:["spaghetti","spaghettoni","nudeln","pasta","penne"]},
-    {test:/\\b(?:gehackte tomaten|tomaten)\\b/,aliases:["gehackte tomaten","stückige tomaten","tomatenstücke","pizzatomaten","tomaten in stücken","tomaten"]},
-    {test:/\\b(?:tomatenmark|tomatenpuree|tomatenkonzentrat)\\b/,aliases:["tomatenmark","tomatenpüree","tomatenkonzentrat","tomatenpaste"]},
-    {test:/\\b(?:zwiebel|zwiebeln)\\b/,aliases:["zwiebel","zwiebeln","rote zwiebeln","gemüsezwiebel"]},
+    {test:/\b(?:hackfleisch|hack|rinderhack|gemischtes hack)\b/,aliases:["hackfleisch","hack","rinderhack","gemischtes hack","gemischtes hackfleisch"]},
+    {test:/\b(?:mohre|mohren|karotte|karotten)\b/,aliases:["möhre","möhren","karotte","karotten"]},
+    {test:/\b(?:spaghetti|nudeln|penne|pasta)\b/,aliases:["spaghetti","spaghettoni","nudeln","pasta","penne"]},
+    {test:/\b(?:gehackte tomaten|tomaten)\b/,aliases:["gehackte tomaten","stückige tomaten","tomatenstücke","pizzatomaten","tomaten in stücken","tomaten"]},
+    {test:/\b(?:tomatenmark|tomatenpuree|tomatenkonzentrat)\b/,aliases:["tomatenmark","tomatenpüree","tomatenkonzentrat","tomatenpaste"]},
+    {test:/\b(?:zwiebel|zwiebeln)\b/,aliases:["zwiebel","zwiebeln","rote zwiebeln","gemüsezwiebel"]},
   ];
   const group=groups.find(item=>item.test.test(text));
   return group?group.aliases:[String(ingredient||"").trim()];
