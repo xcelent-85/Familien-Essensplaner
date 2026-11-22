@@ -216,6 +216,7 @@ function roundPrice(value: number): number {
 
 function extractQuantityCondition(text: string): string | undefined {
   const patterns = [
+    /(\d{1,3})\s*(?:stück|stk\.?)\s+entspr\.?\s+pro\s+(?:beutel|packung)/i,
     /(?:ab|bei\s+(?:einem?\s+)?kauf\s+von|beim\s+kauf\s+von|mindestens|nur\s+bei\s+abnahme\s+von)\s+(\d{1,3})\s*(?:stück|stk\.?|packungen|packungen?)/i,
     /(?:kauf|abnahme)\s+von\s+(\d{1,3})\s*(?:stück|stk\.?|packungen?)/i,
   ];
@@ -228,7 +229,7 @@ function extractQuantityCondition(text: string): string | undefined {
 
 function parsePriceTokens(block: string, allowNoCurrency: boolean): number[] {
   const values: number[] = [];
-  const currencyPattern = /(?:€\s*)?(\d{1,4})[.,](\d{2}|[–-])\s*€?/g;
+  const currencyPattern = /(?:€\s*)?(\d{1,4})[.,](\d{2}|[–-])(?!\s*-?\s*(?:kg|g|ml|l)\b)\s*€?/g;
   for (const match of block.matchAll(currencyPattern)) {
     const value = Number(match[1]) + (match[2] === "–" || match[2] === "-" ? 0 : Number(match[2]) / 100);
     if (Number.isFinite(value) && value > 0 && value < 1000) values.push(value);
@@ -289,9 +290,12 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
   for (const match of html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)) {
     const text = cleanText(match[1]);
     if (text.length < 8 || text.length > 260) continue;
+    if (/\b(?:gültig\s+vom|jetzt\s+blättern|leckere\s+rezepte|rezepte\s+jeden\s+tag|rezeptidee\s+finden)\b/i.test(text)) continue;
 
-    // Grundpreisangaben dürfen weder als Angebotspreis noch im Produktnamen landen.
-    const withoutUnitPrice = text.replace(/\(\s*1\s*(?:kg|l)\s*=[^)]*\)/gi, " ");
+    // Grundpreise und Preise pro Anwendung sind keine Angebotspreise.
+    const withoutUnitPrice = text
+      .replace(/\(\s*1\s*(?:kg|l)\s*=[^)]*\)/gi, " ")
+      .replace(/\(\s*pro\s+Anwendung\s*=[^)]*\)/gi, " ");
     const cardMarker = /mit\s+kaufland\s+card(?:\s+xtra)?/i.exec(withoutUnitPrice);
     const cardIndex = cardMarker?.index ?? -1;
     const beforeCard = cardIndex >= 0 ? withoutUnitPrice.slice(0, cardIndex) : withoutUnitPrice;
@@ -329,9 +333,10 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
 
     const name = text
       .replace(/\(\s*1\s*(?:kg|l)\s*=[^)]*\)/gi, " ")
+      .replace(/\(\s*pro\s+Anwendung\s*=[^)]*\)/gi, " ")
       .replace(/mit\s+kaufland\s+card(?:\s+xtra)?/gi, " ")
       .replace(/-\s*\d{1,2}\s*%/g, " ")
-      .replace(/\b(?:nur\s*)?\d{1,4}[.,]\d{2}\s*€?/gi, " ")
+      .replace(/\b(?:nur\s*)?\d{1,4}[.,]\d{2}(?!\s*-?\s*(?:kg|g|ml|l)\b)\s*€?/gi, " ")
       .replace(/\*+/g, " ")
       .replace(/\s*\/\s*/g, " / ")
       .replace(/(?:\s*\/\s*)+$/g, "")
