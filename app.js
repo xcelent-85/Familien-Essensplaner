@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.2";
+const APP_BUILD_ID="2026-11-22.3";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -215,21 +215,21 @@ $("#create-shopping-list").addEventListener("click",renderShoppingList);
 
 let currentShoppingIngredients=[];
 function normalizeOfferText(value){
-  return String(value||"").toLocaleLowerCase("de-DE").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")
+  return String(value||"").toLocaleLowerCase("de-DE").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .replace(/ß/g,"ss").replace(/[^a-z0-9]+/g," ").trim();
 }
 function offerWords(value){
-  return normalizeOfferText(value).split(/\\s+/).filter(word=>word.length>=2);
+  return normalizeOfferText(value).split(/\s+/).filter(word=>word.length>=2);
 }
 function offerAliasPhrases(ingredient){
   const text=normalizeOfferText(ingredient);
   const groups=[
-    {test:/\\b(?:hackfleisch|hack|rinderhack|gemischtes hack)\\b/,aliases:["hackfleisch","hack","rinderhack","rinderhackfleisch","gemischtes hack","gemischtes hackfleisch","hackfleisch gemischt"]},
-    {test:/\\b(?:mohre|mohren|karotte|karotten)\\b/,aliases:["möhre","möhren","karotte","karotten","bundmöhren","bundkarotten"]},
-    {test:/\\b(?:spaghetti|nudeln|penne|pasta)\\b/,aliases:["spaghetti","spaghettoni","nudeln","pasta","penne"]},
-    {test:/\\b(?:gehackte tomaten|stuckige tomaten|tomatenstucke|tomaten)\\b/,aliases:["gehackte tomaten","stückige tomaten","tomatenstücke","pizzatomaten","tomaten in stücken","tomaten gehackt","tomaten"]},
-    {test:/\\b(?:tomatenmark|tomatenpuree|tomatenkonzentrat|tomatenpaste)\\b/,aliases:["tomatenmark","tomatenpüree","tomatenkonzentrat","tomatenpaste"]},
-    {test:/\\b(?:zwiebel|zwiebeln)\\b/,aliases:["zwiebel","zwiebeln","rote zwiebeln","gemüsezwiebel"]},
+    {test:/\b(?:hackfleisch|hack|rinderhack|gemischtes hack)\b/,aliases:["hackfleisch","hack","rinderhack","rinderhackfleisch","gemischtes hack","gemischtes hackfleisch","hackfleisch gemischt"]},
+    {test:/\b(?:mohre|mohren|karotte|karotten)\b/,aliases:["möhre","möhren","karotte","karotten","bundmöhren","bundkarotten"]},
+    {test:/\b(?:spaghetti|nudeln|penne|pasta)\b/,aliases:["spaghetti","spaghettoni","nudeln","pasta","penne"]},
+    {test:/\b(?:gehackte tomaten|stuckige tomaten|tomatenstucke|tomaten)\b/,aliases:["gehackte tomaten","stückige tomaten","tomatenstücke","pizzatomaten","tomaten in stücken","tomaten gehackt","tomaten"]},
+    {test:/\b(?:tomatenmark|tomatenpuree|tomatenkonzentrat|tomatenpaste)\b/,aliases:["tomatenmark","tomatenpüree","tomatenkonzentrat","tomatenpaste"]},
+    {test:/\b(?:zwiebel|zwiebeln)\b/,aliases:["zwiebel","zwiebeln","rote zwiebeln","gemüsezwiebel"]},
   ];
   const group=groups.find(item=>item.test.test(text));
   return group?group.aliases:[String(ingredient||"").trim()];
