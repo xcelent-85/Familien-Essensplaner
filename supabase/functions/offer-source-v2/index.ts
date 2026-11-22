@@ -466,7 +466,7 @@ function extractNettoMeinProspektOfferGridCandidates(html: string, source: Store
 
     const paragraphs = [...card.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
       .map((match) => cleanText(match[1]))
-      .filter((value) => value.length > 0 && !/^netto marken-discount$/i.test(value) && !/[€]|\\b(?:kg|100\\s*g|ml|liter)\\b/i.test(value));
+      .filter((value) => value.length > 0 && !/^netto marken-discount$/i.test(value) && !/[€]|\b(?:kg|100\s*g|ml|liter)\b/i.test(value));
     if (!paragraphs.length) continue;
 
     // MeinProspekt-Karten zeigen Marke und Produktname in getrennten p-Elementen.
