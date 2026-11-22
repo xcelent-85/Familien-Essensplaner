@@ -415,8 +415,12 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
 
 function extractCandidates(html: string, source: StoreSource) {
   // Kaufland-Filialseiten enthalten Service-Überschriften mit fremden Preisen.
-  // Dort ausschließlich echte Angebotslinks auswerten.
-  const primary = source.id === "kaufland-neuruppin" ? [] : extractHeadingCandidates(html, source);
+  // Netto-Marken-Discount-Filialseiten enthalten Navigations-, Filial- und Bewertungsdaten,
+  // aber keine zuverlässig erkennbaren Angebotskarten. Dort keine Überschriften auswerten.
+  // Für Netto bleiben die getrennten Prospektquellen (MeinProspekt/Aktionspreis) aktiv.
+  const primary = source.id === "kaufland-neuruppin" || source.id === "netto-marken-discount"
+    ? []
+    : extractHeadingCandidates(html, source);
   const secondary = extractKauflandLinkCandidates(html, source);
   const tertiary = extractAktionspreisLinkCandidates(html, source);
   const merged = [...primary, ...secondary, ...tertiary];
