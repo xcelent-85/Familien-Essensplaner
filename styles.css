@@ -57,3 +57,29 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
   .merchant-summary-main>small{font-size:10px}
   .merchant-group-action{font-size:10px;padding:6px 7px}
 }
+
+/* Einkaufsliste passend zum Wochenplan: Zutaten je Wochentag */
+.shopping-day-columns{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:14px 0 18px}
+.shopping-day-card{min-width:0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.shopping-day-card .shopping-day-heading{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.shopping-day-heading strong{font-size:13px;color:var(--green-dark)}
+.shopping-day-heading span{font-size:11px;color:var(--muted)}
+.shopping-day-card h3{font-size:12px;line-height:1.35;margin:0 0 10px;overflow-wrap:anywhere}
+.shopping-day-items{display:grid;gap:6px}
+.shopping-day-card .shopping-item{padding:7px 6px;gap:7px;border-radius:7px}
+.shopping-day-card .shopping-item input{width:15px;height:15px}
+.shopping-day-card .shopping-item strong{font-size:11px;line-height:1.35}
+.shopping-day-empty{background:#f8faf8}
+.shopping-day-empty p,.shopping-day-missing{font-size:11px;color:var(--muted);margin:0}
+.shopping-total-details{background:#fff;border:1px solid var(--line);border-radius:12px;margin:16px 0}
+.shopping-total-details>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;cursor:pointer;list-style:none}
+.shopping-total-details>summary::-webkit-details-marker{display:none}
+.shopping-total-details>summary>span:first-child{display:grid;gap:3px}
+.shopping-total-details>summary strong{font-size:13px;color:var(--green-dark)}
+.shopping-total-details>summary small{font-size:11px;color:var(--muted)}
+.shopping-total-toggle{font-size:11px;font-weight:700;color:var(--green);white-space:nowrap}
+.shopping-total-details[open] .shopping-total-toggle{font-size:0}
+.shopping-total-details[open] .shopping-total-toggle:after{content:"Einklappen";font-size:11px}
+.shopping-total-details .shopping-list-items{padding:0 12px 12px;margin-top:0}
+@media(max-width:900px){.shopping-day-columns{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.shopping-day-columns{grid-template-columns:1fr}.shopping-day-card{padding:14px}}
