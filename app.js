@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.17";
+const APP_BUILD_ID="2026-11-22.18";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -347,8 +347,18 @@ function buildMerchantOfferSummary(matches){
   }).sort((a,b)=>b.ingredientCount-a.ingredientCount||(a.selectionTotal===null?1:b.selectionTotal===null?-1:a.selectionTotal-b.selectionTotal)||b.offers.length-a.offers.length||a.name.localeCompare(b.name,"de"));
 }
 function buildTwoMerchantRecommendation(merchants){
-  if(merchants.length<2)return null;
+  if(!merchants.length)return null;
   const first=merchants[0];
+  if(merchants.length<2)return {
+    firstMarket:first,
+    secondMarket:null,
+    additionalGroups:[],
+    ingredientCount:first.ingredientCount,
+    additionalIngredientCount:0,
+    selectionTotal:null,
+    selectionCurrency:null,
+    offerCount:first.offers.length
+  };
   const covered=new Set(first.ingredientGroups.map(group=>group.key));
   const candidates=merchants.slice(1).map(merchant=>{
     const additionalGroups=merchant.ingredientGroups.filter(group=>!covered.has(group.key));
@@ -362,7 +372,16 @@ function buildTwoMerchantRecommendation(merchants){
     b.merchant.offers.length-a.merchant.offers.length||
     a.merchant.name.localeCompare(b.merchant.name,"de"));
   const second=candidates[0];
-  if(!second||!second.additionalGroups.length)return null;
+  if(!second)return {
+    firstMarket:first,
+    secondMarket:null,
+    additionalGroups:[],
+    ingredientCount:first.ingredientCount,
+    additionalIngredientCount:0,
+    selectionTotal:null,
+    selectionCurrency:null,
+    offerCount:first.offers.length
+  };
   const chosenGroups=[
     ...first.ingredientGroups.map(group=>({...group,providedBy:first.name})),
     ...second.additionalGroups.map(group=>({...group,providedBy:second.merchant.name}))
@@ -418,10 +437,13 @@ $("#search-meal-offers").addEventListener("click",async()=>{
         :'Hier gibt es die größte Abdeckung eurer Einkaufsliste: '+best.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten mit '+best.offers.length+' unterschiedlichen Angebotsvorschlägen.';
       const pair=buildTwoMerchantRecommendation(merchants);
       const oneMarketDetail=best.selectionTotal!==null?best.selectionTotal.toLocaleString("de-DE",{style:"currency",currency:best.selectionCurrency||"EUR"}):"nicht vollständig berechenbar";
-      const pairName=pair?pair.firstMarket.name+" + "+pair.secondMarket.name:"Keine sinnvolle Ergänzung durch einen zweiten Markt";
-      const pairDetail=pair?(pair.selectionTotal!==null?pair.selectionTotal.toLocaleString("de-DE",{style:"currency",currency:pair.selectionCurrency||"EUR"}):"nicht vollständig berechenbar"):"";
-      const recommendationNote="Markt 1 deckt seine angebotenen Zutaten ab. Markt 2 ergänzt ausschließlich Zutaten, die Markt 1 nicht anbietet. Preise sind Vergleichswerte; Packungsgrößen und benötigte Mengen werden nicht berücksichtigt.";
-      const summary='<section class="merchant-recommendation-wrap"><p class="merchant-kicker">EINKAUFSEMPFEHLUNG · PLZ '+escapeHtml(zipInput)+'</p><div class="merchant-recommendations-grid"><article class="merchant-recommendation merchant-recommendation-card"><span class="merchant-choice-label">Ein Markt</span><h3>'+escapeHtml(best.name)+'</h3><strong class="merchant-coverage">'+best.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten</strong><p>'+best.offers.length+' Angebote · Günstigste Auswahl: '+escapeHtml(oneMarketDetail)+'</p></article>'+(pair?'<article class="merchant-recommendation merchant-recommendation-card merchant-recommendation-pair"><span class="merchant-choice-label">Zwei Märkte</span><h3>'+escapeHtml(pairName)+'</h3><strong class="merchant-coverage">'+pair.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten</strong><p>'+escapeHtml(pair.firstMarket.name)+': '+pair.firstMarket.ingredientCount+' Zutaten · '+escapeHtml(pair.secondMarket.name)+' ergänzt '+pair.additionalIngredientCount+' weitere · Günstigste Auswahl: '+escapeHtml(pairDetail)+'</p></article>':'')+'</div><small>'+recommendationNote+'</small></section>';
+      const pairName=pair&&pair.secondMarket?pair.firstMarket.name+" + "+pair.secondMarket.name:pair?pair.firstMarket.name+" + kein weiterer Markt gefunden":"Kein zweiter Markt verfügbar";
+      const pairDetail=pair&&pair.selectionTotal!==null?pair.selectionTotal.toLocaleString("de-DE",{style:"currency",currency:pair.selectionCurrency||"EUR"}):"nicht vollständig berechenbar";
+      const pairExplanation=pair&&pair.secondMarket
+        ?(pair.additionalIngredientCount>0?escapeHtml(pair.firstMarket.name)+": "+pair.firstMarket.ingredientCount+" Zutaten · "+escapeHtml(pair.secondMarket.name)+" ergänzt "+pair.additionalIngredientCount+" weitere":" "+escapeHtml(pair.firstMarket.name)+" deckt "+pair.firstMarket.ingredientCount+" Zutaten ab · "+escapeHtml(pair.secondMarket.name)+" bietet keine zusätzlichen Zutaten")
+        :escapeHtml(best.name)+" deckt "+best.ingredientCount+" Zutaten ab · Für einen zweiten Markt wurden keine Angebote gefunden";
+      const recommendationNote="Beim Zwei-Märkte-Vergleich werden Zutaten nicht doppelt gezählt. Markt 2 wird auch dann angezeigt, wenn er keine zusätzlichen Zutaten beiträgt. Preise sind Vergleichswerte; Packungsgrößen und benötigte Mengen werden nicht berücksichtigt.";
+      const summary='<section class="merchant-recommendation-wrap"><p class="merchant-kicker">EINKAUFSEMPFEHLUNG · PLZ '+escapeHtml(zipInput)+'</p><div class="merchant-recommendations-grid"><article class="merchant-recommendation merchant-recommendation-card"><span class="merchant-choice-label">Ein Markt</span><h3>'+escapeHtml(best.name)+'</h3><strong class="merchant-coverage">'+best.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten</strong><p>'+best.offers.length+' Angebote · Günstigste Auswahl: '+escapeHtml(oneMarketDetail)+'</p></article><article class="merchant-recommendation merchant-recommendation-card merchant-recommendation-pair"><span class="merchant-choice-label">Zwei Märkte</span><h3>'+escapeHtml(pairName)+'</h3><strong class="merchant-coverage">'+(pair?pair.ingredientCount:best.ingredientCount)+' von '+currentShoppingIngredients.length+' Zutaten</strong><p>'+pairExplanation+' · Günstigste Auswahl: '+escapeHtml(pairDetail)+'</p></article></div><small>'+recommendationNote+'</small></section>';
       const merchantCards=merchants.map((merchant,index)=>{
         const ingredientSections=merchant.ingredientGroups.map(group=>{
           const items=group.offers.map(item=>{
