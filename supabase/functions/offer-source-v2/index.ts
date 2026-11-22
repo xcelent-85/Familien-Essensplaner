@@ -11,6 +11,8 @@ type StoreSource = {
   scope: "national" | "local_store" | "regional_prospect";
   priceMode: "first" | "last";
   priceWithoutCurrency?: boolean;
+  retailerId?: string;
+  priority?: number;
 };
 
 const SOURCES: StoreSource[] = [
@@ -57,6 +59,61 @@ const SOURCES: StoreSource[] = [
     priceMode: "first",
     priceWithoutCurrency: true,
   },
+
+  {
+    id: "aldi-nord-meinprospekt",
+    name: "ALDI Nord Neuruppin (MeinProspekt)",
+    url: "https://www.meinprospekt.de/neuruppin/aldinord-de",
+    scope: "regional_prospect",
+    priceMode: "first",
+    retailerId: "aldi-nord",
+    priority: 1,
+  },
+  {
+    id: "lidl-meinprospekt",
+    name: "Lidl Neuruppin (MeinProspekt)",
+    url: "https://www.meinprospekt.de/neuruppin/lidl",
+    scope: "regional_prospect",
+    priceMode: "first",
+    retailerId: "lidl",
+    priority: 1,
+  },
+  {
+    id: "kaufland-meinprospekt",
+    name: "Kaufland Neuruppin (MeinProspekt)",
+    url: "https://www.meinprospekt.de/neuruppin/kaufland",
+    scope: "regional_prospect",
+    priceMode: "first",
+    retailerId: "kaufland",
+    priority: 1,
+  },
+  {
+    id: "rewe-meinprospekt",
+    name: "REWE Neuruppin (MeinProspekt)",
+    url: "https://www.meinprospekt.de/neuruppin/rewe-de",
+    scope: "regional_prospect",
+    priceMode: "first",
+    retailerId: "rewe",
+    priority: 1,
+  },
+  {
+    id: "netto-marken-discount-meinprospekt",
+    name: "Netto Marken-Discount Neuruppin (MeinProspekt)",
+    url: "https://www.meinprospekt.de/neuruppin/netto-marken-discount-de",
+    scope: "regional_prospect",
+    priceMode: "first",
+    retailerId: "netto-marken-discount",
+    priority: 1,
+  },
+  {
+    id: "netto-scottie-meinprospekt",
+    name: "Netto mit Scottie Neuruppin (MeinProspekt)",
+    url: "https://www.meinprospekt.de/neuruppin/netto1-de",
+    scope: "regional_prospect",
+    priceMode: "first",
+    retailerId: "netto-scottie",
+    priority: 1,
+  },
 ];
 
 function decodeEntities(value: string): string {
@@ -86,6 +143,7 @@ function pageText(html: string): string {
 
 function getValidity(text: string): string | null {
   const patterns = [
+    /gültig\s+bis\s+(\d{1,2}\.\d{1,2}\.\d{4})/i,
     /gültig\s+(?:vom\s+)?([^.;]{5,90}?\s+bis\s+[^.;]{5,90})/i,
     /gültig\s+ab\s+([^.;]{5,70})/i,
     /(Mo\.?\s*\d{1,2}\.\d{1,2}\.\s*-\s*Sa\.?\s*\d{1,2}\.\d{1,2}\.\d{4})/i,
@@ -144,7 +202,9 @@ function extractHeadingCandidates(html: string, source: StoreSource) {
       context: block.slice(0, 240),
       sourceId: source.id,
       sourceUrl: source.url,
-      extractionMethod: "heading_card_candidate",
+      extractionMethod: source.id.endsWith("-meinprospekt") ? "meinprospekt_heading_card_candidate" : "heading_card_candidate",
+      retailerId: source.retailerId ?? source.id,
+      sourcePriority: source.priority ?? 2,
       confidence: "review_required",
     });
   }
@@ -175,6 +235,8 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
       sourceId: source.id,
       sourceUrl: source.url,
       extractionMethod: "kaufland_offer_link",
+      retailerId: source.retailerId ?? source.id,
+      sourcePriority: source.priority ?? 2,
       confidence: "review_required",
     });
   }
@@ -222,6 +284,8 @@ Deno.serve(async (req: Request) => {
         id: source.id,
         name: source.name,
         scope: source.scope,
+        retailerId: source.retailerId ?? source.id,
+        priority: source.priority ?? 2,
         sourceUrl: source.url,
         reachable: response.ok,
         status: response.status,
@@ -239,6 +303,8 @@ Deno.serve(async (req: Request) => {
         id: source.id,
         name: source.name,
         scope: source.scope,
+        retailerId: source.retailerId ?? source.id,
+        priority: source.priority ?? 2,
         sourceUrl: source.url,
         reachable: false,
         status: null,
@@ -254,7 +320,7 @@ Deno.serve(async (req: Request) => {
   return new Response(JSON.stringify({
     ok: true,
     version: 2,
-    purpose: "Getrennte Vorschau der sechs Angebotsquellen mit quellenspezifischen Einstellungen. Keine automatische Essensplanung und keine ungeprüfte Preisfreigabe.",
+    purpose: "Vergleich regionaler MeinProspekt-Angebotsseiten mit bisherigen Händlerquellen. Kandidaten bleiben ungeprüft und werden nicht automatisch für die Essensplanung freigegeben.",
     results,
   }), {
     headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
