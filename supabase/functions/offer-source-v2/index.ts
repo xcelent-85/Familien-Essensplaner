@@ -243,6 +243,13 @@ function parsePriceTokens(block: string, allowNoCurrency: boolean): number[] {
   return values;
 }
 
+function isRelevantFoodCandidate(name: string, source: StoreSource): boolean {
+  // ALDI-Angebotsseiten enthalten auch Drogerie-, Haushalts-, Tier- und Alkoholangebote.
+  // Diese Artikel sollen nicht in die Lebensmittelauswahl des Essensplaners gelangen.
+  if (source.retailerId !== "aldi-nord" && source.id !== "aldi-nord") return true;
+  return !/\\b(?:waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps)?|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|whisky|whiskey|sekt|wein|likör|bier|schnaps|vodka|rum|gin)\\b/i.test(name);
+}
+
 function extractHeadingCandidates(html: string, source: StoreSource) {
   const headings = [...html.matchAll(/<(h[2-6])\b[^>]*>([\s\S]*?)<\/\1>/gi)];
   const candidates: Array<Record<string, unknown>> = [];
@@ -253,6 +260,7 @@ function extractHeadingCandidates(html: string, source: StoreSource) {
     const name = cleanText(heading[2]);
     if (name.length < 3 || name.length > 110) continue;
     if (/^(angebote|prospekt|unsere angebote|aktuelle angebote|angebote im markt|filial-angebote|gültig|diese woche|nächste woche)$/i.test(name)) continue;
+    if (!isRelevantFoodCandidate(name, source)) continue;
 
     const start = (heading.index ?? 0) + heading[0].length;
     const end = index + 1 < headings.length ? (headings[index + 1].index ?? html.length) : Math.min(html.length, start + 1800);
@@ -269,7 +277,7 @@ function extractHeadingCandidates(html: string, source: StoreSource) {
 
     candidates.push({
       productName: name,
-      price,
+      price: roundPrice(price),
       currency: "EUR",
       context: block.slice(0, 240),
       sourceId: source.id,
