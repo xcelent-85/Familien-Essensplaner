@@ -270,42 +270,57 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
   if (source.id !== "kaufland-neuruppin") return [];
   const candidates: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
-  const links = html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi);
-  for (const match of links) {
+  for (const match of html.matchAll(/<a\\b[^>]*>([\\s\\S]*?)<\\/a>/gi)) {
     const text = cleanText(match[1]);
     if (text.length < 8 || text.length > 260) continue;
 
-    // Grundpreise (z. B. "1 kg = 3.98") dürfen nicht als Angebotspreis gelten.
-    const withoutUnitPrice = text.replace(/\(\s*1\s*(?:kg|l)\s*=\s*\d+[.,]\d{2}\s*\)/gi, " ");
-    const prices = parsePriceTokens(withoutUnitPrice, false);
-    if (!prices.length) continue;
+    // Grundpreisangaben dürfen weder als Angebotspreis noch im Produktnamen landen.
+    const withoutUnitPrice = text.replace(/\\(\\s*1\\s*(?:kg|l)\\s*=[^)]*\\)/gi, " ");
+    const cardMarker = /mit\\s+kaufland\\s+card(?:\\s+xtra)?/i.exec(withoutUnitPrice);
+    const cardIndex = cardMarker?.index ?? -1;
+    const beforeCard = cardIndex >= 0 ? withoutUnitPrice.slice(0, cardIndex) : withoutUnitPrice;
+    const afterCard = cardIndex >= 0 ? withoutUnitPrice.slice(cardIndex + cardMarker![0].length) : "";
+    const regularPrices = parsePriceTokens(beforeCard, false);
+    const cardPrices = cardIndex >= 0 ? parsePriceTokens(afterCard, false) : [];
 
-    // Bei Rabatten steht nach dem Rabatt zuerst der aktuelle, dann oft der alte Preis.
-    let price = prices[0];
-    const discountIndex = withoutUnitPrice.search(/-\s*\d{1,2}\s*%/);
-    const onlyIndex = withoutUnitPrice.search(/\bnur\b/i);
-    const markerIndex = discountIndex >= 0 ? discountIndex : onlyIndex;
-    if (markerIndex >= 0) {
-      const markedPrices = parsePriceTokens(withoutUnitPrice.slice(markerIndex), false);
-      if (markedPrices.length) price = markedPrices[0];
+    // Bei Card-Angeboten: erster Preis vor dem Card-Hinweis = regulärer Aktionspreis;
+    // erster Preis danach = zusätzlicher Kaufland-Card-Preis.
+    let price = regularPrices[0] ?? 0;
+    let cardPrice: number | undefined;
+    if (cardIndex >= 0 && cardPrices.length) {
+      cardPrice = cardPrices[0];
+    } else if (!price) {
+      const allPrices = parsePriceTokens(withoutUnitPrice, false);
+      price = allPrices[0] ?? 0;
+      const discountIndex = withoutUnitPrice.search(/-\\s*\\d{1,2}\\s*%/);
+      const onlyIndex = withoutUnitPrice.search(/\\bnur\\b/i);
+      const markerIndex = discountIndex >= 0 ? discountIndex : onlyIndex;
+      if (markerIndex >= 0) {
+        const markedPrices = parsePriceTokens(withoutUnitPrice.slice(markerIndex), false);
+        if (markedPrices.length) price = markedPrices[0];
+      }
     }
-    if (price <= 0 || price > 500) continue;
+    if (price <= 0 || price > 500 || (cardPrice !== undefined && (cardPrice <= 0 || cardPrice > 500))) continue;
 
     const name = text
-      .replace(/\(\s*1\s*(?:kg|l)\s*=\s*\d+[.,]\d{2}\s*\)/gi, " ")
-      .replace(/-\s*\d{1,2}\s*%/g, " ")
-      .replace(/\b(?:nur\s*)?\d{1,4}[.,]\d{2}\s*€?/gi, " ")
-      .replace(/\s+/g, " ")
+      .replace(/\\(\\s*1\\s*(?:kg|l)\\s*=[^)]*\\)/gi, " ")
+      .replace(/mit\\s+kaufland\\s+card(?:\\s+xtra)?/gi, " ")
+      .replace(/-\\s*\\d{1,2}\\s*%/g, " ")
+      .replace(/\\b(?:nur\\s*)?\\d{1,4}[.,]\\d{2}\\s*€?/gi, " ")
+      .replace(/\\*+/g, " ")
+      .replace(/\\s*\\/\\s*/g, " / ")
+      .replace(/\\s+/g, " ")
       .trim()
       .slice(0, 110);
     if (name.length < 3 || /newsletter|kaufland services|fragen und antworten|filiale|prospekt/i.test(name)) continue;
 
-    const key = name.toLocaleLowerCase("de-DE") + "|" + price;
+    const key = name.toLocaleLowerCase("de-DE") + "|" + price + "|" + (cardPrice ?? "");
     if (seen.has(key)) continue;
     seen.add(key);
     candidates.push({
       productName: name,
       price,
+      ...(cardPrice !== undefined ? { cardPrice, cardRequired: true } : {}),
       currency: "EUR",
       context: text,
       sourceId: source.id,
