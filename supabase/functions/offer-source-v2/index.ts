@@ -399,11 +399,16 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
       // Verbliebene Grundpreis-Einheiten entfernen, wenn der Preis davor bereits entfernt wurde.
       .replace(/\bje\s*(?:kg|l|liter|100\s*g|stück)\b/gi, " ")
       .replace(/\bpro\s*(?:kg|l|liter|100\s*g|stück)\b/gi, " ")
-      .replace(/\b\d+\s*(?:[-–]\s*\d+)?\s*(?:g|kg|ml|l)\b/gi, " ")
+      // Dezimalmengen vollständig entfernen (z. B. 102,5g).
+      .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l)\b/gi, " ")
+      // Grundpreis je Stück inklusive Zahlenwert entfernen.
+      .replace(/\b\d{1,3}[.,]\d{2}\s*€?\s*je\s*(?:stück|stk\.?)\b/gi, " ")
       .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l)\b/gi, " ")
       // Stückzahl-Spannen und einzelne Stückzahlen entfernen.
       .replace(/\b\d+\s*[-–]\s*\d+\s*(?:stück|stk\.?)\b/gi, " ")
       .replace(/\b\d+\s*(?:stück|stk\.?)\b/gi, " ")
+      // Multiplikationsangaben wie „3 x“ entfernen.
+      .replace(/\b\d+\s*[x×]\b/gi, " ")
       .replace(/\(\s*\)/g, " ")
       .replace(/\s*[-–]\s*(?=\s|$)/g, " ")
       .replace(/\s+/g, " ")
