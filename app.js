@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.10";
+const APP_BUILD_ID="2026-11-22.11";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -296,9 +296,22 @@ function buildMerchantOfferSummary(matches){
     (item.matchedIngredients||[]).forEach(value=>merchant.ingredients.set(normalizeOfferKey(value),value));
   });
   return [...merchants.values()].map(merchant=>{
-    const pricedOffers=merchant.offers.filter(item=>item.price!==null&&item.price!==undefined&&String(item.price).trim()!==""&&Number.isFinite(Number(item.price))&&Number(item.price)>=0);
-    const currencies=[...new Set(pricedOffers.map(item=>String(item.currency||"EUR").toUpperCase()))];
-    return {...merchant,ingredientCount:merchant.ingredients.size,ingredientNames:[...merchant.ingredients.values()],pricedOfferCount:pricedOffers.length,priceTotal:pricedOffers.reduce((sum,item)=>sum+Number(item.price),0),priceCurrency:currencies.length===1?currencies[0]:null};
+    const ingredientGroups=[...merchant.ingredients.entries()].map(([key,name])=>{
+      const offers=merchant.offers.filter(item=>(item.matchedIngredients||[]).some(value=>normalizeOfferKey(value)===key))
+        .sort((a,b)=>{
+          const aHas=a.price!==null&&a.price!==undefined&&String(a.price).trim()!==""&&Number.isFinite(Number(a.price))&&Number(a.price)>=0;
+          const bHas=b.price!==null&&b.price!==undefined&&String(b.price).trim()!==""&&Number.isFinite(Number(b.price))&&Number(b.price)>=0;
+          if(aHas!==bHas)return aHas?-1:1;
+          return aHas?Number(a.price)-Number(b.price):0;
+        });
+      return {key,name,offers};
+    }).sort((a,b)=>a.name.localeCompare(b.name,"de"));
+    const cheapest=ingredientGroups.map(group=>group.offers.find(item=>item.price!==null&&item.price!==undefined&&String(item.price).trim()!==""&&Number.isFinite(Number(item.price))&&Number(item.price)>=0));
+    const pricedCheapest=cheapest.filter(Boolean);
+    const currencies=[...new Set(pricedCheapest.map(item=>String(item.currency||"EUR").toUpperCase()))];
+    const completeSelection=pricedCheapest.length===ingredientGroups.length&&ingredientGroups.length>0&&currencies.length===1;
+    const selectionTotal=completeSelection?pricedCheapest.reduce((sum,item)=>sum+Number(item.price),0):null;
+    return {...merchant,ingredientCount:merchant.ingredients.size,ingredientNames:[...merchant.ingredients.values()],ingredientGroups,selectionTotal,selectionCurrency:currencies.length===1?currencies[0]:null,pricedIngredientCount:pricedCheapest.length};
   }).sort((a,b)=>b.ingredientCount-a.ingredientCount||b.offers.length-a.offers.length||a.name.localeCompare(b.name,"de"));
 }
 $("#search-meal-offers").addEventListener("click",async()=>{
@@ -332,14 +345,20 @@ $("#search-meal-offers").addEventListener("click",async()=>{
       const summaryText=leaders.length>1
         ?'Gemeinsam größte Zutatenabdeckung: '+leaders.map(merchant=>merchant.name).join(' und ')+' decken jeweils '+topIngredientCount+' von '+currentShoppingIngredients.length+' Zutaten ab. '+best.name+' liegt bei gleicher Abdeckung wegen der höheren Angebotszahl vorne.'
         :'Hier gibt es die größte Abdeckung eurer Einkaufsliste: '+best.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten mit '+best.offers.length+' unterschiedlichen Angebotsvorschlägen.';
-      const summary='<section class="merchant-recommendation"><p class="merchant-kicker">EINKAUFSEMPFEHLUNG · PLZ '+escapeHtml(zipInput)+'</p><h3>'+escapeHtml(best.name)+'</h3><p>'+summaryText+'</p><small>Die Summe je Händler addiert alle gefundenen Angebotspreise; sie ist kein Warenkorbpreis und berücksichtigt keine benötigten Mengen oder Packungsgrößen.</small></section>';
+      const bestSelectionLabel=best.selectionTotal!==null?best.selectionTotal.toLocaleString("de-DE",{style:"currency",currency:best.selectionCurrency||"EUR"}):"nicht vollständig berechenbar";
+      const summary='<section class="merchant-recommendation"><p class="merchant-kicker">EINKAUFSEMPFEHLUNG · PLZ '+escapeHtml(zipInput)+'</p><h3>'+escapeHtml(best.name)+'</h3><p>'+summaryText+'</p><small>Die günstigste Auswahl nimmt je Zutat nur das preiswerteste gefundene Angebot. Der Betrag ist ein Vergleichswert, kein garantierter Warenkorbpreis; Packungsgrößen und benötigte Mengen sind nicht berücksichtigt.</small></section>';
       const merchantCards=merchants.map((merchant,index)=>{
-        const items=merchant.offers.slice().sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0)).map(item=>
-          '<article class="offer-item"><div><strong>'+escapeHtml(item.productName)+'</strong><span>Passt zu: '+escapeHtml((item.matchedIngredients||[]).join(", "))+(item.regionality==="not_confirmed_for_neuruppin"?" · regional nicht bestätigt":" · regionale Verfügbarkeit bitte prüfen")+'</span><a href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle öffnen ↗</a></div><strong class="offer-price">'+(Number.isFinite(Number(item.price))?Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"}):"Preis prüfen")+'</strong></article>'
-        ).join("");
-        const totalLabel=merchant.priceCurrency?merchant.priceTotal.toLocaleString("de-DE",{style:"currency",currency:merchant.priceCurrency}):"nicht verfügbar";
-        const totalDetail=merchant.pricedOfferCount===merchant.offers.length?"Summe der Angebotspreise: "+totalLabel:"Summe der Angebotspreise: "+totalLabel+" ("+merchant.pricedOfferCount+" von "+merchant.offers.length+" mit Preis)";
-        return '<details class="merchant-group"'+(index===0?' open':'')+'><summary><span><strong>'+escapeHtml(merchant.name)+'</strong><small>'+merchant.ingredientCount+' Zutaten · '+merchant.offers.length+' Angebote · '+escapeHtml(totalDetail)+'</small></span><span class="merchant-group-action">'+(index===0?'Bester Treffer':'Angebote ansehen')+'</span></summary><div class="merchant-offers">'+items+'</div></details>';
+        const ingredientSections=merchant.ingredientGroups.map(group=>{
+          const items=group.offers.map(item=>{
+            const hasPrice=item.price!==null&&item.price!==undefined&&String(item.price).trim()!==""&&Number.isFinite(Number(item.price))&&Number(item.price)>=0;
+            const priceLabel=hasPrice?Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"}):"Preis prüfen";
+            return '<article class="offer-item"><div><strong>'+escapeHtml(item.productName)+'</strong><span>'+(item.regionality==="not_confirmed_for_neuruppin"?"regional nicht bestätigt":"regionale Verfügbarkeit bitte prüfen")+'</span><a href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle öffnen ↗</a></div><strong class="offer-price">'+priceLabel+'</strong></article>';
+          }).join("");
+          return '<section class="ingredient-offer-group"><h4>'+escapeHtml(group.name)+' <span>'+group.offers.length+' '+(group.offers.length===1?'Angebot':'Angebote zur Auswahl')+'</span></h4>'+items+'</section>';
+        }).join("");
+        const selectionLabel=merchant.selectionTotal!==null?merchant.selectionTotal.toLocaleString("de-DE",{style:"currency",currency:merchant.selectionCurrency||"EUR"}):"nicht vollständig berechenbar";
+        const selectionDetail="Günstigste Auswahl: "+selectionLabel+(merchant.pricedIngredientCount<merchant.ingredientCount?" ("+merchant.pricedIngredientCount+" von "+merchant.ingredientCount+" Zutaten mit Preis)":"");
+        return '<details class="merchant-group"'+(index===0?' open':'')+'><summary><span><strong>'+escapeHtml(merchant.name)+'</strong><small>'+merchant.ingredientCount+' Zutaten · '+merchant.offers.length+' Angebote · '+escapeHtml(selectionDetail)+'</small></span><span class="merchant-group-action">'+(index===0?'Bester Treffer':'Angebote ansehen')+'</span></summary><div class="merchant-offers">'+ingredientSections+'</div></details>';
       }).join("");
       results.innerHTML=summary+'<div class="merchant-results-heading"><h3>Händlervergleich</h3><span>'+matches.length+' eindeutige Angebote</span></div>'+merchantCards;
     }
