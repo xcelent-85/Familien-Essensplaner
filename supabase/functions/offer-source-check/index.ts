@@ -6,10 +6,10 @@ const corsHeaders = {
 
 const SOURCES = [
   { id: "aldi-nord", name: "ALDI Nord", url: "https://www.aldi-nord.de/angebote.html", scope: "national" },
-  { id: "lidl", name: "Lidl", url: "https://www.lidl.de/c/online-prospekte/s10005610", scope: "prospekt" },
+  { id: "lidl", name: "Lidl", url: "https://www.lidl.de/c/online-prospekte/", scope: "prospekt" },
   { id: "kaufland-neuruppin", name: "Kaufland Neuruppin", url: "https://filiale.kaufland.de/service/filiale/neuruppin-5580.html", scope: "filiale" },
-  { id: "rewe-neuruppin", name: "REWE Neuruppin", url: "https://www.kaufda.de/Neuruppin/REWE/p-r4", scope: "regional" },
-  { id: "netto-marken-discount", name: "Netto Marken-Discount", url: "https://www.netto-online.de/ueber-netto/Online-Prospekte.chtm/", scope: "filialauswahl-erforderlich" },
+  { id: "rewe-neuruppin", name: "REWE Neuruppin", url: "https://www.rewe.de/angebote/neuruppin/1765976/rewe-neustaedter-str-29/", scope: "filiale" },
+  { id: "netto-marken-discount", name: "Netto Marken-Discount Neuruppin", url: "https://www.netto-online.de/filialen/neuruppin/zur-mesche-23/7613/", scope: "filiale" },
   { id: "netto-scottie", name: "Netto mit Scottie", url: "https://netto.de/prospekte/", scope: "prospekt" },
 ];
 
