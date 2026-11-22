@@ -124,12 +124,12 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 /* Zwei Einkaufsempfehlungen direkt nebeneinander */
 .merchant-recommendation-wrap{margin:16px 0 20px}
 .merchant-recommendation-wrap>.merchant-kicker{font-size:10px;font-weight:800;letter-spacing:1.1px;color:#55745e;margin:0 0 8px}
-.merchant-recommendations-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.merchant-recommendation-card{margin:0;min-width:0;padding:15px 17px}
+.merchant-recommendations-grid{display:flex;flex-flow:row nowrap;align-items:stretch;gap:12px;width:100%}
+.merchant-recommendation-card{flex:1 1 0;width:50%;margin:0;min-width:0;padding:15px 17px}
 .merchant-choice-label{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.4px;color:#55745e;margin-bottom:7px}
 .merchant-recommendation-card h3{font-size:17px;line-height:1.3;overflow-wrap:anywhere;margin:0 0 7px}
 .merchant-recommendation-card .merchant-coverage{display:block;font-size:17px;color:#294a37;margin:0 0 5px}
 .merchant-recommendation-card p{font-size:11px;line-height:1.4;margin:0;color:#40594a}
 .merchant-recommendation-pair{background:#f0f4f0;border-color:#dce7dd}
 .merchant-recommendation-wrap>small{display:block;font-size:10px;line-height:1.45;color:var(--muted);margin-top:9px}
-@media(max-width:520px){.merchant-recommendations-grid{grid-template-columns:1fr}.merchant-recommendation-card{padding:13px 14px}}
+@media(max-width:520px){.merchant-recommendations-grid{flex-direction:column}.merchant-recommendation-card{width:100%;flex-basis:auto;padding:13px 14px}}
