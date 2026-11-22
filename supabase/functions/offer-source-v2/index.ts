@@ -300,7 +300,7 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
 
 
 function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
-  if (!source.id.endsWith("-aktionspreis")) return [];
+  if (!source.id.endsWith("-aktionspreis") && !source.id.endsWith("-meinprospekt")) return [];
   const candidates: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
   for (const match of html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)) {
@@ -327,10 +327,10 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
       context: block.slice(0, 240),
       sourceId: source.id,
       sourceUrl: source.url,
-      extractionMethod: "aktionspreis_offer_link_candidate",
+      extractionMethod: source.id.endsWith("-meinprospekt") ? "meinprospekt_offer_link_candidate" : "aktionspreis_offer_link_candidate",
       retailerId: source.retailerId ?? source.id,
       sourcePriority: source.priority ?? 2,
-      regionality: "not_confirmed_for_neuruppin",
+      regionality: source.id.endsWith("-meinprospekt") ? "regional_page_neuruppin_not_independently_verified" : "not_confirmed_for_neuruppin",
       confidence: "review_required",
     });
   }
