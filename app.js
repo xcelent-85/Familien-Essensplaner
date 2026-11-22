@@ -1,3 +1,6 @@
+const APP_BUILD_ID="2026-11-22.1";
+const buildVersionElement=document.querySelector("#app-build-version");
+if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
   {title:"Spaghetti Bolognese",category:"Italienisch",prep_minutes:10,cook_minutes:20,servings:3,ingredients:["300 g Spaghetti","300 g Hackfleisch","1 Zwiebel","1 Möhre","1 Dose gehackte Tomaten","2 EL Tomatenmark"]},
   {title:"Hähnchen-Gemüse-Pfanne",category:"Pfanne",prep_minutes:10,cook_minutes:10,servings:3,ingredients:["400 g Hähnchenbrust","1 Paprika","1 Zucchini","1 Zwiebel","2 EL Öl","200 g Reis"]},
