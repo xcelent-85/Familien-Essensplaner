@@ -3,4 +3,17 @@ const starterDishes = [
 ];
 const showButton=document.querySelector("#show-dishes"),dishSection=document.querySelector("#dishes-section"),dishGrid=document.querySelector("#dish-grid");
 if(showButton&&dishSection&&dishGrid){showButton.addEventListener("click",()=>{dishGrid.innerHTML=starterDishes.map(([name,detail])=>`<article class="dish-card"><strong>${name}</strong><span>${detail}</span></article>`).join("");document.querySelector("#dish-count").textContent=starterDishes.length+" Beispielgerichte";dishSection.hidden=false;dishSection.scrollIntoView({behavior:"smooth",block:"start"});});}
+const cfg=window.FAMILY_APP_CONFIG;
+const statusEl=document.querySelector("#sync-status"),messageEl=document.querySelector("#auth-message"),authForm=document.querySelector("#auth-form"),signedIn=document.querySelector("#signed-in");
+let supabaseClient=null;
+function showMessage(message){if(messageEl)messageEl.textContent=message;}
+function setSession(session){const user=session?.user; if(user){authForm.hidden=true;signedIn.hidden=false;document.querySelector("#user-label").textContent="Angemeldet als "+user.email;statusEl.innerHTML="<i></i> Konto verbunden";}else{authForm.hidden=false;signedIn.hidden=true;statusEl.innerHTML="<i></i> Nicht angemeldet";}}
+if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
+ supabaseClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+ supabaseClient.auth.getSession().then(({data,error})=>{if(error)showMessage(error.message);setSession(data?.session);});
+ supabaseClient.auth.onAuthStateChange((_event,session)=>setSession(session));
+ document.querySelector("#signup-button").addEventListener("click",async e=>{e.preventDefault();const email=document.querySelector("#auth-email").value.trim(),password=document.querySelector("#auth-password").value;if(!email||password.length<6){showMessage("Bitte E-Mail und ein Passwort mit mindestens 6 Zeichen eingeben.");return;}const {data,error}=await supabaseClient.auth.signUp({email,password});showMessage(error?error.message:(data.session?"Konto erstellt und angemeldet.":"Konto erstellt. Bitte bestätige deine E-Mail-Adresse über den zugesandten Link."));});
+ document.querySelector("#login-button").addEventListener("click",async()=>{const email=document.querySelector("#auth-email").value.trim(),password=document.querySelector("#auth-password").value;const {error}=await supabaseClient.auth.signInWithPassword({email,password});showMessage(error?error.message:"Anmeldung erfolgreich.");});
+ document.querySelector("#logout-button").addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();showMessage(error?error.message:"Du wurdest abgemeldet.");});
+}else{statusEl.textContent="Verbindung nicht verfügbar";showMessage("Die Supabase-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden.");}
 if("serviceWorker"in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>{navigator.serviceWorker.register("./sw.js").catch(error=>console.warn("Offline-Funktion konnte nicht aktiviert werden:",error));});}
