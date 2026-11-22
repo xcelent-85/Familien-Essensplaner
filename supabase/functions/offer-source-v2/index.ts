@@ -269,22 +269,43 @@ function extractHeadingCandidates(html: string, source: StoreSource) {
 function extractKauflandLinkCandidates(html: string, source: StoreSource) {
   if (source.id !== "kaufland-neuruppin") return [];
   const candidates: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
   const links = html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi);
   for (const match of links) {
     const text = cleanText(match[1]);
     if (text.length < 8 || text.length > 260) continue;
-    const prices = parsePriceTokens(text, false);
+
+    // Grundpreise (z. B. "1 kg = 3.98") dürfen nicht als Angebotspreis gelten.
+    const withoutUnitPrice = text.replace(/\(\s*1\s*(?:kg|l)\s*=\s*\d+[.,]\d{2}\s*\)/gi, " ");
+    const prices = parsePriceTokens(withoutUnitPrice, false);
     if (!prices.length) continue;
+
+    // Bei Rabatten steht nach dem Rabatt zuerst der aktuelle, dann oft der alte Preis.
+    let price = prices[0];
+    const discountIndex = withoutUnitPrice.search(/-\s*\d{1,2}\s*%/);
+    const onlyIndex = withoutUnitPrice.search(/\bnur\b/i);
+    const markerIndex = discountIndex >= 0 ? discountIndex : onlyIndex;
+    if (markerIndex >= 0) {
+      const markedPrices = parsePriceTokens(withoutUnitPrice.slice(markerIndex), false);
+      if (markedPrices.length) price = markedPrices[0];
+    }
+    if (price <= 0 || price > 500) continue;
+
     const name = text
-      .replace(/-\s*\d{1,2}%/g, " ")
-      .replace(/(?:\d{1,4})[.,]\d{2}\s*€/g, " ")
+      .replace(/\(\s*1\s*(?:kg|l)\s*=\s*\d+[.,]\d{2}\s*\)/gi, " ")
+      .replace(/-\s*\d{1,2}\s*%/g, " ")
+      .replace(/\b(?:nur\s*)?\d{1,4}[.,]\d{2}\s*€?/gi, " ")
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 110);
-    if (name.length < 3) continue;
+    if (name.length < 3 || /newsletter|kaufland services|fragen und antworten|filiale|prospekt/i.test(name)) continue;
+
+    const key = name.toLocaleLowerCase("de-DE") + "|" + price;
+    if (seen.has(key)) continue;
+    seen.add(key);
     candidates.push({
       productName: name,
-      price: prices[0],
+      price,
       currency: "EUR",
       context: text,
       sourceId: source.id,
@@ -297,7 +318,6 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
   }
   return candidates;
 }
-
 
 function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
   if (!source.id.endsWith("-aktionspreis") && !source.id.endsWith("-meinprospekt")) return [];
@@ -338,7 +358,9 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
 }
 
 function extractCandidates(html: string, source: StoreSource) {
-  const primary = extractHeadingCandidates(html, source);
+  // Kaufland-Filialseiten enthalten Service-Überschriften mit fremden Preisen.
+  // Dort ausschließlich echte Angebotslinks auswerten.
+  const primary = source.id === "kaufland-neuruppin" ? [] : extractHeadingCandidates(html, source);
   const secondary = extractKauflandLinkCandidates(html, source);
   const tertiary = extractAktionspreisLinkCandidates(html, source);
   const merged = [...primary, ...secondary, ...tertiary];
