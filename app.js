@@ -259,7 +259,7 @@ function findOfferMatches(ingredients,candidates){
   }).filter(Boolean);
 }
 function normalizeOfferKey(value){
-  return String(value||"").toLocaleLowerCase("de").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+  return String(value||"").toLocaleLowerCase("de").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
 }
 function deduplicateOfferMatches(matches){
   const unique=new Map();
