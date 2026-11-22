@@ -244,10 +244,10 @@ function parsePriceTokens(block: string, allowNoCurrency: boolean): number[] {
 }
 
 function isRelevantFoodCandidate(name: string, source: StoreSource): boolean {
-  // ALDI-Angebotsseiten enthalten auch Drogerie-, Haushalts-, Tier- und Alkoholangebote.
+  // ALDI-Angebotsseiten enthalten auch Drogerie-, Haushalts-, Tier-, Pflanzen- und Alkoholangebote.
   // Diese Artikel sollen nicht in die Lebensmittelauswahl des Essensplaners gelangen.
   if (source.retailerId !== "aldi-nord" && source.id !== "aldi-nord") return true;
-  return !/\\b(?:waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps)?|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|whisky|whiskey|sekt|wein|likör|bier|schnaps|vodka|rum|gin)\\b/i.test(name);
+  return !/\b(?:waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps)?|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|pflanze|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?|whisky|whiskey|sekt|wein|likör|bier|schnaps|vodka|rum|gin)\b/i.test(name);
 }
 
 function extractHeadingCandidates(html: string, source: StoreSource) {
