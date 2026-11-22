@@ -42,3 +42,18 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .ingredient-offer-group .offer-item{padding:9px 4px}
 
 @media(max-width:520px){.merchant-recommendation{padding:15px}.merchant-recommendation h3{font-size:19px}.merchant-group>summary{padding:12px}.merchant-group-action{font-size:10px}}
+
+/* Kompakte Händlerübersicht bei umfangreichen Einkaufslisten */
+.merchant-group>summary{align-items:center}
+.merchant-summary-main{display:grid;gap:4px;min-width:0}
+.merchant-summary-main>strong{font-size:14px;color:#294a37}
+.merchant-summary-main>small{font-size:11px;color:var(--muted);line-height:1.35}
+.merchant-summary-main>.merchant-selection{font-weight:700;color:#40594a}
+.merchant-group-action{flex:0 0 auto;padding:7px 9px;border:1px solid #dce5dc;border-radius:8px;background:#f4f7f3}
+@media(max-width:520px){
+  .merchant-results-heading{align-items:flex-start;flex-direction:column;gap:4px}
+  .merchant-group>summary{gap:8px;padding:11px 10px}
+  .merchant-summary-main>strong{font-size:13px}
+  .merchant-summary-main>small{font-size:10px}
+  .merchant-group-action{font-size:10px;padding:6px 7px}
+}
