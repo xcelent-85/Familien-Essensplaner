@@ -302,6 +302,15 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
     // Bei Card-Angeboten: erster Preis vor dem Card-Hinweis = regulärer Aktionspreis;
     // erster Preis danach = zusätzlicher Kaufland-Card-Preis.
     let price = regularPrices[0] ?? 0;
+    // Bei Kiloware wie "je kg" darf ein Beispiel-Packungspreis
+    // (z. B. 750 g = 11,25 €) nicht den tatsächlichen kg-Angebotspreis ersetzen.
+    if (/\bje\s*kg\b/i.test(withoutUnitPrice)) {
+      const onlyIndex = withoutUnitPrice.search(/\bnur\b/i);
+      if (onlyIndex >= 0) {
+        const offerPrices = parsePriceTokens(withoutUnitPrice.slice(onlyIndex), false);
+        if (offerPrices.length) price = offerPrices[0];
+      }
+    }
     let cardPrice: number | undefined;
     if (cardIndex >= 0 && cardPrices.length) {
       cardPrice = cardPrices[0];
