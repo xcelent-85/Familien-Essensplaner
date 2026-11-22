@@ -783,7 +783,7 @@ Deno.serve(async (req: Request) => {
     ok: true,
     version: 2,
     purpose: "Vergleich regionaler MeinProspekt-Angebotsseiten mit bisherigen Händlerquellen. Kandidaten bleiben ungeprüft und werden nicht automatisch für die Essensplanung freigegeben.",
-    results: [...results, kaufdaResult],
+    results: zip === "16816" ? [...results, kaufdaResult] : [kaufdaResult],
     request: { zip, queries },
   }), {
     headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
