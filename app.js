@@ -218,12 +218,39 @@ function normalizeOfferWords(value){
     .filter(word=>word.length>=3&&!stopWords.has(word))
     .map(word=>word.length>5?word.replace(/(ern|en|er|es|e|n|s)$/,""):word);
 }
+function offerAliasPhrases(ingredient){
+  const words=normalizeOfferWords(ingredient);
+  const text=words.join(" ");
+  const groups=[
+    {test:/\\b(?:hackfleisch|hack|rinderhack|gemischtes hack)\\b/,aliases:["hackfleisch","hack","rinderhack","gemischtes hack","gemischtes hackfleisch"]},
+    {test:/\\b(?:mohre|mohren|karotte|karotten)\\b/,aliases:["möhre","möhren","karotte","karotten"]},
+    {test:/\\b(?:spaghetti|nudeln|penne|pasta)\\b/,aliases:["spaghetti","spaghettoni","nudeln","pasta","penne"]},
+    {test:/\\b(?:gehackte tomaten|tomaten)\\b/,aliases:["gehackte tomaten","stückige tomaten","tomatenstücke","pizzatomaten","tomaten in stücken","tomaten"]},
+    {test:/\\b(?:tomatenmark|tomatenpuree|tomatenkonzentrat)\\b/,aliases:["tomatenmark","tomatenpüree","tomatenkonzentrat","tomatenpaste"]},
+    {test:/\\b(?:zwiebel|zwiebeln)\\b/,aliases:["zwiebel","zwiebeln","rote zwiebeln","gemüsezwiebel"]},
+  ];
+  const group=groups.find(item=>item.test.test(text));
+  return group?group.aliases:[String(ingredient||"").trim()];
+}
+function phraseMatches(product,alias){
+  const productWords=normalizeOfferWords(product);
+  const aliasWords=normalizeOfferWords(alias);
+  if(!productWords.length||!aliasWords.length||aliasWords.length>productWords.length)return false;
+  return productWords.some((_word,index)=>aliasWords.every((word,offset)=>productWords[index+offset]===word));
+}
 function findOfferMatches(ingredients,candidates){
   return candidates.map(candidate=>{
-    const productWords=normalizeOfferWords(candidate.productName+" "+(candidate.context||""));
+    const productName=String(candidate.productName||"");
     const matched=ingredients.filter(ingredient=>{
-      const words=normalizeOfferWords(ingredient);
-      return words.some(word=>productWords.some(productWord=>productWord===word||productWord.startsWith(word)||word.startsWith(productWord)));
+      const aliases=offerAliasPhrases(ingredient);
+      if(aliases.some(alias=>phraseMatches(productName,alias)))return true;
+      // Für Zutaten ohne hinterlegte Synonyme bleibt ein vorsichtiger Wortvergleich.
+      if(aliases.length===1&&aliases[0]===String(ingredient||"").trim()){
+        const words=normalizeOfferWords(ingredient);
+        const productWords=normalizeOfferWords(productName);
+        return words.some(word=>productWords.some(productWord=>productWord===word));
+      }
+      return false;
     });
     return matched.length?{...candidate,matchedIngredients:matched}:null;
   }).filter(Boolean);
