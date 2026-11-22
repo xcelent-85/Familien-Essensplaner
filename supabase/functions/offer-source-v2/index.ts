@@ -425,7 +425,7 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 110);
-    if (name.length < 3 || !isRelevantFoodCandidate(name, source) || !isRelevantFoodCandidate(`${name} ${cardText}`, source)) continue;
+    if (name.length < 3 || !isRelevantFoodCandidate(name, source) || !isRelevantFoodCandidate(`${name} ${block}`, source)) continue;
     const key = name.toLocaleLowerCase("de-DE") + "|" + prices[0];
     if (seen.has(key)) continue;
     seen.add(key);
