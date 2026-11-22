@@ -82,11 +82,11 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
       let name = lastStoreIndex >= 0 ? rawPrefix.slice(lastStoreIndex + alias.length) : rawPrefix;
       name = name
         .replace(/^.*?Angebote aus dem .*?Prospekt in [A-Za-zÄÖÜäöüß-]+\\s+/i, "")
-        .replace(/^\\s*Prospekt in [A-Za-zÄÖÜäöüß-]+\\s+/i, "")
         .replace(/^.*?Veröffentlicht wurde der Prospekt[\\s\\S]*?\\.\\s*/i, "")
+        .replace(/^\\s*Prospekt in [A-Za-zÄÖÜäöüß-]+\\s+/i, "")
         .replace(/\\(?\\s*(?:App:\\s*)?\\d+(?:[.,]\\d+)?\\s*[-–]?\\s*\\d*(?:[.,]\\d+)?\\s*\\/\\s*(?:kg|g|l|ml)\\s*\\)?/gi, " ")
         .replace(/\\(?\\s*\\d+(?:[.,]\\d+)?\\s*(?:kg|g|l|ml)\\s*=\\s*[\\d.,/]+[^)]*\\)?/gi, " ")
-        .replace(/\\b(?:UVP|statt|bisher|App:)\\b[^€]*/gi, " ")
+        .replace(/\\b(?:UVP|statt|bisher|App:)\\b[\\s\\S]*$/i, " ")
         .replace(/^.*?\\b(?:Sonntag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag),?\\s+den\\s+\\d{1,2}\\.\\s+\\w+\\s+\\d{4}\\.\\s*/i, "")
         .replace(/\\s+/g, " ")
         .replace(/^[^A-Za-zÄÖÜäöüß0-9]+/, "")
