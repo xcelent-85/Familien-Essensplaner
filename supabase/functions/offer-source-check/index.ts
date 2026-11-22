@@ -5,55 +5,25 @@ const corsHeaders = {
 };
 
 const SOURCES = [
-  {
-    id: "aldi-nord",
-    name: "ALDI Nord",
-    url: "https://www.aldi-nord.de/angebote.html",
-    scope: "national",
-  },
-  {
-    id: "lidl",
-    name: "Lidl",
-    url: "https://www.lidl.de/c/online-prospekte/s10005610",
-    scope: "prospekt",
-  },
-  {
-    id: "kaufland-neuruppin",
-    name: "Kaufland Neuruppin",
-    url: "https://filiale.kaufland.de/service/filiale/neuruppin-5580.html",
-    scope: "filiale",
-  },
-  {
-    id: "rewe-neuruppin",
-    name: "REWE Neuruppin",
-    url: "https://www.kaufda.de/Neuruppin/REWE/p-r4",
-    scope: "regional",
-  },
-  {
-    id: "netto-marken-discount",
-    name: "Netto Marken-Discount",
-    url: "https://www.netto-online.de/ueber-netto/Online-Prospekte.chtm/",
-    scope: "filialauswahl-erforderlich",
-  },
-  {
-    id: "netto-scottie",
-    name: "Netto mit Scottie",
-    url: "https://netto.de/prospekte/",
-    scope: "prospekt",
-  },
+  { id: "aldi-nord", name: "ALDI Nord", url: "https://www.aldi-nord.de/angebote.html", scope: "national" },
+  { id: "lidl", name: "Lidl", url: "https://www.lidl.de/c/online-prospekte/s10005610", scope: "prospekt" },
+  { id: "kaufland-neuruppin", name: "Kaufland Neuruppin", url: "https://filiale.kaufland.de/service/filiale/neuruppin-5580.html", scope: "filiale" },
+  { id: "rewe-neuruppin", name: "REWE Neuruppin", url: "https://www.kaufda.de/Neuruppin/REWE/p-r4", scope: "regional" },
+  { id: "netto-marken-discount", name: "Netto Marken-Discount", url: "https://www.netto-online.de/ueber-netto/Online-Prospekte.chtm/", scope: "filialauswahl-erforderlich" },
+  { id: "netto-scottie", name: "Netto mit Scottie", url: "https://netto.de/prospekte/", scope: "prospekt" },
 ];
 
 function htmlToText(html: string): string {
   return html
-    .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
-    .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;|&#160;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&euro;/gi, "€")
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&quot;/gi, '"')
-    .replace(/\\s+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -88,7 +58,7 @@ Deno.serve(async (req: Request) => {
         sourceUrl: source.url,
         reachable: response.ok,
         status: response.status,
-        title: html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1]?.replace(/<[^>]+>/g, "").trim() ?? null,
+        title: html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/<[^>]+>/g, "").trim() ?? null,
         preview: text.slice(0, 1800),
         checkedAt: new Date().toISOString(),
       };
