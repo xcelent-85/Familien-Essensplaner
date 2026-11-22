@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.3";
+const APP_BUILD_ID="2026-11-22.4";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -283,9 +283,12 @@ $("#search-meal-offers").addEventListener("click",async()=>{
     const unreachable=sources.filter(source=>!source.reachable).length;
     message.textContent=matches.length+" passende Angebotsvorschläge gefunden · "+sources.length+" Quellen geprüft"+(unreachable?" · "+unreachable+" Quellen nicht erreichbar":"")+".";
     const sourceDiagnostics=sources.map(source=>{
-      const names=(source.candidates||[]).slice(0,8).map(candidate=>escapeHtml(candidate.productName||"Unbenannt"));
-      const count=Number(source.candidateCount??(source.candidates||[]).length)||0;
-      return '<div class="source-diagnostic"><strong>'+escapeHtml(source.name||source.id||"Quelle")+'</strong><span>'+(source.reachable?"Erreichbar":"Nicht erreichbar")+' · '+count+' Produkte</span>'+(names.length?'<small>'+names.join(" · ")+'</small>':'<small>Keine Produktkandidaten geliefert</small>')+'</div>';
+      const sourceCandidates=source.candidates||[];
+      const count=Number(source.candidateCount??sourceCandidates.length)||0;
+      const sourceMatches=findOfferMatches(currentShoppingIngredients,sourceCandidates);
+      const names=sourceCandidates.map(candidate=>escapeHtml(candidate.productName||"Unbenannt"));
+      const matchedNames=sourceMatches.map(candidate=>escapeHtml(candidate.productName||"Unbenannt")+" (passt zu: "+escapeHtml((candidate.matchedIngredients||[]).join(", "))+")");
+      return '<details class="source-diagnostic"><summary><strong>'+escapeHtml(source.name||source.id||"Quelle")+'</strong> · '+(source.reachable?"Erreichbar":"Nicht erreichbar")+' · '+count+' Produkte · '+sourceMatches.length+' Zutaten-Treffer</summary>'+(matchedNames.length?'<p><strong>Erkannte Treffer:</strong> '+matchedNames.join(" · ")+'</p>':'<p><strong>Erkannte Treffer:</strong> keine</p>')+(names.length?'<small><strong>Alle gelieferten Produktnamen:</strong> '+names.join(" · ")+'</small>':'<small>Keine Produktkandidaten geliefert</small>')+'</details>';
     }).join("");
     results.insertAdjacentHTML("beforeend",'<details class="offer-diagnostics"><summary>Technische Quellenprüfung anzeigen</summary><p class="notice">Hier siehst du, welche Produktnamen die Angebotsquellen tatsächlich geliefert haben. Die Anzeige dient der Fehlersuche.</p>'+sourceDiagnostics+'</details>');
   }catch(error){
