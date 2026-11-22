@@ -78,16 +78,17 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
     const pattern = new RegExp("([^€]{2,420}?)\\s+" + escapedAlias + "\\s+(?:ab\\s*)?(\\d{1,4}(?:[.,]\\d{2})?)\\s*€", "gi");
     for (const match of text.matchAll(pattern)) {
       const rawPrefix = match[1] ?? "";
-      const previousPrice = rawPrefix.match(/(?:€\s*\d{1,4}(?:[.,]\d{2})?|\d{1,4}(?:[.,]\d{2})?\s*€)[^€]*$/);
-      let name = previousPrice ? rawPrefix.slice(previousPrice.index! + previousPrice[0].length) : rawPrefix;
+      const lastStoreIndex = rawPrefix.toLowerCase().lastIndexOf(alias.toLowerCase());
+      let name = lastStoreIndex >= 0 ? rawPrefix.slice(lastStoreIndex + alias.length) : rawPrefix;
       name = name
-        .replace(/^.*?Prospekt in [A-Za-zÄÖÜäöüß-]+\s+/i, "")
-        .replace(/^.*?Veröffentlicht wurde der Prospekt[\s\S]*?\.\s*/i, "")
-        .replace(/\(?\s*(?:App:\s*)?\d+(?:[.,]\d+)?\s*\/\s*(?:kg|g|l|ml)\s*\)?/gi, " ")
-        .replace(/\(?\s*\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml)\s*=\s*[\d.,]+[^)]*\)?/gi, " ")
-        .replace(/\b(?:UVP|statt|bisher|App:)\b[^€]*/gi, " ")
-        .replace(/^.*?\b(?:Sonntag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag),?\s+den\s+\d{1,2}\.\s+\w+\s+\d{4}\.\s*/i, "")
-        .replace(/\s+/g, " ")
+        .replace(/^.*?Angebote aus dem .*?Prospekt in [A-Za-zÄÖÜäöüß-]+\\s+/i, "")
+        .replace(/^\\s*Prospekt in [A-Za-zÄÖÜäöüß-]+\\s+/i, "")
+        .replace(/^.*?Veröffentlicht wurde der Prospekt[\\s\\S]*?\\.\\s*/i, "")
+        .replace(/\\(?\\s*(?:App:\\s*)?\\d+(?:[.,]\\d+)?\\s*[-–]?\\s*\\d*(?:[.,]\\d+)?\\s*\\/\\s*(?:kg|g|l|ml)\\s*\\)?/gi, " ")
+        .replace(/\\(?\\s*\\d+(?:[.,]\\d+)?\\s*(?:kg|g|l|ml)\\s*=\\s*[\\d.,/]+[^)]*\\)?/gi, " ")
+        .replace(/\\b(?:UVP|statt|bisher|App:)\\b[^€]*/gi, " ")
+        .replace(/^.*?\\b(?:Sonntag|Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag),?\\s+den\\s+\\d{1,2}\\.\\s+\\w+\\s+\\d{4}\\.\\s*/i, "")
+        .replace(/\\s+/g, " ")
         .replace(/^[^A-Za-zÄÖÜäöüß0-9]+/, "")
         .replace(/[^A-Za-zÄÖÜäöüß0-9)]+$/, "")
         .trim();
