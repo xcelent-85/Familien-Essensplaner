@@ -176,6 +176,13 @@ function decodeEntities(value: string): string {
     .replace(/&nbsp;|&#160;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&euro;/gi, "€")
+    .replace(/&auml;/gi, "ä")
+    .replace(/&ouml;/gi, "ö")
+    .replace(/&uuml;/gi, "ü")
+    .replace(/&Auml;/g, "Ä")
+    .replace(/&Ouml;/g, "Ö")
+    .replace(/&Uuml;/g, "Ü")
+    .replace(/&szlig;/gi, "ß")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number(code)));
