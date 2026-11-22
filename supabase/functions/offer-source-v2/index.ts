@@ -393,9 +393,9 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
     const name = block
       .replace(/\b\d{1,3}\s*%\s*/g, " ")
       .replace(/\b(?:tiefstpreis|uvp)\b/gi, " ")
-      .replace(/(?:ab\s*)?\d{1,4}[.,]\d{2}\s*€/gi, " ")
-      // Preis-Spannen samt Grundpreiszusatz entfernen, z. B. "5,33 - 18,85 € je kg".
+      // Grundpreis-Spannen vor einzelnen Europreisen entfernen, damit deren Endpreis nicht vorab verschwindet.
       .replace(/\b\d+(?:[.,]\d+)?\s*[-–]\s*\d+(?:[.,]\d+)?\s*€?\s*je\s*(?:kg|l|liter|100\s*g|stück)\b/gi, " ")
+      .replace(/(?:ab\s*)?\d{1,4}[.,]\d{2}\s*€/gi, " ")
       // Verbliebene Grundpreis-Einheiten entfernen, wenn der Preis davor bereits entfernt wurde.
       .replace(/\bje\s*(?:kg|l|liter|100\s*g|stück)\b/gi, " ")
       .replace(/\bpro\s*(?:kg|l|liter|100\s*g|stück)\b/gi, " ")
