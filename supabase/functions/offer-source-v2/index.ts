@@ -453,7 +453,7 @@ function extractNettoMeinProspektOfferGridCandidates(html: string, source: Store
   if (gridIndex < 0) return [];
 
   const gridHtml = html.slice(gridIndex, gridIndex + 250000);
-  const cardStarts = [...gridHtml.matchAll(/<div\\b(?=[^>]*class=["'][^"']*\\bborder-gray\\b[^"']*\\bgroup\\b[^"']*["'])(?=[^>]*role=["']listitem["'])[^>]*>/gi)];
+  const cardStarts = [...gridHtml.matchAll(/<div\b(?=[^>]*class=["'][^"']*\bborder-gray\b[^"']*\bgroup\b[^"']*["'])(?=[^>]*role=["']listitem["'])[^>]*>/gi)];
   const candidates: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
 
@@ -464,18 +464,18 @@ function extractNettoMeinProspektOfferGridCandidates(html: string, source: Store
       : Math.min(gridHtml.length, start + 5000);
     const card = gridHtml.slice(start, end);
 
-    const paragraphs = [...card.matchAll(/<p\\b[^>]*>([\\s\\S]*?)<\\/p>/gi)]
+    const paragraphs = [...card.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
       .map((match) => cleanText(match[1]))
       .filter((value) => value.length > 0 && !/^netto marken-discount$/i.test(value));
     if (!paragraphs.length) continue;
 
     // MeinProspekt-Karten zeigen Marke und Produktname in getrennten p-Elementen.
-    const name = paragraphs.slice(-2).join(" ").replace(/\\s+/g, " ").trim().slice(0, 110);
+    const name = paragraphs.slice(-2).join(" ").replace(/\s+/g, " ").trim().slice(0, 110);
     if (name.length < 3 || !isRelevantFoodCandidate(name, source)) continue;
     // Zusätzliche Absicherung gegen typische Schreibwaren-/Büroartikel in Prospektkarten.
-    if (/\\b(?:klebestift(?:e)?|kleber|tesa|kugelschreiber|druckerpapier|heft(?:e)?|ordner|marker)\\b/i.test(name)) continue;
+    if (/\b(?:klebestift(?:e)?|kleber|tesa|kugelschreiber|druckerpapier|heft(?:e)?|ordner|marker)\b/i.test(name)) continue;
 
-    const priceParagraph = card.match(/<p\\b[^>]*class=["'][^"']*text-primary[^"']*["'][^>]*>([\\s\\S]*?)<\\/p>/i);
+    const priceParagraph = card.match(/<p\b[^>]*class=["'][^"']*text-primary[^"']*["'][^>]*>([\s\S]*?)<\/p>/i);
     const prices = priceParagraph ? parsePriceTokens(cleanText(priceParagraph[1]), false) : [];
     const price = prices[0] ?? 0;
     if (price <= 0 || price > 500) continue;
