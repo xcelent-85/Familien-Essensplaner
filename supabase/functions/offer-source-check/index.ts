@@ -82,8 +82,9 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
       let name = previousPrice ? rawPrefix.slice(previousPrice.index! + previousPrice[0].length) : rawPrefix;
       name = name
         .replace(/^.*?Angebote aus dem [\s\S]*?Prospekt in [^ ]+\s+/i, "")
-        .replace(/\s*\([^)]*(?:\/\s*(?:kg|g|l|ml)|\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml)\s*=)[^)]*\)\s*$/i, " ")
-        .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml)\s*=\s*[\d.,]+/gi, " ")
+        .replace(/^\s*\d{1,2}\.\s+\w+.*?Veröffentlicht wurde der Prospekt[\s\S]*?\.\s*/i, "")
+        .replace(/\(?\s*\d+(?:[.,]\d+)?\s*\/\s*(?:kg|g|l|ml)\s*\)?/gi, " ")
+        .replace(/\(?\s*\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml)\s*=\s*[\d.,]+[^)]*\)?/gi, " ")
         .replace(/\b(?:UVP|statt|bisher|App:)\b/gi, " ")
         .replace(/\s+/g, " ")
         .replace(/^[^A-Za-zÄÖÜäöüß0-9]+/, "")
