@@ -254,7 +254,7 @@ function isRelevantFoodCandidate(name: string, source: StoreSource): boolean {
   // Alkoholfreie Getränke bleiben erlaubt. Alkohol sowie Drogerie-, Haushalts-,
   // Tier- und Non-Food-Artikel werden ausgeschlossen.
   if (!/alkoholfrei/i.test(name) && /\b(?:bier|pils|helles|radler|veltins|büble|light live|sekt|prosecco|wein|blanchet|likör|whisky|whiskey|schnaps|vodka|wodka|rum|gin|spirituose)\b/i.test(name)) return false;
-  if (/\b(?:somat|waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps|tabs)?|geschirrspül(?:mittel|tabs)|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|klebestift(?:e)?|kleber|tesa|kugelschreiber|druckerpapier|heft(?:e)?|ordner|marker|deo(?:spray)?|deodorant|kosmetik|shampoo|duschgel|zahnpasta|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|pflanze|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name)) return false;
+  if (/\b(?:somat|waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps|tabs)?|geschirrspül(?:mittel|tabs)|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|klebestift(?:e)?|kleber|tesa|kugelschreiber|druckerpapier|heft(?:e)?|ordner|marker|deo(?:spray)?|deodorant|kosmetik|shampoo|duschgel|zahnpasta|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|pflanze|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?|rc[- ]?(?:fahrzeug|auto|modell)|frischhaltedosen?|schnellkochtopf|kochtopf|pfanne|geschirr|haushaltswaren|küchenhelfer|spielzeug|modellbau)\b/i.test(name)) return false;
   if (source.retailerId === "aldi-nord" || source.id === "aldi-nord") {
     return !/\b(?:pflanzen|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name);
   }
@@ -425,7 +425,7 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 110);
-    if (name.length < 3 || !isRelevantFoodCandidate(name, source)) continue;
+    if (name.length < 3 || !isRelevantFoodCandidate(name, source) || !isRelevantFoodCandidate(`${name} ${cardText}`, source)) continue;
     const key = name.toLocaleLowerCase("de-DE") + "|" + prices[0];
     if (seen.has(key)) continue;
     seen.add(key);
@@ -463,6 +463,9 @@ function extractNettoMeinProspektOfferGridCandidates(html: string, source: Store
       ? (cardStarts[index + 1].index ?? gridHtml.length)
       : Math.min(gridHtml.length, start + 5000);
     const card = gridHtml.slice(start, end);
+    const cardText = cleanText(card);
+    // Der letzte Kartenbereich kann in den Seitenfuß hineinreichen; solche Treffer verwerfen.
+    if (/\b(?:gültig bis|weitere angebote|discounter prospekte|top angebote|gültig vom)\b/i.test(cardText)) continue;
 
     const paragraphs = [...card.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
       .map((match) => cleanText(match[1]))
