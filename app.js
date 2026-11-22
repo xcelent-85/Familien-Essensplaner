@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.12";
+const APP_BUILD_ID="2026-11-22.13";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -187,27 +187,33 @@ function renderShoppingList(){
     const value=select?.value||"";
     const dish=dishes.find(item=>String(item.id||item.title)===value);
     return dish?{day,dish,servings:Math.max(1,Number(servingsInput?.value)||3)}:null;
-  }).filter(Boolean);
+  });
   const totals=new Map(),missing=[];
-  selected.forEach(({day,dish,servings})=>{
+  const formatQuantity=item=>item.amount===null?"":(Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" "));
+  const dailyCards=selected.map(entry=>{
+    if(!entry)return '<article class="shopping-day-card shopping-day-empty"><strong>'+escapeHtml(dates[selected.indexOf(entry)]?.name||"Tag")+'</strong><p>Kein Gericht geplant</p></article>';
+    const {day,dish,servings}=entry;
     const base=Number(dish.servings)||3;
-    if(!Array.isArray(dish.ingredients)||!dish.ingredients.length){missing.push(dish.title);return;}
-    dish.ingredients.forEach(line=>{
+    const ingredients=Array.isArray(dish.ingredients)?dish.ingredients:[];
+    if(!ingredients.length)missing.push(dish.title);
+    const dailyItems=ingredients.map((line,index)=>{
       const item=parseShoppingIngredient(line,servings/base);
       const existing=totals.get(item.key);
       if(existing&&item.amount!==null&&existing.amount!==null)existing.amount+=item.amount;
       else if(!existing)totals.set(item.key,{...item,days:[day.name]});
       else if(!existing.days.includes(day.name))existing.days.push(day.name);
-    });
-  });
+      return '<label class="shopping-item"><input type="checkbox" data-shopping-day="'+day.iso+'" data-shopping-ingredient="'+index+'"><span><strong>'+escapeHtml(formatQuantity(item)+item.name)+'</strong></span></label>';
+    }).join("");
+    return '<article class="shopping-day-card"><div class="shopping-day-heading"><strong>'+escapeHtml(day.name)+'</strong><span>'+escapeHtml(day.date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}))+'</span></div><h3>'+escapeHtml(dish.title)+'</h3><div class="shopping-day-items">'+(dailyItems||'<p class="shopping-day-missing">Keine Zutaten hinterlegt</p>')+'</div></article>';
+  }).join("");
   const list=[...totals.values()].sort((a,b)=>a.name.localeCompare(b.name,"de"));
   currentShoppingIngredients=list.map(item=>item.name);
   const container=$("#shopping-list-items");
   container.innerHTML=list.length?list.map((item,index)=>{
-    const quantity=item.amount===null?"":(Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" "));
-    return '<label class="shopping-item"><input type="checkbox" data-shopping-item="'+index+'"><span><strong>'+escapeHtml(quantity+item.name)+'</strong><small>'+escapeHtml(item.days.join(", "))+'</small></span></label>';
+    return '<label class="shopping-item"><input type="checkbox" data-shopping-item="'+index+'"><span><strong>'+escapeHtml(formatQuantity(item)+item.name)+'</strong><small>'+escapeHtml(item.days.join(", "))+'</small></span></label>';
   }).join(""):'<p class="notice">Wähle im Wochenplan zuerst mindestens ein Gericht aus.</p>';
-  $("#shopping-list-note").textContent=selected.length+" Gerichte berücksichtigt · "+list.length+" Zutatenpositionen"+(missing.length?" · Für "+missing.join(", ")+" fehlen noch Zutatenangaben.":"");
+  $("#shopping-day-columns").innerHTML=dailyCards;
+  $("#shopping-list-note").textContent=selected.filter(Boolean).length+" Gerichte berücksichtigt · "+list.length+" zusammengefasste Zutatenpositionen"+(missing.length?" · Für "+[...new Set(missing)].join(", ")+" fehlen noch Zutatenangaben.":"");
   $("#shopping-section").hidden=false;
   $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
 }
