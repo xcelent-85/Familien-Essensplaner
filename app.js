@@ -190,8 +190,8 @@ function renderShoppingList(){
   });
   const totals=new Map(),missing=[];
   const formatQuantity=item=>item.amount===null?"":(Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" "));
-  const dailyCards=selected.map(entry=>{
-    if(!entry)return '<article class="shopping-day-card shopping-day-empty"><strong>'+escapeHtml(dates[selected.indexOf(entry)]?.name||"Tag")+'</strong><p>Kein Gericht geplant</p></article>';
+  const dailyCards=selected.map((entry,index)=>{
+    if(!entry)return '<article class="shopping-day-card shopping-day-empty"><div class="shopping-day-heading"><strong>'+escapeHtml(dates[index].name)+'</strong><span>'+escapeHtml(dates[index].date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}))+'</span></div><p>Kein Gericht geplant</p></article>';
     const {day,dish,servings}=entry;
     const base=Number(dish.servings)||3;
     const ingredients=Array.isArray(dish.ingredients)?dish.ingredients:[];
