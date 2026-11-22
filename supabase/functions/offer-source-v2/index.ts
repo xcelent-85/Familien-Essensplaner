@@ -391,18 +391,22 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
     const prices = parsePriceTokens(block, false);
     if (!prices.length) continue;
     const name = block
-      .replace(/\b\d{1,3}\s*%\s*/g, " ")
-      .replace(/\b(?:tiefstpreis|uvp)\b/gi, " ")
-      .replace(/(?:ab\s*)?\d{1,4}[.,]\d{2}\s*€/gi, " ")
-      .replace(/\b\d+(?:[.,]\d+)?\s*(?:€\s*)?(?:je|pro)\s*(?:kg|l|100\s*g|stück)\b/gi, " ")
-      .replace(/\b\d+(?:[.,]\d+)?\s*(?:je|pro)\s*(?:kg|l|100\s*g|stück)\b/gi, " ")
-      .replace(/\b\d+\s*(?:[-–]\s*\d+)?\s*(?:g|kg|ml|l)\b/gi, " ")
-      .replace(/\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l)\b/gi, " ")
-      .replace(/\b\d+\s*(?:[-–]\s*\d+)?\s*(?:stück|stk\.?)\b/gi, " ")
-      .replace(/\(\s*\)/g, " ")
-      .replace(/\(\s*\d+\s*(?:stück|stk\.?)\s*\)/gi, " ")
-      .replace(/\s*[-–]\s*(?=\s|$)/g, " ")
-      .replace(/\s+/g, " ")
+      .replace(/\\b\\d{1,3}\\s*%\\s*/g, " ")
+      .replace(/\\b(?:tiefstpreis|uvp)\\b/gi, " ")
+      .replace(/(?:ab\\s*)?\\d{1,4}[.,]\\d{2}\\s*€/gi, " ")
+      // Preis-Spannen samt Grundpreiszusatz entfernen, z. B. "5,33 - 18,85 € je kg".
+      .replace(/\\b\\d+(?:[.,]\\d+)?\\s*[-–]\\s*\\d+(?:[.,]\\d+)?\\s*€?\\s*je\\s*(?:kg|l|liter|100\\s*g|stück)\\b/gi, " ")
+      // Verbliebene Grundpreis-Einheiten entfernen, wenn der Preis davor bereits entfernt wurde.
+      .replace(/\\bje\\s*(?:kg|l|liter|100\\s*g|stück)\\b/gi, " ")
+      .replace(/\\bpro\\s*(?:kg|l|liter|100\\s*g|stück)\\b/gi, " ")
+      .replace(/\\b\\d+\\s*(?:[-–]\\s*\\d+)?\\s*(?:g|kg|ml|l)\\b/gi, " ")
+      .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:g|kg|ml|l)\\b/gi, " ")
+      // Stückzahl-Spannen und einzelne Stückzahlen entfernen.
+      .replace(/\\b\\d+\\s*[-–]\\s*\\d+\\s*(?:stück|stk\\.?)\\b/gi, " ")
+      .replace(/\\b\\d+\\s*(?:stück|stk\\.?)\\b/gi, " ")
+      .replace(/\\(\\s*\\)/g, " ")
+      .replace(/\\s*[-–]\\s*(?=\\s|$)/g, " ")
+      .replace(/\\s+/g, " ")
       .trim()
       .slice(0, 110);
     if (name.length < 3 || !isRelevantFoodCandidate(name, source)) continue;
