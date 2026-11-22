@@ -81,8 +81,10 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
       const previousPrice = rawPrefix.match(/(?:€\s*\d{1,4}(?:[.,]\d{2})?|\d{1,4}(?:[.,]\d{2})?\s*€)[^€]*$/);
       let name = previousPrice ? rawPrefix.slice(previousPrice.index! + previousPrice[0].length) : rawPrefix;
       name = name
+        .replace(/^.*?Angebote aus dem [\s\S]*?Prospekt in [^ ]+\s+/i, "")
+        .replace(/\s*\([^)]*(?:\/\s*(?:kg|g|l|ml)|\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml)\s*=)[^)]*\)\s*$/i, " ")
         .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml)\s*=\s*[\d.,]+/gi, " ")
-        .replace(/\b(?:UVP|statt|bisher)\b/gi, " ")
+        .replace(/\b(?:UVP|statt|bisher|App:)\b/gi, " ")
         .replace(/\s+/g, " ")
         .replace(/^[^A-Za-zÄÖÜäöüß0-9]+/, "")
         .replace(/[^A-Za-zÄÖÜäöüß0-9)]+$/, "")
@@ -96,7 +98,7 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
       seen.add(key);
 
       const nonFood = /(?:smartphone|samsung|matratze|rollo|leuchte|werkzeug|spielzeug|weihnachtsfigur|elektronik|haushaltsgerät|kleidung|schuhe)/i.test(name);
-      const likelyFood = /(?:milch|käse|quark|joghurt|fleisch|rind|hähnchen|huhn|schwein|wurst|fisch|obst|gemüse|mandarine|tomate|kartoffel|rosenkohl|nudel|reis|mehl|brot|brötchen|margarine|butter|sauce|soße|eistee|getränk|cola|schokolade|pudding|erdnuss|frutti|cevapcici|rouladen|suppen|pizza|tiefkühl|tortellini|eier|öl|sahne|frischkäse|sultaninen|fuet)/i.test(name);
+      const likelyFood = /(?:milch|käse|quark|joghurt|fleisch|rind|hähnchen|huhn|schwein|wurst|fisch|frutti|meeresfrüchte|obst|gemüse|mandarine|clementine|grapefruit|tomate|kartoffel|süßkartoffel|rote.?bete|rosenkohl|nudel|reis|mehl|brot|brötchen|margarine|butter|sauce|soße|eistee|getränk|cola|schokolade|pudding|erdnuss|mandel|cashew|nuss|cevapcici|rouladen|suppe|pizza|tiefkühl|tortellini|eier|öl|sahne|frischkäse|sultaninen|fuet|glühwein|müsli|protein.?bar|knuspertaler|sanella|torrone|gruyère|maronen)/i.test(name);
 
       offers.push({
         productName: name,
