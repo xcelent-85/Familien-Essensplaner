@@ -15,22 +15,22 @@ const SOURCES = [
 
 function htmlToText(html: string): string {
   return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
+    .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;|&#160;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&euro;/gi, "€")
     .replace(/&#39;|&apos;/gi, "'")
     .replace(/&quot;/gi, '"')
-    .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
-    .replace(/\s+/g, " ")
+    .replace(/&#(\\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
+    .replace(/\\s+/g, " ")
     .trim();
 }
 
 function getStructuredOffers(html: string) {
   const found: Array<Record<string, unknown>> = [];
-  const scripts = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+  const scripts = html.matchAll(/<script[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi);
 
   function visit(value: unknown) {
     if (Array.isArray(value)) {
@@ -38,7 +38,6 @@ function getStructuredOffers(html: string) {
       return;
     }
     if (!value || typeof value !== "object") return;
-
     const item = value as Record<string, unknown>;
     const rawType = item["@type"];
     const types = Array.isArray(rawType) ? rawType : [rawType];
@@ -65,61 +64,18 @@ function getStructuredOffers(html: string) {
   }
 
   for (const match of scripts) {
-    try {
-      visit(JSON.parse(match[1]));
-    } catch {
-      // Ungültige oder unvollständige strukturierte Daten überspringen.
-    }
+    try { visit(JSON.parse(match[1])); } catch { /* Ungültige strukturierte Daten überspringen. */ }
   }
   return found.slice(0, 100);
 }
-
 
 function getOfferCandidates(text: string, storeAliases: string[]) {
   const offers: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
 
   for (const alias of storeAliases) {
-    const pattern = new RegExp("([^€]{2,180}?)\\s+" + alias + "\\s+(?:ab\\s*)?(\\d{1,4}(?:[.,]\\d{2})?)\\s*€", "gi");
-    for (const match of text.matchAll(pattern)) {
-      const rawPrefix = match[1] ?? "";
-      const previousPrice = rawPrefix.match(/(?:€\s*\d{1,4}(?:[.,]\d{2})?|\d{1,4}(?:[.,]\d{2})?\s*€)[^€]*$/);
-      let name = previousPrice ? rawPrefix.slice(previousPrice.index! + previousPrice[0].length) : rawPrefix;
-      name = name
-        .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|ml)\s*=\s*[\d.,]+/gi, " ")
-        .replace(/\b(?:UVP|statt|bisher)\b/gi, " ")
-        .replace(/\s+/g, " ")
-        .replace(/^[^A-Za-zÄÖÜäöüß0-9]+/, "")
-        .replace(/[^A-Za-zÄÖÜäöüß0-9)]+$/, "")
-        .trim();
-      if (name.length < 3) continue;
-      name = name.slice(-100).trim();
-
-      const amount = match[2];
-      const key = (name + "|" + amount).toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      const nonFood = /(?:smartphone|samsung|matratze|rollo|leuchte|werkzeug|spielzeug|weihnachtsfigur|elektronik|haushaltsgerät|kleidung|schuhe)/i.test(name);
-      const likelyFood = /(?:milch|käse|quark|joghurt|fleisch|rind|hähnchen|huhn|schwein|wurst|fisch|obst|gemüse|mandarine|tomate|kartoffel|rosenkohl|nudel|reis|mehl|brot|brötchen|margarine|butter|sauce|soße|eistee|getränk|cola|schokolade|pudding|erdnuss|frutti|cevapcici|rouladen|suppen|pizza|tiefkühl|tortellini|eier|öl|sahne|frischkäse)/i.test(name);
-
-      offers.push({
-        productName: name,
-        price: amount.replace(",", "."),
-        currency: "EUR",
-        storeLabel: alias,
-        productType: nonFood ? "non_food" : likelyFood ? "food" : "unknown",
-        extractionMethod: "store_price_pattern",
-        confidence: likelyFood && !nonFood ? "medium" : "review_required",
-      });
-      if (offers.length >= 100) return offers;
-    }
-  }
-  return offers;
-}
-
-function getPriceCandidates(text: string) {");
-    const pattern = new RegExp(String.raw`([^€]{2,180}?)\\s+${escapedAlias}\\s+${price}`, "gi");
+    const escapedAlias = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp("([^€]{2,180}?)\\\\s+" + escapedAlias + "\\\\s+(?:ab\\\\s*)?(\\\\d{1,4}(?:[.,]\\\\d{2})?)\\\\s*€", "gi");
     for (const match of text.matchAll(pattern)) {
       const rawPrefix = match[1] ?? "";
       const previousPrice = rawPrefix.match(/(?:€\\s*\\d{1,4}(?:[.,]\\d{2})?|\\d{1,4}(?:[.,]\\d{2})?\\s*€)[^€]*$/);
@@ -140,7 +96,7 @@ function getPriceCandidates(text: string) {");
       seen.add(key);
 
       const nonFood = /(?:smartphone|samsung|matratze|rollo|leuchte|werkzeug|spielzeug|weihnachtsfigur|elektronik|haushaltsgerät|kleidung|schuhe)/i.test(name);
-      const likelyFood = /(?:milch|käse|quark|joghurt|fleisch|rind|hähnchen|huhn|schwein|wurst|fisch|obst|gemüse|mandarine|tomate|kartoffel|rosenkohl|nudel|reis|mehl|brot|brötchen|margarine|butter|sauce|soße|eistee|getränk|cola|schokolade|pudding|erdnuss|frutti|cevapcici|rouladen|suppen|pizza|tiefkühl|tortellini|eier|öl|sahne|frischkäse)/i.test(name);
+      const likelyFood = /(?:milch|käse|quark|joghurt|fleisch|rind|hähnchen|huhn|schwein|wurst|fisch|obst|gemüse|mandarine|tomate|kartoffel|rosenkohl|nudel|reis|mehl|brot|brötchen|margarine|butter|sauce|soße|eistee|getränk|cola|schokolade|pudding|erdnuss|frutti|cevapcici|rouladen|suppen|pizza|tiefkühl|tortellini|eier|öl|sahne|frischkäse|sultaninen|fuet)/i.test(name);
 
       offers.push({
         productName: name,
@@ -160,13 +116,13 @@ function getPriceCandidates(text: string) {");
 function getPriceCandidates(text: string) {
   const candidates: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
-  const pricePattern = /(?:€\s*\d{1,4}(?:[.,]\d{2})?|\d{1,4}(?:[.,]\d{2})?\s*€)/g;
+  const pricePattern = /(?:€\\s*\\d{1,4}(?:[.,]\\d{2})?|\\d{1,4}(?:[.,]\\d{2})?\\s*€)/g;
   for (const match of text.matchAll(pricePattern)) {
     const index = match.index ?? 0;
     const start = Math.max(0, index - 95);
     const end = Math.min(text.length, index + match[0].length + 75);
-    const snippet = text.slice(start, end).replace(/\s+/g, " ").trim();
-    const key = match[0].replace(/\s/g, "") + "|" + snippet;
+    const snippet = text.slice(start, end).replace(/\\s+/g, " ").trim();
+    const key = match[0].replace(/\\s/g, "") + "|" + snippet;
     if (seen.has(key)) continue;
     seen.add(key);
     candidates.push({
@@ -181,10 +137,7 @@ function getPriceCandidates(text: string) {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "GET") {
     return new Response(JSON.stringify({ error: "Nur GET ist erlaubt." }), {
       status: 405,
@@ -203,11 +156,11 @@ Deno.serve(async (req: Request) => {
         signal: AbortSignal.timeout(15000),
       });
       const html = await response.text();
-      const text = htmlToText(html);
+      const pageText = htmlToText(html);
       const structuredOffers = response.ok ? getStructuredOffers(html) : [];
-      const priceCandidates = response.ok ? getPriceCandidates(text) : [];
-      const offerAliases = source.id === "lidl" ? ["Lidl"] : source.id === "rewe-neuruppin" ? ["REWE"] : source.id === "netto-marken-discount" ? ["Netto Marken-Discount"] : [];
-      const offerCandidates = response.ok ? getOfferCandidates(text, offerAliases) : [];
+      const priceCandidates = response.ok ? getPriceCandidates(pageText) : [];
+      const aliases = source.id === "lidl" ? ["Lidl"] : source.id === "rewe-neuruppin" ? ["REWE"] : source.id === "netto-marken-discount" ? ["Netto Marken-Discount"] : [];
+      const offerCandidates = response.ok ? getOfferCandidates(pageText, aliases) : [];
 
       return {
         id: source.id,
@@ -216,7 +169,7 @@ Deno.serve(async (req: Request) => {
         sourceUrl: source.url,
         reachable: response.ok,
         status: response.status,
-        title: html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/<[^>]+>/g, "").trim() ?? null,
+        title: html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1]?.replace(/<[^>]+>/g, "").trim() ?? null,
         structuredOffers,
         priceCandidates,
         offerCandidates,
@@ -224,7 +177,7 @@ Deno.serve(async (req: Request) => {
         foodOfferCount: offerCandidates.filter((offer) => offer.productType === "food").length,
         structuredOfferCount: structuredOffers.length,
         priceCandidateCount: priceCandidates.length,
-        preview: text.slice(0, 1200),
+        preview: pageText.slice(0, 1200),
         checkedAt: new Date().toISOString(),
       };
     } catch (error) {
