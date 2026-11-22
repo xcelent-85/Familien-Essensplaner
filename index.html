@@ -24,7 +24,7 @@
 <section class="section-heading"><div><p class="eyebrow">LOS GEHT'S</p><h2>Dein Essensplaner</h2></div><span class="version">Grundversion 1.1</span></section>
 <section class="feature-grid">
 <article class="feature-card feature-primary"><div class="feature-symbol">🍽️</div><h3>Gerichte entdecken</h3><p>Eine gemeinsame Sammlung mit euren Lieblingsgerichten aufbauen und jederzeit erweitern.</p><button class="button button-light" id="show-dishes" type="button">Gerichte ansehen <span>→</span></button></article>
-<article class="feature-card"><div class="feature-symbol">🗓️</div><h3>Wochenplan erstellen</h3><p>Gemeinsam entscheiden, was an den fünf Wochentagen gekocht wird.</p><span class="coming-soon">Wird als Nächstes eingerichtet</span></article>
+<article class="feature-card"><div class="feature-symbol">🗓️</div><h3>Wochenplan erstellen</h3><p>Wählt fünf Abendessen aus eurer Gerichte-Sammlung und speichert euren Familienplan.</p><button class="button" id="show-week-plan" type="button">Wochenplan öffnen →</button></article>
 <article class="feature-card"><div class="feature-symbol">👨‍👩‍👧</div><h3>Als Familie verbunden</h3><p>Zwei eigene Konten, ein gemeinsamer Plan und automatisch abgeglichene Änderungen.</p><span class="coming-soon">Familienverknüpfung folgt</span></article>
 <article class="feature-card"><div class="feature-symbol">🏷️</div><h3>Angebote vergleichen</h3><p>Die Wochenangebote eurer Märkte bei der Essensauswahl berücksichtigen.</p><span class="coming-soon">Kommt in einer späteren Ausbaustufe</span></article>
 </section>
@@ -46,6 +46,13 @@
 <p class="auth-message" id="dish-form-message" role="status"></p>
 </form>
 <div class="dish-grid" id="dish-grid"></div>
+</section>
+<section class="weekly-section" id="weekly-section" hidden>
+<div class="section-heading compact"><div><p class="eyebrow">EURE WOCHENÜBERSICHT</p><h2>Abendessen planen</h2></div><span class="version">Montag bis Freitag</span></div>
+<div class="week-toolbar"><button type="button" class="week-nav" id="previous-week">← Vorherige</button><strong id="week-label">Diese Woche</strong><button type="button" class="week-nav" id="next-week">Nächste →</button></div>
+<p class="notice" id="week-help">Wählt für jeden Tag ein Gericht aus. Der Plan wird in eurem Familienkonto gespeichert.</p>
+<div class="week-grid" id="week-grid"></div>
+<div class="week-save-row"><button type="button" class="button button-green" id="save-week-plan">Wochenplan speichern</button><span class="auth-message" id="week-message" role="status"></span></div>
 </section>
 <footer><span>Familien-Essensplaner</span><span>Gemeinsam planen. Besser einkaufen. Lecker essen.</span></footer>
 </main>
