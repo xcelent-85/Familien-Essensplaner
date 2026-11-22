@@ -210,6 +210,10 @@ function getValidity(text: string): string | null {
   return null;
 }
 
+function roundPrice(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
 function parsePriceTokens(block: string, allowNoCurrency: boolean): number[] {
   const values: number[] = [];
   const currencyPattern = /(?:€\s*)?(\d{1,4})[.,](\d{2}|[–-])\s*€?/g;
@@ -309,6 +313,7 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
       .replace(/\b(?:nur\s*)?\d{1,4}[.,]\d{2}\s*€?/gi, " ")
       .replace(/\*+/g, " ")
       .replace(/\s*\/\s*/g, " / ")
+      .replace(/(?:\s*\/\s*)+$/g, "")
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 110);
@@ -319,8 +324,8 @@ function extractKauflandLinkCandidates(html: string, source: StoreSource) {
     seen.add(key);
     candidates.push({
       productName: name,
-      price,
-      ...(cardPrice !== undefined ? { cardPrice, cardRequired: true } : {}),
+      price: roundPrice(price),
+      ...(cardPrice !== undefined ? { cardPrice: roundPrice(cardPrice), cardRequired: true } : {}),
       currency: "EUR",
       context: text,
       sourceId: source.id,
