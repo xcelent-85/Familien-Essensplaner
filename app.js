@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.9";
+const APP_BUILD_ID="2026-11-22.10";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -295,8 +295,11 @@ function buildMerchantOfferSummary(matches){
     merchant.offers.push(item);
     (item.matchedIngredients||[]).forEach(value=>merchant.ingredients.set(normalizeOfferKey(value),value));
   });
-  return [...merchants.values()].map(merchant=>({...merchant,ingredientCount:merchant.ingredients.size,ingredientNames:[...merchant.ingredients.values()]}))
-    .sort((a,b)=>b.ingredientCount-a.ingredientCount||b.offers.length-a.offers.length||a.name.localeCompare(b.name,"de"));
+  return [...merchants.values()].map(merchant=>{
+    const pricedOffers=merchant.offers.filter(item=>item.price!==null&&item.price!==undefined&&String(item.price).trim()!==""&&Number.isFinite(Number(item.price))&&Number(item.price)>=0);
+    const currencies=[...new Set(pricedOffers.map(item=>String(item.currency||"EUR").toUpperCase()))];
+    return {...merchant,ingredientCount:merchant.ingredients.size,ingredientNames:[...merchant.ingredients.values()],pricedOfferCount:pricedOffers.length,priceTotal:pricedOffers.reduce((sum,item)=>sum+Number(item.price),0),priceCurrency:currencies.length===1?currencies[0]:null};
+  }).sort((a,b)=>b.ingredientCount-a.ingredientCount||b.offers.length-a.offers.length||a.name.localeCompare(b.name,"de"));
 }
 $("#search-meal-offers").addEventListener("click",async()=>{
   const button=$("#search-meal-offers"),message=$("#meal-offer-message"),results=$("#meal-offer-results");
@@ -324,12 +327,19 @@ $("#search-meal-offers").addEventListener("click",async()=>{
       results.innerHTML='<p class="notice">Bei den aktuell geprüften Angebotsquellen wurde kein eindeutiger Treffer für eure Zutaten gefunden. Das bedeutet nicht, dass die Produkte nicht im Markt erhältlich sind.</p>';
     }else{
       const best=merchants[0];
-      const summary='<section class="merchant-recommendation"><p class="merchant-kicker">EINKAUFSEMPFEHLUNG · PLZ '+escapeHtml(zipInput)+'</p><h3>'+escapeHtml(best.name)+'</h3><p>Hier gibt es die größte Abdeckung eurer Einkaufsliste: <strong>'+best.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten</strong> mit '+best.offers.length+' unterschiedlichen Angebotsvorschlägen.</p><small>Sortiert nach Zutatenabdeckung, danach Anzahl der Angebote. Preise werden wegen unterschiedlicher Packungsgrößen nicht pauschal addiert.</small></section>';
+      const topIngredientCount=best.ingredientCount;
+      const leaders=merchants.filter(merchant=>merchant.ingredientCount===topIngredientCount);
+      const summaryText=leaders.length>1
+        ?'Gemeinsam größte Zutatenabdeckung: '+leaders.map(merchant=>merchant.name).join(' und ')+' decken jeweils '+topIngredientCount+' von '+currentShoppingIngredients.length+' Zutaten ab. '+best.name+' liegt bei gleicher Abdeckung wegen der höheren Angebotszahl vorne.'
+        :'Hier gibt es die größte Abdeckung eurer Einkaufsliste: '+best.ingredientCount+' von '+currentShoppingIngredients.length+' Zutaten mit '+best.offers.length+' unterschiedlichen Angebotsvorschlägen.';
+      const summary='<section class="merchant-recommendation"><p class="merchant-kicker">EINKAUFSEMPFEHLUNG · PLZ '+escapeHtml(zipInput)+'</p><h3>'+escapeHtml(best.name)+'</h3><p>'+summaryText+'</p><small>Die Summe je Händler addiert alle gefundenen Angebotspreise; sie ist kein Warenkorbpreis und berücksichtigt keine benötigten Mengen oder Packungsgrößen.</small></section>';
       const merchantCards=merchants.map((merchant,index)=>{
         const items=merchant.offers.slice().sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0)).map(item=>
           '<article class="offer-item"><div><strong>'+escapeHtml(item.productName)+'</strong><span>Passt zu: '+escapeHtml((item.matchedIngredients||[]).join(", "))+(item.regionality==="not_confirmed_for_neuruppin"?" · regional nicht bestätigt":" · regionale Verfügbarkeit bitte prüfen")+'</span><a href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle öffnen ↗</a></div><strong class="offer-price">'+(Number.isFinite(Number(item.price))?Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"}):"Preis prüfen")+'</strong></article>'
         ).join("");
-        return '<details class="merchant-group"'+(index===0?' open':'')+'><summary><span><strong>'+escapeHtml(merchant.name)+'</strong><small>'+merchant.ingredientCount+' Zutaten · '+merchant.offers.length+' Angebote</small></span><span class="merchant-group-action">'+(index===0?'Bester Treffer':'Angebote ansehen')+'</span></summary><div class="merchant-offers">'+items+'</div></details>';
+        const totalLabel=merchant.priceCurrency?merchant.priceTotal.toLocaleString("de-DE",{style:"currency",currency:merchant.priceCurrency}):"nicht verfügbar";
+        const totalDetail=merchant.pricedOfferCount===merchant.offers.length?"Summe der Angebotspreise: "+totalLabel:"Summe der Angebotspreise: "+totalLabel+" ("+merchant.pricedOfferCount+" von "+merchant.offers.length+" mit Preis)";
+        return '<details class="merchant-group"'+(index===0?' open':'')+'><summary><span><strong>'+escapeHtml(merchant.name)+'</strong><small>'+merchant.ingredientCount+' Zutaten · '+merchant.offers.length+' Angebote · '+escapeHtml(totalDetail)+'</small></span><span class="merchant-group-action">'+(index===0?'Bester Treffer':'Angebote ansehen')+'</span></summary><div class="merchant-offers">'+items+'</div></details>';
       }).join("");
       results.innerHTML=summary+'<div class="merchant-results-heading"><h3>Händlervergleich</h3><span>'+matches.length+' eindeutige Angebote</span></div>'+merchantCards;
     }
