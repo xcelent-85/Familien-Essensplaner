@@ -77,7 +77,9 @@ function getOfferCandidates(text: string, storeAliases: string[]) {
     const escapedAlias = alias.replace(/[.*+?\x24{}()|[\]\\]/g, "\\$&");
     const pattern = new RegExp("([^€]{2,420}?)\\s+" + escapedAlias + "\\s+(?:ab\\s*)?(\\d{1,4}(?:[.,]\\d{2})?)\\s*€", "gi");
     for (const match of text.matchAll(pattern)) {
-      const rawPrefix = match[1] ?? "";
+      let rawPrefix = match[1] ?? "";
+      // Prospekt-Einleitung zuerst entfernen, da der Filialname darin bereits vorkommt.
+      rawPrefix = rawPrefix.replace(/^.*?Angebote aus dem .*?Prospekt in [A-Za-zÄÖÜäöüß-]+\s+/i, "");
       const lastStoreIndex = rawPrefix.toLowerCase().lastIndexOf(alias.toLowerCase());
       let name = lastStoreIndex >= 0 ? rawPrefix.slice(lastStoreIndex + alias.length) : rawPrefix;
       name = name
