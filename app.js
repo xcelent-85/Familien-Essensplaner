@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.13";
+const APP_BUILD_ID="2026-11-22.14";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -358,7 +358,7 @@ $("#search-meal-offers").addEventListener("click",async()=>{
           const items=group.offers.map(item=>{
             const hasPrice=item.price!==null&&item.price!==undefined&&String(item.price).trim()!==""&&Number.isFinite(Number(item.price))&&Number(item.price)>=0;
             const priceLabel=hasPrice?Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"}):"Preis prüfen";
-            return '<article class="offer-item"><div><strong>'+escapeHtml(item.productName)+'</strong><span>'+(item.regionality==="not_confirmed_for_neuruppin"?"regional nicht bestätigt":"regionale Verfügbarkeit bitte prüfen")+'</span><a href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle öffnen ↗</a></div><strong class="offer-price">'+priceLabel+'</strong></article>';
+            return '<article class="offer-item offer-detail-row"><div class="offer-detail-main"><strong>'+escapeHtml(item.productName)+'</strong><span>'+(item.regionality==="not_confirmed_for_neuruppin"?"regional nicht bestätigt":"regionale Verfügbarkeit bitte prüfen")+' · <a class="offer-source-link" href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle</a></span></div><strong class="offer-price">'+priceLabel+'</strong></article>';
           }).join("");
           return '<section class="ingredient-offer-group"><h4>'+escapeHtml(group.name)+' <span>'+group.offers.length+' '+(group.offers.length===1?'Angebot':'Angebote zur Auswahl')+'</span></h4>'+items+'</section>';
         }).join("");
