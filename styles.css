@@ -83,3 +83,25 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .shopping-total-details .shopping-list-items{padding:0 12px 12px;margin-top:0}
 @media(max-width:900px){.shopping-day-columns{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.shopping-day-columns{grid-template-columns:1fr}.shopping-day-card{padding:14px}}
+
+
+/* Kompakte Angebotsdetails: Produkt, Hinweis und Quelle in einer Zeile */
+.merchant-offers{padding:0 8px 6px}
+.ingredient-offer-group{padding:6px 4px 2px}
+.ingredient-offer-group h4{margin:1px 0 2px;font-size:12px}
+.ingredient-offer-group h4 span{font-size:10px}
+.merchant-offers .offer-item,
+.ingredient-offer-group .offer-item{padding:5px 3px;gap:10px;min-height:0}
+.offer-detail-row>div.offer-detail-main{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;min-width:0;flex:1}
+.offer-detail-main>strong{font-size:12px;line-height:1.25;font-weight:650}
+.offer-detail-main>span{display:inline;font-size:10px;line-height:1.25;color:var(--muted)}
+.offer-detail-main .offer-source-link{display:inline;color:var(--green);font-size:10px;font-weight:700;text-decoration:underline;white-space:nowrap}
+.offer-detail-row>.offer-price{font-size:12px;flex:0 0 auto}
+@media(max-width:520px){
+  .merchant-offers{padding:0 6px 5px}
+  .ingredient-offer-group{padding:6px 2px 2px}
+  .offer-detail-row>div.offer-detail-main{gap:4px 6px}
+  .offer-detail-main>strong{font-size:11px}
+  .offer-detail-main>span,.offer-detail-main .offer-source-link{font-size:9px}
+  .offer-detail-row>.offer-price{font-size:11px}
+}
