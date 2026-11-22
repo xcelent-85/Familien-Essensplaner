@@ -254,7 +254,7 @@ function isRelevantFoodCandidate(name: string, source: StoreSource): boolean {
   // Alkoholfreie Getränke bleiben erlaubt. Alkohol sowie Drogerie-, Haushalts-,
   // Tier- und Non-Food-Artikel werden ausgeschlossen.
   if (!/alkoholfrei/i.test(name) && /\b(?:bier|pils|helles|radler|veltins|büble|light live|sekt|prosecco|wein|blanchet|likör|whisky|whiskey|schnaps|vodka|wodka|rum|gin|spirituose)\b/i.test(name)) return false;
-  if (/\b(?:somat|waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps|tabs)?|geschirrspül(?:mittel|tabs)|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|deo(?:spray)?|deodorant|kosmetik|shampoo|duschgel|zahnpasta|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|pflanze|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name)) return false;
+  if (/\b(?:somat|waschmittel|weichspüler|klarspüler|spülmaschinen(?:pfleger|tiefenreiniger|caps|tabs)?|geschirrspül(?:mittel|tabs)|wc[- ]?spüler|wc[- ]?reiniger|wc[- ]?steine|reiniger|klebestift(?:e)?|kleber|tesa|kugelschreiber|druckerpapier|heft(?:e)?|ordner|marker|deo(?:spray)?|deodorant|kosmetik|shampoo|duschgel|zahnpasta|katzenfutter|hundefutter|tierfutter|plüschtier|geschenk(?:artikel)?|pflanze|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name)) return false;
   if (source.retailerId === "aldi-nord" || source.id === "aldi-nord") {
     return !/\b(?:pflanzen|hebe|hyazinthe|amaryllis|zuckerhutfichte|bepflanztes rentier|rentier|christrose|weihnachtsstern(?:busch)?)\b/i.test(name);
   }
@@ -446,6 +446,61 @@ function extractAktionspreisLinkCandidates(html: string, source: StoreSource) {
   return candidates;
 }
 
+function extractNettoMeinProspektOfferGridCandidates(html: string, source: StoreSource) {
+  if (source.id !== "netto-marken-discount-meinprospekt") return [];
+
+  const gridIndex = html.search(/data-testid=["']OfferGrid["']|id=["']OfferGrid["']/i);
+  if (gridIndex < 0) return [];
+
+  const gridHtml = html.slice(gridIndex, gridIndex + 250000);
+  const cardStarts = [...gridHtml.matchAll(/<div\\b(?=[^>]*class=["'][^"']*\\bborder-gray\\b[^"']*\\bgroup\\b[^"']*["'])(?=[^>]*role=["']listitem["'])[^>]*>/gi)];
+  const candidates: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
+
+  for (let index = 0; index < cardStarts.length; index++) {
+    const start = cardStarts[index].index ?? 0;
+    const end = index + 1 < cardStarts.length
+      ? (cardStarts[index + 1].index ?? gridHtml.length)
+      : Math.min(gridHtml.length, start + 5000);
+    const card = gridHtml.slice(start, end);
+
+    const paragraphs = [...card.matchAll(/<p\\b[^>]*>([\\s\\S]*?)<\\/p>/gi)]
+      .map((match) => cleanText(match[1]))
+      .filter((value) => value.length > 0 && !/^netto marken-discount$/i.test(value));
+    if (!paragraphs.length) continue;
+
+    // MeinProspekt-Karten zeigen Marke und Produktname in getrennten p-Elementen.
+    const name = paragraphs.slice(-2).join(" ").replace(/\\s+/g, " ").trim().slice(0, 110);
+    if (name.length < 3 || !isRelevantFoodCandidate(name, source)) continue;
+    // Zusätzliche Absicherung gegen typische Schreibwaren-/Büroartikel in Prospektkarten.
+    if (/\\b(?:klebestift(?:e)?|kleber|tesa|kugelschreiber|druckerpapier|heft(?:e)?|ordner|marker)\\b/i.test(name)) continue;
+
+    const priceParagraph = card.match(/<p\\b[^>]*class=["'][^"']*text-primary[^"']*["'][^>]*>([\\s\\S]*?)<\\/p>/i);
+    const prices = priceParagraph ? parsePriceTokens(cleanText(priceParagraph[1]), false) : [];
+    const price = prices[0] ?? 0;
+    if (price <= 0 || price > 500) continue;
+
+    const key = name.toLocaleLowerCase("de-DE") + "|" + price;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    candidates.push({
+      productName: name,
+      price: roundPrice(price),
+      currency: "EUR",
+      context: cleanText(card).slice(0, 240),
+      sourceId: source.id,
+      sourceUrl: source.url,
+      extractionMethod: "meinprospekt_offergrid_card",
+      retailerId: source.retailerId ?? source.id,
+      sourcePriority: source.priority ?? 1,
+      regionality: "regional_page_neuruppin_not_independently_verified",
+      confidence: "review_required",
+    });
+  }
+  return candidates;
+}
+
 function extractCandidates(html: string, source: StoreSource) {
   // Kaufland-Filialseiten enthalten Service-Überschriften mit fremden Preisen.
   // Netto-Marken-Discount-Filialseiten enthalten Navigations-, Filial- und Bewertungsdaten,
@@ -459,7 +514,8 @@ function extractCandidates(html: string, source: StoreSource) {
     : extractHeadingCandidates(html, source);
   const secondary = extractKauflandLinkCandidates(html, source);
   const tertiary = extractAktionspreisLinkCandidates(html, source);
-  const merged = [...primary, ...secondary, ...tertiary];
+  const meinProspektCards = extractNettoMeinProspektOfferGridCandidates(html, source);
+  const merged = [...primary, ...secondary, ...tertiary, ...meinProspektCards];
   const seen = new Set<string>();
   return merged.filter((item) => {
     const key = String(item.productName).toLocaleLowerCase("de-DE") + "|" + String(item.price);
