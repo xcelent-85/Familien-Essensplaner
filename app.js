@@ -32,7 +32,8 @@ function renderDishes(dishes){
   if(categoryFilter){categoryFilter.innerHTML='<option value="">Alle Kategorien</option>'+categories.map(category=>'<option value="'+escapeHtml(category)+'">'+escapeHtml(category)+'</option>').join("");categoryFilter.value=categories.includes(previousCategory)?previousCategory:"";}
   const term=($("#dish-search")?.value||"").trim().toLocaleLowerCase("de-DE");
   const selectedCategory=categoryFilter?.value||"";
-  const filteredDishes=visibleDishes.filter(dish=>(!selectedCategory||(dish.category||"Sonstiges")===selectedCategory)&&(!term||[dish.title,dish.category,...(dish.ingredients||[])].join(" ").toLocaleLowerCase("de-DE").includes(term)));
+  const maxTime=Number($("#dish-time-filter")?.value)||0;
+  const filteredDishes=visibleDishes.filter(dish=>(!selectedCategory||(dish.category||"Sonstiges")===selectedCategory)&&(!maxTime||((Number(dish.prep_minutes)||0)+(Number(dish.cook_minutes)||0))<=maxTime)&&(!term||[dish.title,dish.category,...(dish.ingredients||[])].join(" ").toLocaleLowerCase("de-DE").includes(term)));
   $("#dish-results-count").textContent=filteredDishes.length+" von "+visibleDishes.length+" Gerichten";
   dishGrid.innerHTML=filteredDishes.map(dish=>{
     const total=(Number(dish.prep_minutes)||0)+(Number(dish.cook_minutes)||0);
@@ -55,7 +56,7 @@ async function loadDishes(){
   renderDishes(data||[]);
 }
 if(showButton)showButton.addEventListener("click",async()=>{
-  if(!currentFamilyId){showMessage("Bitte melde dich an, um eure Rezeptsammlung zu entdecken.");authPanel.hidden=false;$("#auth-dialog-title").textContent="Bitte anmelden";$("#auth-dialog-copy").textContent="Nach der Anmeldung kannst du eure Gerichte entdecken und verwalten.";return;}
+  if(!currentFamilyId){authMode="login";showMessage("Bitte melde dich an, um eure Rezeptsammlung zu entdecken.");authPanel.hidden=false;$("#auth-dialog-title").textContent="Bitte anmelden";$("#auth-dialog-copy").textContent="Nach der Anmeldung kannst du eure Gerichte entdecken und verwalten.";return;}
   showMessage("Lade eure gespeicherten Gerichte …");await loadDishes();showMessage(visibleDishes.length+" Gerichte aus eurer Familiensammlung geladen.");
   dishSection.scrollIntoView({behavior:"smooth",block:"start"});
 });
@@ -554,6 +555,7 @@ if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
 }else{statusEl.textContent="Verbindung nicht verfügbar";showMessage("Die Supabase-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden.");}
 $("#dish-search").addEventListener("input",()=>renderDishes(visibleDishes));
 $("#dish-category-filter").addEventListener("change",()=>renderDishes(visibleDishes));
+$("#dish-time-filter").addEventListener("change",()=>renderDishes(visibleDishes));
 $("#quick-nav-toggle").addEventListener("click",()=>$("#quick-nav").classList.toggle("collapsed"));
 $("#quick-nav-links").addEventListener("click",event=>{
   const button=event.target.closest("[data-nav-action]");if(!button)return;
