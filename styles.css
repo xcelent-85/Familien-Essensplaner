@@ -335,3 +335,58 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 #offer-list .offer-item>div{gap:5px}
 #offer-list .offer-item .offer-source-link{font-size:11px}
 @media(max-width:520px){.offer-save-button{padding:6px 8px;font-size:10px}.offer-detail-row{flex-wrap:wrap}.offer-detail-row>.offer-save-button{margin-left:auto}}
+
+
+/* Startseite im Bildkarten-Layout – Desktop-Vorschau aus Alpha 0.2 */
+.page{max-width:1180px;padding-top:34px}
+.welcome{min-height:0;padding:12px 4px 22px;background:transparent;border-radius:0}
+.welcome h1{font-size:clamp(34px,4vw,48px);line-height:1.08;letter-spacing:-1.8px}
+.welcome-copy{font-size:15px;max-width:620px}
+.home-section-heading{margin:12px 0 16px}
+.home-section-heading h2{font-size:21px}
+.home-feature-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(2,minmax(190px,auto));gap:16px}
+.home-feature-grid .feature-card{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;min-height:0;padding:0;border:0;border-radius:20px;background:#e8eee7;box-shadow:0 8px 26px #203b2410}
+.home-feature-grid .feature-primary{grid-column:span 6;grid-row:span 2;min-height:420px;transform:none;box-shadow:0 12px 30px #203b2418}
+.home-feature-grid .photo-card-dishes{grid-column:span 3;grid-row:span 1;min-height:202px}
+.home-feature-grid .photo-card-offers{grid-column:span 3;grid-row:span 1;min-height:202px}
+.home-feature-grid .family-feature-card{grid-column:span 6;grid-row:span 1;min-height:202px}
+.home-feature-grid .feature-photo{position:absolute;z-index:-2;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
+.home-feature-grid .photo-card:hover .feature-photo{transform:scale(1.035)}
+.home-feature-grid .photo-card:after{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(180deg,#101c1800 18%,#101c1840 48%,#101c18d9 100%)}
+.home-feature-grid .feature-card-content{padding:22px;color:#fff}
+.home-feature-grid .feature-primary .feature-card-content{padding:30px}
+.home-feature-grid .feature-kicker{display:block;margin-bottom:9px;color:#e5eee5;font-size:9px;font-weight:800;letter-spacing:1.4px}
+.home-feature-grid .feature-card h3{margin:0 0 8px;color:#fff;font-size:clamp(17px,1.6vw,23px);letter-spacing:-.35px}
+.home-feature-grid .feature-primary h3{font-size:clamp(25px,2.5vw,34px)}
+.home-feature-grid .feature-card p{margin:0 0 15px;color:#f0f4ef;font-size:12px;line-height:1.5;max-width:430px}
+.home-feature-grid .feature-primary p{color:#edf3ed;font-size:14px;max-width:440px}
+.home-feature-grid .button{align-self:flex-start;min-height:37px;padding:10px 15px;border-radius:10px;font-size:11px}
+.home-feature-grid .feature-secondary{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:17px;padding:22px 25px;background:#eef3ed;border:1px solid #e0e9df;box-shadow:none}
+.home-feature-grid .family-feature-icon{display:grid;place-items:center;width:54px;height:54px;border-radius:17px;background:#dce9dc;color:#315c45;font-size:31px}
+.home-feature-grid .feature-secondary .feature-kicker{color:#718477;margin-bottom:6px}
+.home-feature-grid .feature-secondary h3{color:#294a37;font-size:17px;margin-bottom:5px}
+.home-feature-grid .feature-secondary p{color:#718078;margin:0;font-size:11px}
+.home-feature-grid .feature-secondary .button{white-space:nowrap;background:#fff;color:#315c45;border:1px solid #dce5dc}
+.quick-nav{left:12px;top:42%;transform:translateY(-10%)}
+@media(max-width:1050px){
+ .home-feature-grid{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:auto}
+ .home-feature-grid .feature-primary{grid-column:span 6;grid-row:auto;min-height:330px}
+ .home-feature-grid .photo-card-dishes,.home-feature-grid .photo-card-offers{grid-column:span 3;min-height:210px}
+ .home-feature-grid .family-feature-card{grid-column:span 6;min-height:150px}
+}
+@media(max-width:700px){
+ .page{padding:20px 16px 24px}
+ .welcome{padding:10px 2px 20px}
+ .welcome h1{font-size:32px}
+ .welcome-copy{font-size:13px}
+ .home-section-heading{margin:5px 0 13px}
+ .home-feature-grid{grid-template-columns:1fr;gap:12px}
+ .home-feature-grid .feature-primary{grid-column:auto;min-height:300px}
+ .home-feature-grid .photo-card-dishes,.home-feature-grid .photo-card-offers{grid-column:auto;min-height:220px}
+ .home-feature-grid .family-feature-card{grid-column:auto;grid-template-columns:auto minmax(0,1fr);min-height:0;padding:17px}
+ .home-feature-grid .family-feature-card .button{grid-column:1/-1;justify-self:start}
+ .home-feature-grid .feature-card-content{padding:19px}
+ .home-feature-grid .feature-primary .feature-card-content{padding:23px}
+ .quick-nav{left:8px;top:auto;bottom:14px;transform:none}
+ .quick-nav-links{max-width:calc(100vw - 68px)}
+}
