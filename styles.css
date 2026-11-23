@@ -444,3 +444,31 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
     max-height:220px;
   }
 }
+
+
+/* Korrektur: beide mittleren Startseiten-Kacheln exakt gleich hoch erzwingen */
+.home-feature-grid > .photo-card-dishes,
+.home-feature-grid > .photo-card-offers{
+  box-sizing:border-box !important;
+  height:202px !important;
+  min-height:202px !important;
+  max-height:202px !important;
+  align-self:start !important;
+  transform:none !important;
+}
+@media(max-width:1050px){
+  .home-feature-grid > .photo-card-dishes,
+  .home-feature-grid > .photo-card-offers{
+    height:210px !important;
+    min-height:210px !important;
+    max-height:210px !important;
+  }
+}
+@media(max-width:700px){
+  .home-feature-grid > .photo-card-dishes,
+  .home-feature-grid > .photo-card-offers{
+    height:220px !important;
+    min-height:220px !important;
+    max-height:220px !important;
+  }
+}
