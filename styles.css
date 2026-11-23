@@ -414,3 +414,33 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
  .home-feature-grid .family-feature-photo{width:88px;height:88px}
  .home-feature-grid .family-feature-card .button{grid-column:1/-1}
 }
+
+
+/* Einheitliche Abmessungen für die beiden mittleren Fotokacheln */
+.home-feature-grid .photo-card-dishes,
+.home-feature-grid .photo-card-offers{
+  grid-column:span 3;
+  grid-row:1;
+  height:202px;
+  min-height:202px;
+  max-height:202px;
+  align-self:stretch;
+}
+@media(max-width:1050px){
+  .home-feature-grid .photo-card-dishes,
+  .home-feature-grid .photo-card-offers{
+    height:210px;
+    min-height:210px;
+    max-height:210px;
+  }
+}
+@media(max-width:700px){
+  .home-feature-grid .photo-card-dishes,
+  .home-feature-grid .photo-card-offers{
+    grid-column:auto;
+    grid-row:auto;
+    height:220px;
+    min-height:220px;
+    max-height:220px;
+  }
+}
