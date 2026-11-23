@@ -324,3 +324,14 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .dish-card .dish-actions{flex-wrap:wrap}
 @media(max-width:900px){.dish-card{flex-basis:calc((100% - 20px)/3)}}
 @media(max-width:600px){.dishes-section{padding:0 12px 14px}.dish-discovery-tools{grid-template-columns:1fr 1fr}.dish-discovery-tools input{grid-column:1/-1}.dish-card{flex-basis:78%}.dish-carousel{grid-template-columns:28px minmax(0,1fr) 28px;gap:5px}.dish-carousel-arrow{width:28px;height:38px}.dish-card-visual{height:125px}}
+
+
+/* Angebots-Merkliste: direkt aus Suchtreffern vormerken */
+.offer-save-button{flex:0 0 auto;border:1px solid #cbd9cd;border-radius:8px;background:#edf4ed;color:var(--green-dark);padding:7px 10px;font:inherit;font-size:11px;font-weight:750;cursor:pointer;white-space:nowrap}
+.offer-save-button:hover{background:#dfece0;border-color:var(--green)}
+.offer-save-button.is-saved,.offer-save-button:disabled{background:#f0f3ef;border-color:#e0e7e0;color:#718078;cursor:default}
+.offer-detail-row>.offer-save-button{margin-left:4px}
+#offer-list .offer-item{align-items:flex-start}
+#offer-list .offer-item>div{gap:5px}
+#offer-list .offer-item .offer-source-link{font-size:11px}
+@media(max-width:520px){.offer-save-button{padding:6px 8px;font-size:10px}.offer-detail-row{flex-wrap:wrap}.offer-detail-row>.offer-save-button{margin-left:auto}}
