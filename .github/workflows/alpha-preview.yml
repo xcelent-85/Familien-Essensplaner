@@ -1,4 +1,5 @@
 name: Alpha 0.2 Vorschau
+# Neue Ausführung erstellt ein frisches, eindeutiges Pages-Artefakt.
 
 on:
   push:
