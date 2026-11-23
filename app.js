@@ -165,7 +165,7 @@ function renderWeekPlan(){
     const options='<option value="">Noch kein Gericht ausgewählt</option>'+dishes.map(dish=>'<option value="'+escapeHtml(dish.id||dish.title)+'" '+((meal&&(meal.dish_id===dish.id||meal.preview_title===dish.title))?'selected':'')+'>'+escapeHtml(dish.title)+'</option>').join("");
     const selectedDish=meal?dishes.find(dish=>dish.id===meal.dish_id||dish.title===meal.preview_title):null;
     const servings=meal?.servings||3;
-    const recipeButton=selectedDish?'<button type="button" class="week-recipe-button" data-recipe-title="'+escapeHtml(selectedDish.title)+'">Rezept ansehen →</button>':"";
+    const recipeButton=selectedDish?'<button type="button" class="week-recipe-button" data-recipe-title="'+escapeHtml(selectedDish.title)+'" data-date="'+day.iso+'">Rezept ansehen →</button>':"";
     const ingredientMarkup=selectedDish&&Array.isArray(selectedDish.ingredients)&&selectedDish.ingredients.length?'<strong class="week-ingredients-title">Zutaten</strong>'+selectedDish.ingredients.map(line=>{
       const item=parseShoppingIngredient(line,servings/(Number(selectedDish.servings)||3));
       const quantity=item.amount===null?"":Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" ");
@@ -176,6 +176,42 @@ function renderWeekPlan(){
   $("#week-help").textContent=currentFamilyId?"Wählt für jeden Tag ein Gericht. Die Zutaten erscheinen direkt darunter. Änderungen werden erst nach Klick auf „Wochenplan speichern“ übernommen.":"Vorschau: Zum dauerhaften Speichern bitte anmelden.";
   $("#save-week-plan").disabled=!currentFamilyId;
 }
+function renderRecipeDialog(dish,servings){
+  const base=Number(dish.servings)||3;
+  const factor=Math.max(1,Number(servings)||base)/base;
+  $("#recipe-title").textContent=dish.title;
+  const total=(Number(dish.prep_minutes)||0)+(Number(dish.cook_minutes)||0);
+  $("#recipe-meta").textContent=[dish.category||"Familienrezept",total?"ca. "+total+" Minuten":""].filter(Boolean).join(" · ");
+  $("#recipe-servings").value=Math.max(1,Number(servings)||base);
+  const ingredients=Array.isArray(dish.ingredients)?dish.ingredients:[];
+  $("#recipe-ingredients").innerHTML=ingredients.length?'<ul class="recipe-ingredient-list">'+ingredients.map(line=>{
+    const item=parseShoppingIngredient(line,factor);
+    const amount=item.amount===null?"":Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" ");
+    return '<li>'+escapeHtml(amount+item.name)+'</li>';
+  }).join("")+'</ul>':'<p class="notice">Für dieses Gericht sind noch keine Zutaten hinterlegt.</p>';
+  const instructions=String(dish.instructions||"").split(/\\n|(?<=\\.)\\s+(?=[A-ZÄÖÜ])/).map(step=>step.trim()).filter(Boolean);
+  $("#recipe-instructions").innerHTML=instructions.length?instructions.map(step=>'<li>'+escapeHtml(step)+'</li>').join(""):'<li>Für dieses Gericht ist noch keine Zubereitungsanleitung hinterlegt.</li>';
+  $("#recipe-panel").dataset.recipeTitle=dish.title;
+  $("#recipe-panel").hidden=false;
+}
+function openRecipeForTitle(title,servings){
+  const dishes=visibleDishes.length?visibleDishes:starterDishes;
+  const dish=dishes.find(item=>item.title===title)||starterDishes.find(item=>item.title===title);
+  if(dish)renderRecipeDialog(dish,servings);
+}
+$("#week-grid").addEventListener("click",event=>{
+  const button=event.target.closest(".week-recipe-button");
+  if(!button)return;
+  const day=button.dataset.date;
+  const servings=Number(document.querySelector('.week-servings[data-date="'+day+'"]')?.value)||3;
+  openRecipeForTitle(button.dataset.recipeTitle,servings);
+});
+$("#close-recipe").addEventListener("click",()=>{$("#recipe-panel").hidden=true;});
+$("#recipe-panel").addEventListener("click",event=>{if(event.target.id==="recipe-panel")$("#recipe-panel").hidden=true;});
+$("#recipe-servings").addEventListener("input",()=>{
+  const title=$("#recipe-panel").dataset.recipeTitle;
+  if(title)openRecipeForTitle(title,Math.max(1,Math.min(30,Number($("#recipe-servings").value)||1)));
+});
 $("#week-grid").addEventListener("input",event=>{
   const search=event.target.closest(".week-dish-search");
   if(search){const select=search.closest(".week-day").querySelector(".week-dish-select");const term=search.value.trim().toLocaleLowerCase("de-DE");if(select)[...select.options].forEach((option,index)=>{option.hidden=index>0&&term&&!option.textContent.toLocaleLowerCase("de-DE").includes(term);});return;}
@@ -190,6 +226,10 @@ $("#week-grid").addEventListener("change",event=>{
   const servings=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
   const dish=dishes.find(item=>String(item.id||item.title)===(select?.value||""));
   renderWeekIngredients(day,dish,servings?.value||3);
+  const card=control.closest(".week-day");
+  let recipeButton=card?.querySelector(".week-recipe-button");
+  if(dish){if(!recipeButton){$("#week-ingredients-"+day.iso).insertAdjacentHTML("beforebegin",'<button type="button" class="week-recipe-button">Rezept ansehen →</button>');recipeButton=card?.querySelector(".week-recipe-button");}if(recipeButton){recipeButton.dataset.recipeTitle=dish.title;recipeButton.dataset.date=day.iso;}}
+  else if(recipeButton)recipeButton.remove();
 });
 async function loadWeekPlan(){
   if(!currentFamilyId){currentWeekMeals=[];renderWeekPlan();return;}
