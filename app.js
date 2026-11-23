@@ -98,7 +98,7 @@ dishForm.addEventListener("submit",async event=>{
 function setSession(session){
   currentUser=session?.user||null;
   if(currentUser){authForm.hidden=true;signedIn.hidden=false;$("#account-actions").hidden=true;$("#user-label").textContent=currentUser.email||"Angemeldet";statusEl.innerHTML="<i></i> Konto verbunden";authPanel.hidden=true;}
-  else{authForm.hidden=false;signedIn.hidden=true;$("#account-actions").hidden=false;statusEl.innerHTML="<i></i> Nicht angemeldet";currentFamilyId=null;visibleDishes=[];$("#add-dish-button").hidden=true;if(typeof renderWeekPlan==="function"){currentWeekMeals=[];renderWeekPlan();}}
+  else{authForm.hidden=false;signedIn.hidden=true;$("#account-actions").hidden=false;statusEl.innerHTML="<i></i> Nicht angemeldet";currentFamilyId=null;visibleDishes=[];dishSection.hidden=true;$("#add-dish-button").hidden=true;if(typeof renderWeekPlan==="function"){currentWeekMeals=[];renderWeekPlan();}}
 }
 async function loadOrCreateFamily(user){
   showMessage("Verbinde eure Familiensammlung …");
