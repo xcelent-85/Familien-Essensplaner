@@ -133,11 +133,12 @@ async function loadOrCreateFamily(user){
 
 let weekOffset=0;
 let currentWeekMeals=[];
-const weekDays=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag"];
-function getWeekDates(){
+let weekDayCount=Number(localStorage.getItem("familyPlannerWeekDayCount"))===7?7:5;
+const weekDays=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+function getWeekDates(count=weekDayCount){
   const monday=new Date();monday.setHours(12,0,0,0);
   monday.setDate(monday.getDate()-((monday.getDay()+6)%7)+(weekOffset*7));
-  return weekDays.map((name,index)=>{const date=new Date(monday);date.setDate(monday.getDate()+index);return {name,date,iso:date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0")};});
+  return weekDays.slice(0,count).map((name,index)=>{const date=new Date(monday);date.setDate(monday.getDate()+index);return {name,date,iso:date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0")};});
 }
 function renderWeekIngredients(day,dish,servings){
   const target=$("#week-ingredients-"+day.iso);
@@ -153,9 +154,11 @@ function renderWeekIngredients(day,dish,servings){
   }).join("");
 }
 function renderWeekPlan(){
-  const dates=getWeekDates(),first=dates[0].date,last=dates[4].date;
+  const dates=getWeekDates(),first=dates[0].date,last=dates[dates.length-1].date;
   const format=date=>date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
   $("#week-label").textContent=format(first)+" – "+format(last);
+  $("#week-day-range").textContent=weekDayCount===7?"Montag bis Sonntag":"Montag bis Freitag";
+  $("#week-grid").classList.toggle("week-grid-seven",weekDayCount===7);
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
   $("#week-grid").innerHTML=dates.map(day=>{
     const meal=currentWeekMeals.find(item=>item.planned_for===day.iso);
@@ -189,8 +192,8 @@ $("#week-grid").addEventListener("change",event=>{
 });
 async function loadWeekPlan(){
   if(!currentFamilyId){currentWeekMeals=[];renderWeekPlan();return;}
-  const dates=getWeekDates();
-  const {data,error}=await supabaseClient.from("weekly_meals").select("id,dish_id,planned_for,servings").eq("family_id",currentFamilyId).eq("meal_slot","dinner").gte("planned_for",dates[0].iso).lte("planned_for",dates[4].iso);
+  const dates=getWeekDates(7);
+  const {data,error}=await supabaseClient.from("weekly_meals").select("id,dish_id,planned_for,servings").eq("family_id",currentFamilyId).eq("meal_slot","dinner").gte("planned_for",dates[0].iso).lte("planned_for",dates[6].iso);
   if(error){$("#week-message").textContent="Wochenplan konnte nicht geladen werden: "+error.message;return;}
   currentWeekMeals=data||[];renderWeekPlan();
 }
@@ -199,6 +202,8 @@ $("#show-week-plan").addEventListener("click",async()=>{
   if(currentFamilyId)await loadWeekPlan();else{currentWeekMeals=[];renderWeekPlan();}
   $("#weekly-section").scrollIntoView({behavior:"smooth",block:"start"});
 });
+$("#week-day-count").value=String(weekDayCount);
+$("#week-day-count").addEventListener("change",event=>{weekDayCount=Number(event.target.value)===7?7:5;localStorage.setItem("familyPlannerWeekDayCount",String(weekDayCount));renderWeekPlan();});
 $("#previous-week").addEventListener("click",async()=>{weekOffset--;if(currentFamilyId)await loadWeekPlan();else renderWeekPlan();});
 $("#next-week").addEventListener("click",async()=>{weekOffset++;if(currentFamilyId)await loadWeekPlan();else renderWeekPlan();});
 $("#save-week-plan").addEventListener("click",async()=>{
