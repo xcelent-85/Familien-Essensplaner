@@ -43,6 +43,9 @@ jobs:
         with:
           path: public
 
+      - name: GitHub Pages Artefakt bereitstellen lassen
+        run: sleep 15
+
       - name: GitHub Pages veröffentlichen
         id: deployment
         uses: actions/deploy-pages@v4
