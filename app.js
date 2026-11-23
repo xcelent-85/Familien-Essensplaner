@@ -78,7 +78,6 @@ function renderDishes(dishes){
   $("#dish-count").textContent=visibleDishes.length+" Gerichte";
   $("#add-dish-button").hidden=!currentFamilyId;
   $("#dish-help").textContent=currentFamilyId?"Gerichte werden direkt in eurer gemeinsamen Familiensammlung gespeichert.":"Zum dauerhaften Hinzufügen und Bearbeiten bitte anmelden.";
-  dishSection.hidden=false;
 }
 function showStarterDishes(){renderDishes(starterDishes);dishSection.scrollIntoView({behavior:"smooth",block:"start"});}
 async function loadDishes(){
@@ -89,6 +88,7 @@ async function loadDishes(){
 }
 if(showButton)showButton.addEventListener("click",async()=>{
   if(!dishSection.hidden){dishSection.hidden=true;return;}
+  dishSection.hidden=false;
   if(!currentFamilyId){authMode="login";showMessage("Bitte melde dich an, um eure Rezeptsammlung zu entdecken.");authPanel.hidden=false;$("#auth-dialog-title").textContent="Bitte anmelden";$("#auth-dialog-copy").textContent="Nach der Anmeldung kannst du eure Gerichte entdecken und verwalten.";return;}
   showMessage("Lade eure gespeicherten Gerichte …");await loadDishes();showMessage(visibleDishes.length+" Gerichte aus eurer Familiensammlung geladen.");
   dishSection.scrollIntoView({behavior:"smooth",block:"start"});
