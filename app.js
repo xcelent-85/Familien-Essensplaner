@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.14";
+const APP_BUILD_ID="2026-11-23.15";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -789,3 +789,33 @@ $("#quick-nav-links").addEventListener("click",event=>{
   if(action==="dishes")$("#show-dishes").click();
 });
 if("serviceWorker"in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(error=>console.warn("Offline-Funktion konnte nicht aktiviert werden:",error)));
+
+// Begrüßungsbild: wechselt automatisch zu jeder vollen Stunde.
+// Die Auswahl richtet sich nach der lokalen Stunde und bleibt dadurch für alle
+// Besucher während derselben Stunde stabil.
+const welcomePhotos=[
+  {src:"https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1100&q=85",alt:"Frisch zubereitete Pasta mit Tomaten und Kräutern"},
+  {src:"https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1100&q=85",alt:"Bunte Schüssel mit frischen Zutaten"},
+  {src:"https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1100&q=85",alt:"Frische Zutaten und Gemüse für die Familienküche"},
+  {src:"https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1100&q=85",alt:"Frischer Salat mit buntem Gemüse"},
+  {src:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1100&q=85",alt:"Gesunde Gemüse-Bowl mit frischen Zutaten"}
+];
+const welcomePhoto=document.querySelector(".welcome-photo");
+if(welcomePhoto){
+  let welcomePhotoTimer;
+  const updateWelcomePhoto=()=>{
+    const hour=Math.floor(Date.now()/3600000);
+    const photo=welcomePhotos[((hour%welcomePhotos.length)+welcomePhotos.length)%welcomePhotos.length];
+    if(welcomePhoto.dataset.photoHour!==String(hour)){
+      welcomePhoto.src=photo.src;
+      welcomePhoto.alt=photo.alt;
+      welcomePhoto.dataset.photoHour=String(hour);
+    }
+    clearTimeout(welcomePhotoTimer);
+    const untilNextHour=3600000-(Date.now()%3600000)+100;
+    welcomePhotoTimer=setTimeout(updateWelcomePhoto,untilNextHour);
+  };
+  updateWelcomePhoto();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)updateWelcomePhoto();});
+  window.addEventListener("focus",updateWelcomePhoto);
+}
