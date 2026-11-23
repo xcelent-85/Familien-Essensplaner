@@ -216,3 +216,21 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 @media(max-width:1100px){.week-grid.week-grid-seven{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:900px){.week-grid.week-grid-seven{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.week-options{align-items:stretch;flex-direction:column;gap:6px}.week-options select{max-width:none;width:100%}.week-grid.week-grid-seven{grid-template-columns:1fr}}
+
+
+/* Rezeptansicht aus der Wochenplanung */
+.week-recipe-button{align-self:flex-start;margin-top:9px;padding:8px 10px;border:1px solid #d7e4d9;border-radius:8px;background:#edf3ed;color:var(--green-dark);font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.week-recipe-button:hover{background:#e1ece2;border-color:#b9cdbb}
+.recipe-overlay{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:18px;background:#14251bb8;backdrop-filter:blur(5px)}
+.recipe-dialog{position:relative;width:min(100%,760px);max-height:90vh;overflow:auto;background:#fff;border-radius:20px;padding:30px;box-shadow:0 24px 80px #0003}
+.recipe-dialog h2{margin:0 44px 5px 0;color:var(--green-dark);font-size:25px}
+.recipe-meta{margin:0 0 17px;color:var(--muted);font-size:12px}
+.recipe-servings{display:flex;align-items:center;gap:10px;margin:0 0 20px;padding:10px 12px;background:#f4f7f3;border-radius:10px}
+.recipe-servings label{font-size:12px;font-weight:750;color:var(--green-dark)}
+.recipe-servings input{width:76px;padding:8px;border:1px solid #d5dfd6;border-radius:8px;font:inherit;font-size:13px}
+.recipe-content{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:24px}
+.recipe-content h3{margin:0 0 10px;color:var(--green-dark);font-size:16px}
+.recipe-ingredient-list{margin:0;padding-left:19px;display:grid;gap:8px;font-size:13px;line-height:1.4}
+.recipe-content ol{margin:0;padding-left:21px;display:grid;gap:11px;font-size:13px;line-height:1.55}
+.recipe-content li{padding-left:3px}
+@media(max-width:600px){.recipe-dialog{padding:25px 19px;border-radius:16px}.recipe-dialog h2{font-size:21px}.recipe-content{grid-template-columns:1fr;gap:20px}.recipe-overlay{padding:10px}}
