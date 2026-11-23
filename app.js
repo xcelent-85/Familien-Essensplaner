@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.03";
+const APP_BUILD_ID="2026-11-23.04";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -204,13 +204,18 @@ $("#week-grid").addEventListener("click",event=>{
   if(!button)return;
   const day=button.dataset.date;
   const servings=Number(document.querySelector('.week-servings[data-date="'+day+'"]')?.value)||3;
+  $("#recipe-panel").dataset.recipeDate=day;
   openRecipeForTitle(button.dataset.recipeTitle,servings);
 });
 $("#close-recipe").addEventListener("click",()=>{$("#recipe-panel").hidden=true;});
 $("#recipe-panel").addEventListener("click",event=>{if(event.target.id==="recipe-panel")$("#recipe-panel").hidden=true;});
 $("#recipe-servings").addEventListener("change",()=>{
   const title=$("#recipe-panel").dataset.recipeTitle;
-  if(title)openRecipeForTitle(title,Math.max(1,Math.min(30,Number($("#recipe-servings").value)||1)));
+  const servings=Math.max(1,Math.min(30,Number($("#recipe-servings").value)||1));
+  const day=$("#recipe-panel").dataset.recipeDate;
+  const weekInput=day?document.querySelector('.week-servings[data-date="'+day+'"]'):null;
+  if(weekInput){weekInput.value=servings;weekInput.dispatchEvent(new Event("change",{bubbles:true}));}
+  if(title)openRecipeForTitle(title,servings);
 });
 $("#week-grid").addEventListener("input",event=>{
   const search=event.target.closest(".week-dish-search");
