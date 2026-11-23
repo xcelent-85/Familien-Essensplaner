@@ -17,6 +17,8 @@ const starterDishes = [
 ];
 const $=selector=>document.querySelector(selector);
 const showButton=$("#show-dishes"),dishSection=$("#dishes-section"),dishGrid=$("#dish-grid");
+const weeklySection=$("#weekly-section");
+if(weeklySection&&dishSection){const featureGrid=document.querySelector(".feature-grid");if(featureGrid)featureGrid.insertAdjacentElement("afterend",weeklySection);weeklySection.insertAdjacentElement("afterend",dishSection);}
 const cfg=window.FAMILY_APP_CONFIG,statusEl=$("#sync-status"),messageEl=$("#auth-message");
 const authForm=$("#auth-form"),signedIn=$("#account-logged-in"),dishForm=$("#dish-form"),authPanel=$("#auth-panel");
 let supabaseClient=null,currentFamilyId=null,currentUser=null,editingDishId=null,authMode="login";
@@ -194,7 +196,8 @@ async function loadOrCreateFamily(user){
   localStorage.setItem("familyPlannerActiveFamilyId",currentFamilyId);
   await loadDishes();
   await loadFamilyInfo();
-  if(!$("#weekly-section").hidden)await loadWeekPlan();
+  weeklySection.hidden=false;
+  await loadWeekPlan();
   showFamilyMessage("Familiensammlung verbunden. "+visibleDishes.length+" Gerichte dauerhaft gespeichert.");
 }
 
