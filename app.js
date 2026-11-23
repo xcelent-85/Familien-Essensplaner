@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.02";
+const APP_BUILD_ID="2026-11-23.03";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -208,7 +208,7 @@ $("#week-grid").addEventListener("click",event=>{
 });
 $("#close-recipe").addEventListener("click",()=>{$("#recipe-panel").hidden=true;});
 $("#recipe-panel").addEventListener("click",event=>{if(event.target.id==="recipe-panel")$("#recipe-panel").hidden=true;});
-$("#recipe-servings").addEventListener("input",()=>{
+$("#recipe-servings").addEventListener("change",()=>{
   const title=$("#recipe-panel").dataset.recipeTitle;
   if(title)openRecipeForTitle(title,Math.max(1,Math.min(30,Number($("#recipe-servings").value)||1)));
 });
