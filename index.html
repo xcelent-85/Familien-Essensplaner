@@ -82,6 +82,19 @@
 <div class="week-grid" id="week-grid"></div>
 <div class="week-save-row"><button type="button" class="button button-green" id="save-week-plan">Wochenplan speichern</button><button type="button" class="button" id="create-shopping-list">Einkaufsliste erstellen →</button><span class="auth-message" id="week-message" role="status"></span></div>
 </section>
+<div class="recipe-overlay" id="recipe-panel" hidden>
+  <section class="recipe-dialog" role="dialog" aria-modal="true" aria-labelledby="recipe-title">
+    <button class="auth-close" id="close-recipe" type="button" aria-label="Rezept schließen">×</button>
+    <p class="eyebrow">AUS EURER REZEPTSAMMLUNG</p>
+    <h2 id="recipe-title">Rezept</h2>
+    <p class="recipe-meta" id="recipe-meta"></p>
+    <div class="recipe-servings"><label for="recipe-servings">Portionen</label><input id="recipe-servings" type="number" min="1" max="30" value="3"></div>
+    <div class="recipe-content">
+      <section><h3>Zutaten</h3><div id="recipe-ingredients"></div></section>
+      <section><h3>Zubereitung</h3><ol id="recipe-instructions"></ol></section>
+    </div>
+  </section>
+</div>
 <section class="shopping-section" id="shopping-section" hidden>
 <div class="section-heading compact"><div><p class="eyebrow">FÜR EUREN EINKAUF</p><h2>Einkaufsliste</h2></div><span class="version">Aus dem Wochenplan</span></div>
 <p class="notice" id="shopping-list-note">Die Zutaten eurer ausgewählten Gerichte erscheinen hier.</p>
