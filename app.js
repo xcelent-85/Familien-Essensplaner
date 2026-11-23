@@ -797,7 +797,7 @@ $("#quick-nav-links").addEventListener("click",event=>{
   const button=event.target.closest("[data-nav-action]");if(!button)return;
   setQuickNavActive(button.dataset.navAction);
   const action=button.dataset.navAction;
-  if(action==="home"){setQuickNavActive("home");$("#home-section").scrollIntoView({behavior:"smooth",block:"start"});
+  if(action==="home"){setQuickNavActive("home");$("#home-section").scrollIntoView({behavior:"smooth",block:"start"});}
   if(action==="week")$("#show-week-plan").click();
   if(action==="shopping")$("#create-shopping-list").click();
   if(action==="offers")$("#show-offers").click();
