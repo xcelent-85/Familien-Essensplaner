@@ -33,7 +33,9 @@ function renderDishes(dishes){
   const term=($("#dish-search")?.value||"").trim().toLocaleLowerCase("de-DE");
   const selectedCategory=categoryFilter?.value||"";
   const maxTime=Number($("#dish-time-filter")?.value)||0;
-  const filteredDishes=visibleDishes.filter(dish=>(!selectedCategory||(dish.category||"Sonstiges")===selectedCategory)&&(!maxTime||((Number(dish.prep_minutes)||0)+(Number(dish.cook_minutes)||0))<=maxTime)&&(!term||[dish.title,dish.category,...(dish.ingredients||[])].join(" ").toLocaleLowerCase("de-DE").includes(term)));
+  const favoriteIds=JSON.parse(localStorage.getItem("familyPlannerFavorites")||"[]");
+  const viewFilter=$("#dish-view-filter")?.value||"all";
+  const filteredDishes=visibleDishes.filter(dish=>(viewFilter!=="favorites"||favoriteIds.includes(String(dish.id||dish.title)))&&(!selectedCategory||(dish.category||"Sonstiges")===selectedCategory)&&(!maxTime||((Number(dish.prep_minutes)||0)+(Number(dish.cook_minutes)||0))<=maxTime)&&(!term||[dish.title,dish.category,...(dish.ingredients||[])].join(" ").toLocaleLowerCase("de-DE").includes(term)));
   $("#dish-results-count").textContent=filteredDishes.length+" von "+visibleDishes.length+" Gerichten";
   dishGrid.innerHTML=filteredDishes.map(dish=>{
     const total=(Number(dish.prep_minutes)||0)+(Number(dish.cook_minutes)||0);
@@ -41,7 +43,8 @@ function renderDishes(dishes){
     const ingredients=Array.isArray(dish.ingredients)?dish.ingredients.join("\n"):"";
     const extra=(ingredients||dish.instructions)?'<details class="dish-details"><summary>Zutaten und Zubereitung</summary>'+(ingredients?'<p><strong>Zutaten:</strong>\n'+escapeHtml(ingredients)+'</p>':'')+(dish.instructions?'<p><strong>Zubereitung:</strong>\n'+escapeHtml(dish.instructions)+'</p>':'')+'</details>':'';
     const actions=currentFamilyId?'<div class="dish-actions"><button type="button" data-action="edit" data-id="'+dish.id+'">Bearbeiten</button><button type="button" class="delete" data-action="delete" data-id="'+dish.id+'">Löschen</button></div>':'';
-    return '<article class="dish-card"><strong>'+escapeHtml(dish.title)+'</strong><span>'+escapeHtml(detail)+'</span>'+extra+actions+'</article>';
+    const favoriteId=String(dish.id||dish.title),isFavorite=favoriteIds.includes(favoriteId);
+    return '<article class="dish-card"><div class="dish-card-title"><strong>'+escapeHtml(dish.title)+'</strong><button type="button" class="dish-favorite '+(isFavorite?'active':'')+'" data-favorite-id="'+escapeHtml(favoriteId)+'" aria-label="'+(isFavorite?'Favorit entfernen':'Als Favorit speichern')+'">'+(isFavorite?'★':'☆')+'</button></div><span>'+escapeHtml(detail)+'</span>'+extra+actions+'</article>';
   }).join("");
   $("#dish-count").textContent=visibleDishes.length+" Gerichte";
   $("#add-dish-button").hidden=!currentFamilyId;
@@ -67,6 +70,14 @@ function resetDishForm(){
 }
 $("#add-dish-button").addEventListener("click",()=>{resetDishForm();dishForm.hidden=false;dishForm.scrollIntoView({behavior:"smooth",block:"center"});});
 $("#cancel-dish-button").addEventListener("click",()=>{dishForm.hidden=true;resetDishForm();});
+dishGrid.addEventListener("click",event=>{
+  const favoriteButton=event.target.closest("[data-favorite-id]");if(!favoriteButton)return;
+  const favorites=new Set(JSON.parse(localStorage.getItem("familyPlannerFavorites")||"[]"));
+  const id=favoriteButton.dataset.favoriteId;
+  if(favorites.has(id))favorites.delete(id);else favorites.add(id);
+  localStorage.setItem("familyPlannerFavorites",JSON.stringify([...favorites]));
+  renderDishes(visibleDishes);
+});
 dishGrid.addEventListener("click",async event=>{
   const button=event.target.closest("button[data-action]");if(!button||!currentFamilyId)return;
   const dish=visibleDishes.find(item=>item.id===button.dataset.id);if(!dish)return;
@@ -556,6 +567,7 @@ if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
 $("#dish-search").addEventListener("input",()=>renderDishes(visibleDishes));
 $("#dish-category-filter").addEventListener("change",()=>renderDishes(visibleDishes));
 $("#dish-time-filter").addEventListener("change",()=>renderDishes(visibleDishes));
+$("#dish-view-filter").addEventListener("change",()=>renderDishes(visibleDishes));
 $("#quick-nav-toggle").addEventListener("click",()=>$("#quick-nav").classList.toggle("collapsed"));
 $("#quick-nav-links").addEventListener("click",event=>{
   const button=event.target.closest("[data-nav-action]");if(!button)return;
