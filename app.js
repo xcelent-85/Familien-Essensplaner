@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.11";
+const APP_BUILD_ID="2026-11-23.12";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -616,6 +616,8 @@ $("#search-meal-offers").addEventListener("click",async()=>{
     const candidates=sources.flatMap(source=>(source.candidates||[]).map(candidate=>({...candidate,sourceName:canonicalFoodMerchant(candidate.publisherName||source.name),sourceReachable:source.reachable})).filter(candidate=>candidate.sourceName));
     const rawMatches=findOfferMatches(currentShoppingIngredients,candidates);
     const matches=deduplicateOfferMatches(rawMatches);
+    currentSearchMatches=matches;
+    const savedKeys=new Set(savedOffers.map(offer=>offer.key||[offer.store,offer.product,offer.price,offer.currency||"EUR",offer.size||""].map(normalizeOfferKey).join("|")));
     const merchants=buildMerchantOfferSummary(matches);
     if(!matches.length){
       results.innerHTML='<p class="notice">Bei den aktuell geprüften Angebotsquellen wurde kein eindeutiger Treffer für eure Zutaten gefunden. Das bedeutet nicht, dass die Produkte nicht im Markt erhältlich sind.</p>';
@@ -640,7 +642,10 @@ $("#search-meal-offers").addEventListener("click",async()=>{
           const items=group.offers.map(item=>{
             const hasPrice=item.price!==null&&item.price!==undefined&&String(item.price).trim()!==""&&Number.isFinite(Number(item.price))&&Number(item.price)>=0;
             const priceLabel=hasPrice?Number(item.price).toLocaleString("de-DE",{style:"currency",currency:item.currency||"EUR"}):"Preis prüfen";
-            return '<article class="offer-item offer-detail-row"><div class="offer-detail-main"><strong>'+escapeHtml(item.productName)+'</strong><span>'+(item.regionality==="not_confirmed_for_neuruppin"?"regional nicht bestätigt":"regionale Verfügbarkeit bitte prüfen")+' · <a class="offer-source-link" href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle</a></span></div><strong class="offer-price">'+priceLabel+'</strong></article>';
+            const saveIndex=currentSearchMatches.indexOf(item);
+            const offerKey=[item.sourceName,item.productName,item.price,item.currency||"EUR",item.size||item.unit||""].map(normalizeOfferKey).join("|");
+            const alreadySaved=savedKeys.has(offerKey);
+            return '<article class="offer-item offer-detail-row"><div class="offer-detail-main"><strong>'+escapeHtml(item.productName)+'</strong><span>'+(item.regionality==="not_confirmed_for_neuruppin"?"regional nicht bestätigt":"regionale Verfügbarkeit bitte prüfen")+' · <a class="offer-source-link" href="'+escapeHtml(item.sourceUrl||"#")+'" target="_blank" rel="noopener">Quelle</a></span></div><strong class="offer-price">'+priceLabel+'</strong><button type="button" class="offer-save-button'+(alreadySaved?" is-saved":"")+'" data-save-offer-index="'+saveIndex+'" '+(alreadySaved?"disabled":"")+'>'+(alreadySaved?"Vorgemerkt ✓":"Vormerken")+'</button></article>';
           }).join("");
           return '<section class="ingredient-offer-group"><h4>'+escapeHtml(group.name)+' <span>'+group.offers.length+' '+(group.offers.length===1?'Angebot':'Angebote zur Auswahl')+'</span></h4>'+items+'</section>';
         }).join("");
@@ -674,21 +679,58 @@ function readOffers(){
   catch(error){return [];}
 }
 let savedOffers=readOffers();
+function formatOfferPrice(item){
+  const price=Number(item.price);
+  if(!Number.isFinite(price))return "Preis prüfen";
+  const currency=String(item.currency||"EUR").toUpperCase();
+  try{return price.toLocaleString("de-DE",{style:"currency",currency});}
+  catch(error){return price.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+currency;}
+}
 function renderOffers(){
   const list=$("#offer-list");
   if(!list)return;
-  $("#offer-count").textContent=savedOffers.length+" Angebote";
+  $("#offer-count").textContent=savedOffers.length+" "+(savedOffers.length===1?"Angebot":"Angebote");
   if(!savedOffers.length){
-    list.innerHTML='<p class="notice">Noch keine Angebote eingetragen. Öffne oben einen Prospekt und füge passende Lebensmittel hinzu.</p>';
+    list.innerHTML='<p class="notice">Noch keine Angebote vorgemerkt. Suche oben nach passenden Angeboten und tippe bei einem Treffer auf „Vormerken“.</p>';
     return;
   }
-  list.innerHTML=savedOffers.slice().sort((a,b)=>a.store.localeCompare(b.store,"de")||a.product.localeCompare(b.product,"de")).map(item=>
-    '<article class="offer-item"><div><strong>'+escapeHtml(item.product)+'</strong><span>'+escapeHtml(item.store)+(item.size?" · "+escapeHtml(item.size):"")+(item.until?" · gültig bis "+escapeHtml(new Date(item.until+"T12:00:00").toLocaleDateString("de-DE")):"")+'</span></div><strong class="offer-price">'+item.price.toLocaleString("de-DE",{style:"currency",currency:"EUR"})+'</strong><button type="button" class="offer-delete" data-offer-id="'+item.id+'" aria-label="Angebot löschen">×</button></article>'
+  list.innerHTML=savedOffers.slice().sort((a,b)=>(a.store||"").localeCompare(b.store||"","de")||(a.product||"").localeCompare(b.product||"","de")).map(item=>
+    '<article class="offer-item"><div><strong>'+escapeHtml(item.product)+'</strong><span>'+escapeHtml(item.store||"Markt nicht angegeben")+(item.size?" · "+escapeHtml(item.size):"")+(item.until?" · gültig bis "+escapeHtml(new Date(item.until+"T12:00:00").toLocaleDateString("de-DE")):"")+(item.matchedIngredients?.length?" · passt zu: "+escapeHtml(item.matchedIngredients.join(", ")):"")+'</span>'+(item.sourceUrl?'<a class="offer-source-link" href="'+escapeHtml(item.sourceUrl)+'" target="_blank" rel="noopener">Angebotsquelle öffnen ↗</a>':"")+'</div><strong class="offer-price">'+formatOfferPrice(item)+'</strong><button type="button" class="offer-delete" data-offer-id="'+item.id+'" aria-label="Angebot entfernen">×</button></article>'
   ).join("");
 }
+function saveFoundOffer(item){
+  const key=[item.sourceName,item.productName,item.price,item.currency||"EUR",item.size||item.unit||""].map(normalizeOfferKey).join("|");
+  if(savedOffers.some(offer=>offer.key===key))return false;
+  savedOffers.push({id:String(Date.now())+"-"+Math.random().toString(36).slice(2,7),key,store:item.sourceName||"Markt nicht angegeben",product:item.productName||"Unbekanntes Produkt",price:item.price,currency:item.currency||"EUR",size:item.size||item.unit||"",until:item.validUntil||item.validityEnd||item.until||"",sourceUrl:item.sourceUrl||"",matchedIngredients:item.matchedIngredients||[],regionality:item.regionality||""});
+  try{localStorage.setItem(OFFER_STORAGE_KEY,JSON.stringify(savedOffers));}
+  catch(error){savedOffers.pop();return false;}
+  renderOffers();
+  return true;
+}
+let currentSearchMatches=[];
 $("#show-offers").addEventListener("click",()=>{
   $("#offers-section").hidden=false;
   renderOffers();
+  $("#offers-section").scrollIntoView({behavior:"smooth",block:"start"});
+});
+$("#offer-list").addEventListener("click",event=>{
+  const button=event.target.closest("[data-offer-id]");
+  if(!button)return;
+  savedOffers=savedOffers.filter(item=>item.id!==button.dataset.offerId);
+  localStorage.setItem(OFFER_STORAGE_KEY,JSON.stringify(savedOffers));
+  renderOffers();
+});
+$("#meal-offer-results").addEventListener("click",event=>{
+  const button=event.target.closest("[data-save-offer-index]");
+  if(!button)return;
+  const item=currentSearchMatches[Number(button.dataset.saveOfferIndex)];
+  if(!item)return;
+  const added=saveFoundOffer(item);
+  button.textContent=added?"Vorgemerkt ✓":"Bereits vorgemerkt ✓";
+  button.disabled=true;
+  button.classList.add("is-saved");
+});
+renderOffers();
   $("#offers-section").scrollIntoView({behavior:"smooth",block:"start"});
 });
 $("#offer-form").addEventListener("submit",event=>{
