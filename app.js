@@ -24,6 +24,7 @@ let pendingFamilyInvite=new URLSearchParams(window.location.search).get("familyI
 let inviteAcceptanceInProgress=false,acceptedFamilyInviteToken=null;
 let visibleDishes=[];
 function showMessage(message){if(messageEl)messageEl.textContent=message;}
+function showFamilyMessage(message){const familyMessage=$("#family-message");if(familyMessage)familyMessage.textContent=message;showMessage(message);}
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
 function setDishFormMessage(message){$("#dish-form-message").textContent=message;}
 function renderDishes(dishes){
@@ -118,7 +119,7 @@ async function loadFamilyInfo(){
   if(!currentFamilyId||!currentUser)return;
   const list=$("#family-members");
   const {data:members,error}=await supabaseClient.from("family_members").select("user_id,role,joined_at").eq("family_id",currentFamilyId).order("joined_at",{ascending:true});
-  if(error){showMessage("Familienmitglieder konnten nicht geladen werden: "+error.message);return;}
+  if(error){showFamilyMessage("Familienmitglieder konnten nicht geladen werden: "+error.message);return;}
   list.innerHTML=(members||[]).map((member,index)=>'<div class="family-member"><span class="family-member-avatar">👤</span><span><strong>'+ (member.user_id===currentUser.id?"Du":("Familienmitglied "+(index+1))) +'</strong><small>'+ (member.role==="owner"?"Eigentümer":"Mitglied") +'</small></span></div>').join("");
   const isOwner=(members||[]).some(member=>member.user_id===currentUser.id&&member.role==="owner");
   $("#family-invite-controls").hidden=!isOwner;
@@ -127,11 +128,11 @@ async function loadFamilyInfo(){
 async function acceptPendingFamilyInvite(user){
   if(!pendingFamilyInvite||acceptedFamilyInviteToken===pendingFamilyInvite||inviteAcceptanceInProgress)return false;
   inviteAcceptanceInProgress=true;
-  showMessage("Familieneinladung wird geprüft …");
+  showFamilyMessage("Familieneinladung wird geprüft …");
   const token=pendingFamilyInvite;
   const {data,error}=await supabaseClient.rpc("accept_family_invitation",{invitation_token:token});
   inviteAcceptanceInProgress=false;
-  if(error){showMessage("Einladung konnte nicht angenommen werden: "+error.message);return true;}
+  if(error){showFamilyMessage("Einladung konnte nicht angenommen werden: "+error.message);return true;}
   currentFamilyId=data;
   localStorage.setItem("familyPlannerActiveFamilyId",currentFamilyId);
   acceptedFamilyInviteToken=token;
@@ -141,7 +142,7 @@ async function acceptPendingFamilyInvite(user){
   await loadDishes();
   await loadFamilyInfo();
   if(!$("#weekly-section").hidden)await loadWeekPlan();
-  showMessage("Du bist der Familie erfolgreich beigetreten. Eure Inhalte werden jetzt gemeinsam genutzt.");
+  showFamilyMessage("Du bist der Familie erfolgreich beigetreten. Eure Inhalte werden jetzt gemeinsam genutzt.");
   return true;
 }
 async function loadOrCreateFamily(user){
@@ -149,18 +150,18 @@ async function loadOrCreateFamily(user){
     const handled=await acceptPendingFamilyInvite(user);
     if(handled)return;
   }
-  showMessage("Verbinde eure Familiensammlung …");
+  showFamilyMessage("Verbinde eure Familiensammlung …");
   let {data:members,error}=await supabaseClient.from("family_members").select("family_id,role,joined_at").eq("user_id",user.id).order("joined_at",{ascending:true});
-  if(error){showMessage("Familienkonto konnte nicht geladen werden: "+error.message);return;}
+  if(error){showFamilyMessage("Familienkonto konnte nicht geladen werden: "+error.message);return;}
   if(!members?.length){
     const {error:createError}=await supabaseClient.from("families").insert({name:"Meine Familie",created_by:user.id});
-    if(createError){showMessage("Familienkonto konnte nicht angelegt werden: "+createError.message);return;}
+    if(createError){showFamilyMessage("Familienkonto konnte nicht angelegt werden: "+createError.message);return;}
     const result=await supabaseClient.from("family_members").select("family_id,role,joined_at").eq("user_id",user.id).order("joined_at",{ascending:true});
     members=result.data;error=result.error;
-    if(error||!members?.length){showMessage("Familienkonto wurde angelegt, die Mitgliedschaft konnte aber nicht geladen werden.");return;}
+    if(error||!members?.length){showFamilyMessage("Familienkonto wurde angelegt, die Mitgliedschaft konnte aber nicht geladen werden.");return;}
     const familyId=members[0].family_id;
     const {error:seedError}=await supabaseClient.from("dishes").insert(starterDishes.map(dish=>({...dish,family_id:familyId,servings:3,created_by:user.id})));
-    if(seedError){showMessage("Familienkonto steht. Die Beispieldaten konnten noch nicht gespeichert werden: "+seedError.message);return;}
+    if(seedError){showFamilyMessage("Familienkonto steht. Die Beispieldaten konnten noch nicht gespeichert werden: "+seedError.message);return;}
   }
   const preferredFamilyId=localStorage.getItem("familyPlannerActiveFamilyId");
   const selectedMember=members.find(member=>member.family_id===preferredFamilyId)||members[0];
@@ -169,7 +170,7 @@ async function loadOrCreateFamily(user){
   await loadDishes();
   await loadFamilyInfo();
   if(!$("#weekly-section").hidden)await loadWeekPlan();
-  showMessage("Familiensammlung verbunden. "+visibleDishes.length+" Gerichte dauerhaft gespeichert.");
+  showFamilyMessage("Familiensammlung verbunden. "+visibleDishes.length+" Gerichte dauerhaft gespeichert.");
 }
 
 let weekOffset=0;
@@ -666,20 +667,20 @@ $("#show-family").addEventListener("click",async()=>{
   await loadFamilyInfo();$("#family-section").scrollIntoView({behavior:"smooth",block:"start"});
 });
 $("#create-family-invite").addEventListener("click",async()=>{
-  const button=$("#create-family-invite");button.disabled=true;showMessage("Einladungslink wird erstellt …");
+  const button=$("#create-family-invite");button.disabled=true;showFamilyMessage("Einladungslink wird erstellt …");
   const {data,error}=await supabaseClient.rpc("create_family_invitation");
   button.disabled=false;
-  if(error){showMessage("Einladung konnte nicht erstellt werden: "+error.message);return;}
+  if(error){showFamilyMessage("Einladung konnte nicht erstellt werden: "+error.message);return;}
   const row=Array.isArray(data)?data[0]:data;
-  if(!row?.invitation_token){showMessage("Es wurde kein Einladungslink zurückgegeben.");return;}
+  if(!row?.invitation_token){showFamilyMessage("Es wurde kein Einladungslink zurückgegeben.");return;}
   const link=new URL(window.location.href);link.searchParams.set("familyInvite",row.invitation_token);
   $("#family-invite-link").value=link.toString();$("#family-invite-link-wrap").hidden=false;
-  showMessage("Einladungslink erstellt. Er ist sieben Tage gültig und kann einmal verwendet werden.");
+  showFamilyMessage("Einladungslink erstellt. Er ist sieben Tage gültig und kann einmal verwendet werden.");
 });
 $("#copy-family-invite").addEventListener("click",async()=>{
   const field=$("#family-invite-link");
-  try{await navigator.clipboard.writeText(field.value);showMessage("Einladungslink wurde kopiert.");}
-  catch(error){field.focus();field.select();showMessage("Bitte den markierten Einladungslink kopieren.");}
+  try{await navigator.clipboard.writeText(field.value);showFamilyMessage("Einladungslink wurde kopiert.");}
+  catch(error){field.focus();field.select();showFamilyMessage("Bitte den markierten Einladungslink kopieren.");}
 });
 authForm.addEventListener("submit",event=>{event.preventDefault();if(authMode==="signup")$("#signup-button").click();else $("#login-button").click();});
 $("#close-auth").addEventListener("click",()=>{authPanel.hidden=true;});
