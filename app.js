@@ -26,7 +26,15 @@ function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,char=>({"
 function setDishFormMessage(message){$("#dish-form-message").textContent=message;}
 function renderDishes(dishes){
   visibleDishes=dishes||[];
-  dishGrid.innerHTML=visibleDishes.map(dish=>{
+  const categoryFilter=$("#dish-category-filter");
+  const previousCategory=categoryFilter?.value||"";
+  const categories=[...new Set(visibleDishes.map(dish=>dish.category||"Sonstiges"))].sort((a,b)=>a.localeCompare(b,"de"));
+  if(categoryFilter){categoryFilter.innerHTML='<option value="">Alle Kategorien</option>'+categories.map(category=>'<option value="'+escapeHtml(category)+'">'+escapeHtml(category)+'</option>').join("");categoryFilter.value=categories.includes(previousCategory)?previousCategory:"";}
+  const term=($("#dish-search")?.value||"").trim().toLocaleLowerCase("de-DE");
+  const selectedCategory=categoryFilter?.value||"";
+  const filteredDishes=visibleDishes.filter(dish=>(!selectedCategory||(dish.category||"Sonstiges")===selectedCategory)&&(!term||[dish.title,dish.category,...(dish.ingredients||[])].join(" ").toLocaleLowerCase("de-DE").includes(term)));
+  $("#dish-results-count").textContent=filteredDishes.length+" von "+visibleDishes.length+" Gerichten";
+  dishGrid.innerHTML=filteredDishes.map(dish=>{
     const total=(Number(dish.prep_minutes)||0)+(Number(dish.cook_minutes)||0);
     const detail=[dish.category||"Gericht",total?("ca. "+total+" Min."):""].filter(Boolean).join(" · ");
     const ingredients=Array.isArray(dish.ingredients)?dish.ingredients.join("\n"):"";
@@ -107,6 +115,7 @@ async function loadOrCreateFamily(user){
     if(seedError){showMessage("Familienkonto steht. Die Beispieldaten konnten noch nicht gespeichert werden: "+seedError.message);return;}
   }
   currentFamilyId=members[0].family_id;await loadDishes();
+  if(!$("#weekly-section").hidden)await loadWeekPlan();
   showMessage("Familiensammlung verbunden. "+visibleDishes.length+" Gerichte dauerhaft gespeichert.");
 }
 
@@ -542,4 +551,17 @@ if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
   $("#login-button").addEventListener("click",async()=>{const email=$("#auth-email").value.trim(),password=$("#auth-password").value;const {error}=await supabaseClient.auth.signInWithPassword({email,password});showMessage(error?error.message:"Anmeldung erfolgreich.");});
   $("#logout-button").addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();showMessage(error?error.message:"Du wurdest abgemeldet.");});
 }else{statusEl.textContent="Verbindung nicht verfügbar";showMessage("Die Supabase-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden.");}
+$("#dish-search").addEventListener("input",()=>renderDishes(visibleDishes));
+$("#dish-category-filter").addEventListener("change",()=>renderDishes(visibleDishes));
+$("#quick-nav-toggle").addEventListener("click",()=>$("#quick-nav").classList.toggle("collapsed"));
+$("#quick-nav-links").addEventListener("click",event=>{
+  const button=event.target.closest("[data-nav-action]");if(!button)return;
+  $("#quick-nav-links").querySelectorAll("button").forEach(item=>item.classList.toggle("active",item===button));
+  const action=button.dataset.navAction;
+  if(action==="home")$("#home-section").scrollIntoView({behavior:"smooth",block:"start"});
+  if(action==="week")$("#show-week-plan").click();
+  if(action==="shopping")$("#create-shopping-list").click();
+  if(action==="offers")$("#show-offers").click();
+  if(action==="dishes")$("#show-dishes").click();
+});
 if("serviceWorker"in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(error=>console.warn("Offline-Funktion konnte nicht aktiviert werden:",error)));
