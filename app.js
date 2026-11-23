@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.06";
+const APP_BUILD_ID="2026-11-23.07";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -664,7 +664,7 @@ $("#open-login").addEventListener("click",()=>{authMode="login";authPanel.hidden
 $("#open-signup").addEventListener("click",()=>{authMode="signup";authPanel.hidden=false;$("#auth-dialog-title").textContent="Konto erstellen";$("#auth-dialog-copy").textContent=pendingFamilyInvite?"Erstelle dein Konto, um der eingeladenen Familie beizutreten.":"Erstelle dein Konto und starte euren gemeinsamen Essensplaner.";});
 $("#show-family").addEventListener("click",async()=>{
   if(!currentFamilyId){authMode="login";authPanel.hidden=false;$("#auth-dialog-title").textContent=pendingFamilyInvite?"Du wurdest eingeladen":"Familienkonto";$("#auth-dialog-copy").textContent=pendingFamilyInvite?"Melde dich an oder erstelle ein Konto, um der Familie beizutreten.":"Bitte melde dich an, um eure Familiengruppe zu öffnen.";return;}
-  await loadFamilyInfo();$("#family-section").scrollIntoView({behavior:"smooth",block:"start"});
+  $("#family-section").hidden=false;await loadFamilyInfo();$("#family-section").scrollIntoView({behavior:"smooth",block:"start"});
 });
 $("#create-family-invite").addEventListener("click",async()=>{
   const button=$("#create-family-invite");button.disabled=true;showFamilyMessage("Einladungslink wird erstellt …");
