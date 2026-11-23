@@ -236,3 +236,39 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 @media(max-width:600px){.recipe-dialog{padding:25px 19px;border-radius:16px}.recipe-dialog h2{font-size:21px}.recipe-content{grid-template-columns:1fr;gap:20px}.recipe-overlay{padding:10px}}
 
 .family-section{margin-top:38px}.family-members{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:16px 0}.family-member{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px}.family-member-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#e8f0e9;font-size:17px}.family-member strong,.family-member small{display:block}.family-member strong{font-size:13px}.family-member small{font-size:11px;color:var(--muted);margin-top:3px}.family-invite-controls{display:grid;gap:12px;justify-items:start;margin-top:16px}.family-invite-link-wrap{width:100%;max-width:680px}.family-invite-link-wrap label{display:block;font-size:12px;font-weight:700;color:#506257;margin-bottom:7px}.family-invite-link-wrap>div{display:flex;gap:8px}.family-invite-link-wrap input{flex:1;min-width:0;padding:10px;border:1px solid #ccd5cd;border-radius:9px;font:inherit;font-size:12px;background:#fff}.family-invite-link-wrap button{white-space:nowrap}@media(max-width:520px){.family-invite-link-wrap>div{flex-direction:column}.family-invite-link-wrap button{width:100%}}
+
+/* Alpha 0.2 – kompakter Wochenplan im Kartenstil */
+.weekly-section{margin-top:30px;padding:0;background:#fff;border:1px solid #e6ece6;border-radius:20px;box-shadow:0 8px 28px #203b2409;overflow:hidden}
+.weekly-section>.section-heading{padding:20px 22px 15px;margin:0;background:linear-gradient(110deg,#f8fbf7,#fff)}
+.weekly-section>.section-heading h2{font-size:25px;letter-spacing:-.6px;color:#183c2c}
+.week-toolbar{margin:0 18px 12px;border-radius:12px;background:#f4f7f3}
+.week-options{margin:0 18px 12px;border:0;background:#f7f9f6}
+.week-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:0 18px 16px}
+.week-day{display:flex;flex-direction:column;padding:0 0 12px;border:1px solid #e3e9e3;border-radius:14px;overflow:hidden;box-shadow:0 3px 10px #1b38200b}
+.week-day-heading{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:4px;margin:0;padding:10px 11px;background:#285b40;border:0;color:#fff}
+.week-day-heading strong{font-size:14px;color:#fff}
+.week-day-heading span{padding:0;background:transparent;color:#e3eee5;font-size:10px}
+.week-dish-visual{height:112px;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,#fff 0,#f2f5eb 58%,#e8eee2 100%);overflow:hidden}
+.week-dish-visual span{font-size:66px;filter:drop-shadow(0 5px 5px #233c2420);transform:translateY(1px)}
+.week-dish-title{display:flex;align-items:center;justify-content:center;min-height:48px;margin:0 7px 8px;padding:8px 6px;text-align:center;font-size:13px;line-height:1.25;color:#1d3025;background:#eaf2e4;border-radius:9px}
+.week-servings-row{display:flex;align-items:center;justify-content:space-between;gap:5px;margin:0 10px 6px;font-size:10px;font-weight:700;color:#4d5e52}
+.week-serving-control{display:flex;align-items:center;border:1px solid #dce4dc;border-radius:20px;overflow:hidden;background:#fff}
+.week-serving-control button{width:27px;height:26px;border:0;background:#f8faf8;color:#294f39;font-size:17px;cursor:pointer}
+.week-serving-control input{width:30px;height:26px;padding:0;border:0;text-align:center;font:inherit;font-size:11px;font-weight:800;color:#26352d;appearance:textfield}
+.week-serving-control input::-webkit-inner-spin-button,.week-serving-control input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.week-recipe-button{align-self:stretch;margin:5px 10px 0;text-align:center;border-radius:20px;background:#fff;border-color:#b8cbbd;color:#28583e}
+.week-edit-controls{order:4;margin:8px 10px 0;font-size:10px;color:#315c45}
+.week-edit-controls summary{cursor:pointer;list-style:none;border:1px solid #d9e4da;border-radius:20px;padding:7px 9px;text-align:center;font-weight:750}
+.week-edit-controls summary::-webkit-details-marker{display:none}
+.week-edit-controls[open]{padding:8px;border-radius:10px;background:#f7faf7}
+.week-edit-controls label{display:grid;gap:5px;margin-top:8px;font-size:10px;font-weight:700}
+.week-edit-controls input,.week-edit-controls select{width:100%;min-width:0;padding:8px;border:1px solid #d6e1d7;border-radius:8px;background:#fff;font:inherit;font-size:11px}
+.week-day .week-ingredients{order:5;margin:8px 10px 0;padding-top:9px;border-top:1px solid #edf1ed;display:grid;gap:7px}
+.week-ingredients-title{font-size:10px;text-transform:none;letter-spacing:0;color:#52675a}
+.week-day .week-ingredient{font-size:10px;line-height:1.35;color:#344b3b}
+.week-day .week-ingredient input{accent-color:#2c7a3f}
+.week-ingredients-empty{font-size:10px;color:#819087}
+.week-save-row{margin:0 18px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:1100px){.week-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.week-grid.week-grid-seven{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.week-grid,.week-grid.week-grid-seven{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.weekly-section>.section-heading{padding:17px 14px}.week-toolbar,.week-options{margin-left:12px;margin-right:12px}.week-grid,.week-grid.week-grid-seven{grid-template-columns:1fr;margin-left:12px;margin-right:12px}.week-dish-visual{height:135px}.week-save-row{margin-left:12px;margin-right:12px}}
