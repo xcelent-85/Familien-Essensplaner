@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.07";
+const APP_BUILD_ID="2026-11-23.08";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -195,6 +195,19 @@ function renderWeekIngredients(day,dish,servings){
     return '<label class="week-ingredient"><input type="checkbox"><span>'+escapeHtml(quantity+item.name)+'</span></label>';
   }).join("");
 }
+function getDishVisual(title){
+  const value=String(title||"").toLocaleLowerCase("de-DE");
+  if(/spaghetti|pasta|nudel|lasagne|carbonara/.test(value))return "🍝";
+  if(/hähnchen|huhn|chicken|geflügel/.test(value))return "🍗";
+  if(/kartoffel|gratin|auflauf/.test(value))return "🥘";
+  if(/wrap|tortilla|burrito/.test(value))return "🌯";
+  if(/curry|reis|asiatisch/.test(value))return "🍛";
+  if(/salat|bowl/.test(value))return "🥗";
+  if(/suppe|eintopf/.test(value))return "🍲";
+  if(/pizza/.test(value))return "🍕";
+  if(/fisch|lachs/.test(value))return "🐟";
+  return "🍽️";
+}
 function renderWeekPlan(){
   const dates=getWeekDates(),first=dates[0].date,last=dates[dates.length-1].date;
   const format=date=>date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
@@ -206,16 +219,17 @@ function renderWeekPlan(){
     const meal=currentWeekMeals.find(item=>item.planned_for===day.iso);
     const options='<option value="">Noch kein Gericht ausgewählt</option>'+dishes.map(dish=>'<option value="'+escapeHtml(dish.id||dish.title)+'" '+((meal&&(meal.dish_id===dish.id||meal.preview_title===dish.title))?'selected':'')+'>'+escapeHtml(dish.title)+'</option>').join("");
     const selectedDish=meal?dishes.find(dish=>dish.id===meal.dish_id||dish.title===meal.preview_title):null;
-    const servings=meal?.servings||3;
+    const servings=Math.max(1,Number(meal?.servings)||3);
     const recipeButton=selectedDish?'<button type="button" class="week-recipe-button" data-recipe-title="'+escapeHtml(selectedDish.title)+'" data-date="'+day.iso+'">Rezept ansehen →</button>':"";
-    const ingredientMarkup=selectedDish&&Array.isArray(selectedDish.ingredients)&&selectedDish.ingredients.length?'<strong class="week-ingredients-title">Zutaten</strong>'+selectedDish.ingredients.map(line=>{
+    const ingredientMarkup=selectedDish&&Array.isArray(selectedDish.ingredients)&&selectedDish.ingredients.length?'<strong class="week-ingredients-title">Zutaten (für '+servings+' Personen)</strong>'+selectedDish.ingredients.map(line=>{
       const item=parseShoppingIngredient(line,servings/(Number(selectedDish.servings)||3));
       const quantity=item.amount===null?"":formatIngredientQuantity(item);
       return '<label class="week-ingredient"><input type="checkbox"><span>'+escapeHtml(quantity+item.name)+'</span></label>';
-    }).join(""):'<p class="week-ingredients-empty">Noch keine Zutaten – wähle ein Abendessen.</p>';
-    return '<div class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><label>Gericht suchen<input class="week-dish-search" data-date="'+day.iso+'" type="search" placeholder="Gericht finden …" aria-label="Gericht für '+day.name+' suchen"></label><label>Abendessen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label><label>Portionen<input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'"></label>'+recipeButton+'<div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></div>';
+    }).join(""):'<p class="week-ingredients-empty">Wähle ein Gericht, um die Zutaten zu sehen.</p>';
+    const title=selectedDish?escapeHtml(selectedDish.title):"Noch kein Gericht geplant";
+    return '<article class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><div class="week-dish-visual" aria-hidden="true"><span>'+getDishVisual(selectedDish?.title)+'</span></div><h3 class="week-dish-title">'+title+'</h3><div class="week-servings-row"><span>Portionen:</span><div class="week-serving-control"><button type="button" data-serving-change="-1" aria-label="Eine Portion weniger">−</button><input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'" aria-label="Portionen für '+day.name+'"><button type="button" data-serving-change="1" aria-label="Eine Portion mehr">+</button></div></div>'+recipeButton+'<details class="week-edit-controls"><summary>Gericht ändern</summary><label>Gericht suchen<input class="week-dish-search" data-date="'+day.iso+'" type="search" placeholder="Gericht finden …" aria-label="Gericht für '+day.name+' suchen"></label><label>Abendessen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label></details><div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></article>';
   }).join("");
-  $("#week-help").textContent=currentFamilyId?"Wählt für jeden Tag ein Gericht. Die Zutaten erscheinen direkt darunter. Änderungen werden erst nach Klick auf „Wochenplan speichern“ übernommen.":"Vorschau: Zum dauerhaften Speichern bitte anmelden.";
+  $("#week-help").textContent=currentFamilyId?"Wählt für jeden Tag ein Gericht. Passt die Portionen an und hakt Zutaten direkt ab. Änderungen werden erst nach Klick auf „Wochenplan speichern“ übernommen.":"Vorschau: Zum dauerhaften Speichern bitte anmelden.";
   $("#save-week-plan").disabled=!currentFamilyId;
 }
 function renderRecipeDialog(dish,servings){
@@ -242,6 +256,12 @@ function openRecipeForTitle(title,servings){
   if(dish)renderRecipeDialog(dish,servings);
 }
 $("#week-grid").addEventListener("click",event=>{
+  const servingButton=event.target.closest("[data-serving-change]");
+  if(servingButton){
+    const input=servingButton.closest(".week-day")?.querySelector(".week-servings");
+    if(input){input.value=Math.max(1,Math.min(30,(Number(input.value)||1)+Number(servingButton.dataset.servingChange)));input.dispatchEvent(new Event("change",{bubbles:true}));}
+    return;
+  }
   const button=event.target.closest(".week-recipe-button");
   if(!button)return;
   const day=button.dataset.date;
