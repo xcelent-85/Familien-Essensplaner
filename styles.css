@@ -168,3 +168,41 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 @media(max-width:700px){.quick-nav{left:9px;top:auto;bottom:18px;align-items:flex-end}.quick-nav-toggle{width:46px;height:46px;border-radius:50%;box-shadow:0 6px 22px #1b382033}.quick-nav-links{max-width:min(75vw,260px);max-height:55vh;overflow:auto}.quick-nav-links button{font-size:12px;padding:10px}.dish-discovery-tools{grid-template-columns:1fr}}
 
 .dish-card-title{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.dish-card-title strong{margin:0}.dish-favorite{flex:0 0 auto;border:1px solid #e0e8e0;background:#f8faf8;color:#8a9a8d;border-radius:8px;width:28px;height:26px;font-size:16px;line-height:1;cursor:pointer}.dish-favorite.active{color:#d69a39;background:#fff8e8;border-color:#f1dfb7}
+
+
+/* Wochenplanung – klar gegliederte Tageskarten */
+.weekly-section{scroll-margin-top:24px}
+.weekly-section>.section-heading{margin-bottom:14px}
+.week-toolbar{background:#edf3ed;border-color:#dce7dd;padding:11px 13px}
+.week-toolbar strong{font-size:13px;color:var(--green-dark);text-align:center}
+.week-nav{background:#fff;transition:background .15s,border-color .15s}
+.week-nav:hover{background:#f7faf7;border-color:#b8cbbb}
+.week-grid{align-items:stretch;gap:12px;margin:13px 0 17px}
+.week-day{border:1px solid #e1e9e1;border-radius:14px;padding:13px 12px;box-shadow:0 2px 8px #1b382008;transition:border-color .15s,box-shadow .15s}
+.week-day:focus-within{border-color:#9ab49e;box-shadow:0 0 0 3px #315c4510}
+.week-day-heading{flex-direction:row;align-items:center;justify-content:space-between;gap:6px;margin:-1px -1px 11px;padding-bottom:10px;border-bottom:1px solid #edf1ed}
+.week-day-heading strong{font-size:13px;color:var(--green-dark)}
+.week-day-heading span{font-size:10px;background:#f1f5f1;color:#617468;border-radius:20px;padding:4px 7px;white-space:nowrap}
+.week-day label{gap:5px;margin-top:9px;font-size:10px;letter-spacing:.1px}
+.week-day select,.week-day input{padding:9px 8px;font-size:11px;border-color:#d8e1d8;border-radius:8px}
+.week-day select:focus,.week-day input:focus{outline:2px solid #a9c4ad;outline-offset:1px}
+.week-day .week-ingredients{margin-top:11px;padding-top:10px;gap:7px}
+.week-ingredients-title{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:#6b7d70}
+.week-day .week-ingredient{font-size:10px;line-height:1.35;color:#43564a;gap:6px}
+.week-day .week-ingredient input{width:13px;height:13px;flex-basis:13px;accent-color:var(--green)}
+.week-ingredients-empty{padding:8px;background:#f7f9f7;border-radius:8px}
+.week-save-row{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.week-save-row .button{min-height:38px}
+@media(max-width:1100px){.week-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.week-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){
+  .week-toolbar{display:grid;grid-template-columns:auto 1fr auto;gap:6px;padding:9px}
+  .week-toolbar strong{font-size:10px;line-height:1.3}
+  .week-nav{padding:8px 7px;font-size:10px}
+  .week-grid{grid-template-columns:1fr;gap:9px}
+  .week-day{padding:14px}
+  .week-day-heading{margin-bottom:8px}
+  .week-day label{margin-top:8px}
+  .week-save-row{align-items:stretch;flex-direction:column}
+  .week-save-row .button{width:100%}
+}
