@@ -1,0 +1,47 @@
+name: Alpha 0.2 Vorschau
+
+on:
+  push:
+    branches:
+      - alpha-0.2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: alpha-preview
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hauptversion auschecken
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: public
+
+      - name: Alpha 0.2 in separaten Unterordner auschecken
+        uses: actions/checkout@v4
+        with:
+          ref: alpha-0.2
+          path: public/alpha-0.2
+
+      - name: GitHub Pages konfigurieren
+        uses: actions/configure-pages@v5
+
+      - name: Website mit Alpha-Unterordner bereitstellen
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: GitHub Pages veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4
