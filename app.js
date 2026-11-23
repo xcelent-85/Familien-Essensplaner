@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.08";
+const APP_BUILD_ID="2026-11-23.09";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -294,6 +294,10 @@ $("#week-grid").addEventListener("change",event=>{
   const dish=dishes.find(item=>String(item.id||item.title)===(select?.value||""));
   renderWeekIngredients(day,dish,servings?.value||3);
   const card=control.closest(".week-day");
+  const titleNode=card?.querySelector(".week-dish-title");
+  const visualNode=card?.querySelector(".week-dish-visual span");
+  if(titleNode)titleNode.textContent=dish?.title||"Noch kein Gericht geplant";
+  if(visualNode)visualNode.textContent=getDishVisual(dish?.title);
   let recipeButton=card?.querySelector(".week-recipe-button");
   if(dish){if(!recipeButton){$("#week-ingredients-"+day.iso).insertAdjacentHTML("beforebegin",'<button type="button" class="week-recipe-button">Rezept ansehen →</button>');recipeButton=card?.querySelector(".week-recipe-button");}if(recipeButton){recipeButton.dataset.recipeTitle=dish.title;recipeButton.dataset.date=day.iso;}}
   else if(recipeButton)recipeButton.remove();
