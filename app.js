@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.04";
+const APP_BUILD_ID="2026-11-23.05";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -149,7 +149,7 @@ function renderWeekIngredients(day,dish,servings){
   const factor=Math.max(1,Number(servings)||3)/(Number(dish.servings)||3);
   target.innerHTML='<strong class="week-ingredients-title">Zutaten</strong>'+ingredients.map(line=>{
     const item=parseShoppingIngredient(line,factor);
-    const quantity=item.amount===null?"":Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" ");
+    const quantity=item.amount===null?"":formatIngredientQuantity(item);
     return '<label class="week-ingredient"><input type="checkbox"><span>'+escapeHtml(quantity+item.name)+'</span></label>';
   }).join("");
 }
@@ -168,7 +168,7 @@ function renderWeekPlan(){
     const recipeButton=selectedDish?'<button type="button" class="week-recipe-button" data-recipe-title="'+escapeHtml(selectedDish.title)+'" data-date="'+day.iso+'">Rezept ansehen →</button>':"";
     const ingredientMarkup=selectedDish&&Array.isArray(selectedDish.ingredients)&&selectedDish.ingredients.length?'<strong class="week-ingredients-title">Zutaten</strong>'+selectedDish.ingredients.map(line=>{
       const item=parseShoppingIngredient(line,servings/(Number(selectedDish.servings)||3));
-      const quantity=item.amount===null?"":Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" ");
+      const quantity=item.amount===null?"":formatIngredientQuantity(item);
       return '<label class="week-ingredient"><input type="checkbox"><span>'+escapeHtml(quantity+item.name)+'</span></label>';
     }).join(""):'<p class="week-ingredients-empty">Noch keine Zutaten – wähle ein Abendessen.</p>';
     return '<div class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><label>Gericht suchen<input class="week-dish-search" data-date="'+day.iso+'" type="search" placeholder="Gericht finden …" aria-label="Gericht für '+day.name+' suchen"></label><label>Abendessen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label><label>Portionen<input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'"></label>'+recipeButton+'<div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></div>';
@@ -186,7 +186,7 @@ function renderRecipeDialog(dish,servings){
   const ingredients=Array.isArray(dish.ingredients)?dish.ingredients:[];
   $("#recipe-ingredients").innerHTML=ingredients.length?'<ul class="recipe-ingredient-list">'+ingredients.map(line=>{
     const item=parseShoppingIngredient(line,factor);
-    const amount=item.amount===null?"":Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" ");
+    const amount=item.amount===null?"":formatIngredientQuantity(item);
     return '<li>'+escapeHtml(amount+item.name)+'</li>';
   }).join("")+'</ul>':'<p class="notice">Für dieses Gericht sind noch keine Zutaten hinterlegt.</p>';
   const instructions=String(dish.instructions||"").split(/\\n|(?<=\\.)\\s+(?=[A-ZÄÖÜ])/).map(step=>step.trim()).filter(Boolean);
@@ -276,6 +276,27 @@ $("#save-week-plan").addEventListener("click",async()=>{
   await loadWeekPlan();
 });
 
+function formatIngredientAmount(amount,unit){
+  if(amount===null||amount===undefined||!Number.isFinite(Number(amount)))return "";
+  const value=Number(amount);
+  const normalized=String(unit||"").toLowerCase().replace(/\./g,"");
+  const countUnits=["","stück","stk","dose","dosen","packung","packungen"];
+  if(["g","ml"].includes(normalized)){
+    return (value>0?Math.max(1,Math.round(value)):0).toLocaleString("de-DE");
+  }
+  if(countUnits.includes(normalized)){
+    return (value>0?Math.max(1,Math.round(value)):0).toLocaleString("de-DE");
+  }
+  if(["el","tl"].includes(normalized)){
+    const quarters=Math.round(value*4),whole=Math.floor(quarters/4),fraction=["","¼","½","¾"][quarters%4];
+    return (whole?String(whole):"")+(fraction||(!whole?"0":""));
+  }
+  return Number(value.toFixed(2)).toLocaleString("de-DE",{maximumFractionDigits:2});
+}
+function formatIngredientQuantity(item){
+  const amount=formatIngredientAmount(item.amount,item.unit);
+  return amount+(item.unit?" "+item.unit+" ":amount?" ":"");
+}
 function parseShoppingIngredient(line, factor){
   const text=String(line||"").trim();
   const match=text.match(/^([0-9]+(?:[.,][0-9]+)?)\s*(kg|g|l|ml|EL|TL|Stück|Stk\.?|Dose|Dosen|Packung|Packungen)?\s+(.+)$/i);
@@ -296,7 +317,7 @@ function renderShoppingList(){
     return dish?{day,dish,servings:Math.max(1,Number(servingsInput?.value)||3)}:null;
   });
   const totals=new Map(),missing=[];
-  const formatQuantity=item=>item.amount===null?"":(Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" "));
+  const formatQuantity=item=>item.amount===null?"":(formatIngredientQuantity(item));
   selected.filter(Boolean).forEach(({day,dish,servings})=>{
     const base=Number(dish.servings)||3;
     const ingredients=Array.isArray(dish.ingredients)?dish.ingredients:[];
