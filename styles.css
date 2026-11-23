@@ -298,5 +298,5 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .week-dish-visual{border-radius:0 0 12px 12px;overflow:hidden}
 .week-dish-visual img{border-radius:0 0 12px 12px}
 
-/* Alpha 0.2 – kompakterer Gerichtstitel mit mehr Luft zum Foto */
-.week-dish-title{box-sizing:border-box;min-height:42px;margin:7px 7px 8px;padding:5px 6px;line-height:1.2}
+/* Alpha 0.2 – niedrigerer Gerichtstitel mit deutlich mehr Abstand zum Foto */
+.week-dish-title{box-sizing:border-box;min-height:34px;margin:14px 7px 8px;padding:4px 6px;line-height:1.2}
