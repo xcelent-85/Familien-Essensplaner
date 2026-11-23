@@ -672,13 +672,14 @@ $("#search-meal-offers").addEventListener("click",async()=>{
   }finally{button.disabled=false;}
 });
 
-// Angebotsverwaltung: lokale Vormerkung als erster Schritt zur Angebotsintegration.
+// Angebotsverwaltung: gefundene Angebote mit einem Klick vormerken.
 const OFFER_STORAGE_KEY="familien-essensplaner-offers-v1";
 function readOffers(){
   try{return JSON.parse(localStorage.getItem(OFFER_STORAGE_KEY)||"[]");}
   catch(error){return [];}
 }
 let savedOffers=readOffers();
+let currentSearchMatches=[];
 function formatOfferPrice(item){
   const price=Number(item.price);
   if(!Number.isFinite(price))return "Preis prüfen";
@@ -707,7 +708,6 @@ function saveFoundOffer(item){
   renderOffers();
   return true;
 }
-let currentSearchMatches=[];
 $("#show-offers").addEventListener("click",()=>{
   $("#offers-section").hidden=false;
   renderOffers();
@@ -731,29 +731,6 @@ $("#meal-offer-results").addEventListener("click",event=>{
   button.classList.add("is-saved");
 });
 renderOffers();
-  $("#offers-section").scrollIntoView({behavior:"smooth",block:"start"});
-});
-$("#offer-form").addEventListener("submit",event=>{
-  event.preventDefault();
-  const product=$("#offer-product").value.trim();
-  const price=Number($("#offer-price").value.replace(",","."));
-  if(!product||!Number.isFinite(price)||price<=0){$("#offer-message").textContent="Bitte Produkt und einen gültigen Preis eintragen.";return;}
-  savedOffers.push({id:String(Date.now())+"-"+Math.random().toString(36).slice(2,7),store:$("#offer-store").value,product,price,size:$("#offer-size").value.trim(),until:$("#offer-until").value});
-  try{localStorage.setItem(OFFER_STORAGE_KEY,JSON.stringify(savedOffers));}
-  catch(error){$("#offer-message").textContent="Speichern im Browser ist nicht möglich. Bitte Speicherplatz oder Browsereinstellungen prüfen.";return;}
-  $("#offer-form").reset();
-  $("#offer-message").textContent="Angebot wurde auf diesem Gerät gespeichert.";
-  renderOffers();
-});
-$("#offer-list").addEventListener("click",event=>{
-  const button=event.target.closest("[data-offer-id]");
-  if(!button)return;
-  savedOffers=savedOffers.filter(item=>item.id!==button.dataset.offerId);
-  localStorage.setItem(OFFER_STORAGE_KEY,JSON.stringify(savedOffers));
-  renderOffers();
-});
-renderOffers();
-
 $("#open-login").addEventListener("click",()=>{authMode="login";authPanel.hidden=false;$("#auth-dialog-title").textContent="Anmelden";$("#auth-dialog-copy").textContent="Melde dich an, um euren gemeinsamen Essensplaner zu nutzen.";});
 $("#open-signup").addEventListener("click",()=>{authMode="signup";authPanel.hidden=false;$("#auth-dialog-title").textContent="Konto erstellen";$("#auth-dialog-copy").textContent=pendingFamilyInvite?"Erstelle dein Konto, um der eingeladenen Familie beizutreten.":"Erstelle dein Konto und starte euren gemeinsamen Essensplaner.";});
 $("#show-family").addEventListener("click",async()=>{
