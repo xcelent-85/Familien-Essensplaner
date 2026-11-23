@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.15";
+const APP_BUILD_ID="2026-11-23.16";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -18,6 +18,17 @@ const starterDishes = [
 const $=selector=>document.querySelector(selector);
 const showButton=$("#show-dishes"),dishSection=$("#dishes-section"),dishGrid=$("#dish-grid");
 const weeklySection=$("#weekly-section");
+function setQuickNavActive(action){
+  const links=$("#quick-nav-links");
+  if(!links)return;
+  links.querySelectorAll("[data-nav-action]").forEach(button=>{
+    const active=button.dataset.navAction===action;
+    button.classList.toggle("active",active);
+    if(active)button.setAttribute("aria-current","page");
+    else button.removeAttribute("aria-current");
+  });
+}
+setQuickNavActive("home");
 if(weeklySection&&dishSection){const featureGrid=document.querySelector(".feature-grid");if(featureGrid)featureGrid.insertAdjacentElement("afterend",weeklySection);weeklySection.insertAdjacentElement("afterend",dishSection);}
 const cfg=window.FAMILY_APP_CONFIG,statusEl=$("#sync-status"),messageEl=$("#auth-message");
 const authForm=$("#auth-form"),signedIn=$("#account-logged-in"),dishForm=$("#dish-form"),authPanel=$("#auth-panel");
@@ -338,6 +349,7 @@ async function loadWeekPlan(){
   currentWeekMeals=data||[];renderWeekPlan();
 }
 $("#show-week-plan").addEventListener("click",async()=>{
+  setQuickNavActive("week");
   $("#weekly-section").hidden=false;
   if(currentFamilyId)await loadWeekPlan();else{currentWeekMeals=[];renderWeekPlan();}
   $("#weekly-section").scrollIntoView({behavior:"smooth",block:"start"});
@@ -431,6 +443,7 @@ function renderShoppingList(){
     return '<label class="shopping-item"><input type="checkbox" data-shopping-item="'+index+'"><span><strong>'+escapeHtml(formatQuantity(item)+item.name)+'</strong><small>'+escapeHtml(item.days.join(", "))+'</small></span></label>';
   }).join(""):'<p class="notice">Wähle im Wochenplan zuerst mindestens ein Gericht aus.</p>';
   $("#shopping-list-note").textContent=selected.filter(Boolean).length+" Gerichte berücksichtigt · "+list.length+" zusammengefasste Zutatenpositionen"+(missing.length?" · Für "+[...new Set(missing)].join(", ")+" fehlen noch Zutatenangaben.":"");
+  setQuickNavActive("shopping");
   $("#shopping-section").hidden=false;
   $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -709,6 +722,7 @@ function saveFoundOffer(item){
   return true;
 }
 $("#show-offers").addEventListener("click",()=>{
+  setQuickNavActive("offers");
   $("#offers-section").hidden=false;
   renderOffers();
   $("#offers-section").scrollIntoView({behavior:"smooth",block:"start"});
@@ -735,6 +749,7 @@ $("#open-login").addEventListener("click",()=>{authMode="login";authPanel.hidden
 $("#open-signup").addEventListener("click",()=>{authMode="signup";authPanel.hidden=false;$("#auth-dialog-title").textContent="Konto erstellen";$("#auth-dialog-copy").textContent=pendingFamilyInvite?"Erstelle dein Konto, um der eingeladenen Familie beizutreten.":"Erstelle dein Konto und starte euren gemeinsamen Essensplaner.";});
 $("#show-family").addEventListener("click",async()=>{
   if(!currentFamilyId){authMode="login";authPanel.hidden=false;$("#auth-dialog-title").textContent=pendingFamilyInvite?"Du wurdest eingeladen":"Familienkonto";$("#auth-dialog-copy").textContent=pendingFamilyInvite?"Melde dich an oder erstelle ein Konto, um der Familie beizutreten.":"Bitte melde dich an, um eure Familiengruppe zu öffnen.";return;}
+  setQuickNavActive("family");
   $("#family-section").hidden=false;await loadFamilyInfo();$("#family-section").scrollIntoView({behavior:"smooth",block:"start"});
 });
 $("#create-family-invite").addEventListener("click",async()=>{
@@ -780,9 +795,9 @@ $("#dish-view-filter").addEventListener("change",()=>renderDishes(visibleDishes)
 $("#quick-nav-toggle").addEventListener("click",()=>$("#quick-nav").classList.toggle("collapsed"));
 $("#quick-nav-links").addEventListener("click",event=>{
   const button=event.target.closest("[data-nav-action]");if(!button)return;
-  $("#quick-nav-links").querySelectorAll("button").forEach(item=>item.classList.toggle("active",item===button));
+  setQuickNavActive(button.dataset.navAction);
   const action=button.dataset.navAction;
-  if(action==="home")$("#home-section").scrollIntoView({behavior:"smooth",block:"start"});
+  if(action==="home"){setQuickNavActive("home");$("#home-section").scrollIntoView({behavior:"smooth",block:"start"});
   if(action==="week")$("#show-week-plan").click();
   if(action==="shopping")$("#create-shopping-list").click();
   if(action==="offers")$("#show-offers").click();
