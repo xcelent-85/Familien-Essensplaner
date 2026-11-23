@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-22.18";
+const APP_BUILD_ID="2026-11-23.01";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -18,7 +18,7 @@ const starterDishes = [
 const $=selector=>document.querySelector(selector);
 const showButton=$("#show-dishes"),dishSection=$("#dishes-section"),dishGrid=$("#dish-grid");
 const cfg=window.FAMILY_APP_CONFIG,statusEl=$("#sync-status"),messageEl=$("#auth-message");
-const authForm=$("#auth-form"),signedIn=$("#signed-in"),dishForm=$("#dish-form");
+const authForm=$("#auth-form"),signedIn=$("#account-logged-in"),dishForm=$("#dish-form"),authPanel=$("#auth-panel");
 let supabaseClient=null,currentFamilyId=null,currentUser=null,editingDishId=null;
 let visibleDishes=[];
 function showMessage(message){if(messageEl)messageEl.textContent=message;}
@@ -47,8 +47,8 @@ async function loadDishes(){
   renderDishes(data||[]);
 }
 if(showButton)showButton.addEventListener("click",async()=>{
-  if(currentFamilyId){showMessage("Lade eure gespeicherten Gerichte …");await loadDishes();showMessage(visibleDishes.length+" Gerichte aus eurer Familiensammlung geladen.");}
-  else{showStarterDishes();showMessage("Das sind Beispielgerichte. Für Änderungen bitte anmelden.");}
+  if(!currentFamilyId){showMessage("Bitte melde dich an, um eure Rezeptsammlung zu entdecken.");authPanel.hidden=false;$("#auth-dialog-title").textContent="Bitte anmelden";$("#auth-dialog-copy").textContent="Nach der Anmeldung kannst du eure Gerichte entdecken und verwalten.";return;}
+  showMessage("Lade eure gespeicherten Gerichte …");await loadDishes();showMessage(visibleDishes.length+" Gerichte aus eurer Familiensammlung geladen.");
   dishSection.scrollIntoView({behavior:"smooth",block:"start"});
 });
 function resetDishForm(){
@@ -89,8 +89,8 @@ dishForm.addEventListener("submit",async event=>{
 });
 function setSession(session){
   currentUser=session?.user||null;
-  if(currentUser){authForm.hidden=true;signedIn.hidden=false;$("#user-label").textContent="Angemeldet als "+currentUser.email;statusEl.innerHTML="<i></i> Konto verbunden";}
-  else{authForm.hidden=false;signedIn.hidden=true;statusEl.innerHTML="<i></i> Nicht angemeldet";currentFamilyId=null;$("#add-dish-button").hidden=true;if(typeof renderWeekPlan==="function"){currentWeekMeals=[];renderWeekPlan();}}
+  if(currentUser){authForm.hidden=true;signedIn.hidden=false;$("#account-actions").hidden=true;$("#user-label").textContent=currentUser.email||"Angemeldet";statusEl.innerHTML="<i></i> Konto verbunden";authPanel.hidden=true;}
+  else{authForm.hidden=false;signedIn.hidden=true;$("#account-actions").hidden=false;statusEl.innerHTML="<i></i> Nicht angemeldet";currentFamilyId=null;visibleDishes=[];$("#add-dish-button").hidden=true;if(typeof renderWeekPlan==="function"){currentWeekMeals=[];renderWeekPlan();}}
 }
 async function loadOrCreateFamily(user){
   showMessage("Verbinde eure Familiensammlung …");
@@ -146,11 +146,15 @@ function renderWeekPlan(){
       const quantity=item.amount===null?"":Number(item.amount.toFixed(2)).toLocaleString("de-DE")+(item.unit?" "+item.unit+" ":" ");
       return '<label class="week-ingredient"><input type="checkbox"><span>'+escapeHtml(quantity+item.name)+'</span></label>';
     }).join(""):'<p class="week-ingredients-empty">Noch keine Zutaten – wähle ein Abendessen.</p>';
-    return '<div class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><label>Abendessen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label><label>Portionen<input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'"></label><div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></div>';
+    return '<div class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><label>Gericht suchen<input class="week-dish-search" data-date="'+day.iso+'" type="search" placeholder="Gericht finden …" aria-label="Gericht für '+day.name+' suchen"></label><label>Abendessen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label><label>Portionen<input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'"></label><div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></div>';
   }).join("");
   $("#week-help").textContent=currentFamilyId?"Wählt für jeden Tag ein Gericht. Die Zutaten erscheinen direkt darunter. Änderungen werden erst nach Klick auf „Wochenplan speichern“ übernommen.":"Vorschau: Zum dauerhaften Speichern bitte anmelden.";
   $("#save-week-plan").disabled=!currentFamilyId;
 }
+$("#week-grid").addEventListener("input",event=>{
+  const search=event.target.closest(".week-dish-search");
+  if(search){const select=search.closest(".week-day").querySelector(".week-dish-select");const term=search.value.trim().toLocaleLowerCase("de-DE");if(select)[...select.options].forEach((option,index)=>{option.hidden=index>0&&term&&!option.textContent.toLocaleLowerCase("de-DE").includes(term);});return;}
+});
 $("#week-grid").addEventListener("change",event=>{
   const control=event.target.closest(".week-dish-select,.week-servings");
   if(!control)return;
@@ -521,6 +525,10 @@ $("#offer-list").addEventListener("click",event=>{
 });
 renderOffers();
 
+$("#open-login").addEventListener("click",()=>{authPanel.hidden=false;$("#auth-dialog-title").textContent="Anmelden";$("#auth-dialog-copy").textContent="Melde dich an, um euren gemeinsamen Essensplaner zu nutzen.";});
+$("#open-signup").addEventListener("click",()=>{authPanel.hidden=false;$("#auth-dialog-title").textContent="Konto erstellen";$("#auth-dialog-copy").textContent="Erstelle dein Konto und starte euren gemeinsamen Essensplaner.";});
+$("#close-auth").addEventListener("click",()=>{authPanel.hidden=true;});
+authPanel.addEventListener("click",event=>{if(event.target===authPanel)authPanel.hidden=true;});
 if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
   supabaseClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
   supabaseClient.auth.getSession().then(async({data,error})=>{if(error)showMessage(error.message);setSession(data?.session);if(data?.session?.user)await loadOrCreateFamily(data.session.user);});
