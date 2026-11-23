@@ -19,7 +19,7 @@ const $=selector=>document.querySelector(selector);
 const showButton=$("#show-dishes"),dishSection=$("#dishes-section"),dishGrid=$("#dish-grid");
 const cfg=window.FAMILY_APP_CONFIG,statusEl=$("#sync-status"),messageEl=$("#auth-message");
 const authForm=$("#auth-form"),signedIn=$("#account-logged-in"),dishForm=$("#dish-form"),authPanel=$("#auth-panel");
-let supabaseClient=null,currentFamilyId=null,currentUser=null,editingDishId=null;
+let supabaseClient=null,currentFamilyId=null,currentUser=null,editingDishId=null,authMode="login";
 let visibleDishes=[];
 function showMessage(message){if(messageEl)messageEl.textContent=message;}
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
@@ -534,8 +534,9 @@ $("#offer-list").addEventListener("click",event=>{
 });
 renderOffers();
 
-$("#open-login").addEventListener("click",()=>{authPanel.hidden=false;$("#auth-dialog-title").textContent="Anmelden";$("#auth-dialog-copy").textContent="Melde dich an, um euren gemeinsamen Essensplaner zu nutzen.";});
-$("#open-signup").addEventListener("click",()=>{authPanel.hidden=false;$("#auth-dialog-title").textContent="Konto erstellen";$("#auth-dialog-copy").textContent="Erstelle dein Konto und starte euren gemeinsamen Essensplaner.";});
+$("#open-login").addEventListener("click",()=>{authMode="login";authPanel.hidden=false;$("#auth-dialog-title").textContent="Anmelden";$("#auth-dialog-copy").textContent="Melde dich an, um euren gemeinsamen Essensplaner zu nutzen.";});
+$("#open-signup").addEventListener("click",()=>{authMode="signup";authPanel.hidden=false;$("#auth-dialog-title").textContent="Konto erstellen";$("#auth-dialog-copy").textContent="Erstelle dein Konto und starte euren gemeinsamen Essensplaner.";});
+authForm.addEventListener("submit",event=>{event.preventDefault();if(authMode==="signup")$("#signup-button").click();else $("#login-button").click();});
 $("#close-auth").addEventListener("click",()=>{authPanel.hidden=true;});
 authPanel.addEventListener("click",event=>{if(event.target===authPanel)authPanel.hidden=true;});
 if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
