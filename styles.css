@@ -344,7 +344,7 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .welcome-copy{font-size:15px;max-width:620px}
 .home-section-heading{margin:12px 0 16px}
 .home-section-heading h2{font-size:21px}
-.home-feature-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(2,minmax(190px,auto));gap:16px}
+.home-feature-grid{direction:ltr;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(2,minmax(190px,auto));gap:16px}
 .home-feature-grid .feature-card{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;min-height:0;padding:0;border:0;border-radius:20px;background:#e8eee7;box-shadow:0 8px 26px #203b2410}
 .home-feature-grid .feature-primary{grid-column:span 6;grid-row:span 2;min-height:420px;transform:none;box-shadow:0 12px 30px #203b2418}
 /* Hauptkachel Wochenplan wieder ausdrücklich links ausrichten */
