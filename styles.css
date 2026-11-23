@@ -152,3 +152,17 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .week-dish-search{width:100%;min-width:0;padding:9px 7px;border:1px solid #ccd5cd;border-radius:8px;background:#f9fbf9;font:inherit;font-size:11px;color:#26352d}
 .week-day label:has(.week-dish-search){margin-top:7px}
 @media(max-width:700px){.account-area{gap:8px}.account-actions{gap:5px}.account-button{padding:9px 10px;font-size:11px}.auth-dialog{padding:27px 21px}.feature-primary{transform:none}}
+
+/* Schwebende Schnellnavigation am linken Bildschirmrand */
+.quick-nav{position:fixed;z-index:50;left:14px;top:42%;display:flex;align-items:flex-start;gap:7px}
+.quick-nav-toggle{width:42px;height:42px;border:1px solid #dce5dc;border-radius:13px;background:#fff;color:var(--green-dark);box-shadow:0 5px 18px #1b38201a;font-size:19px;cursor:pointer}
+.quick-nav-links{display:grid;gap:5px;padding:7px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px #1b38201a;transition:opacity .18s,transform .18s}
+.quick-nav-links button{display:flex;align-items:center;gap:9px;border:0;background:transparent;color:#506257;text-align:left;padding:9px 11px;border-radius:9px;font:inherit;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer}
+.quick-nav-links button span{width:18px;text-align:center;font-size:15px;color:var(--green)}
+.quick-nav-links button:hover,.quick-nav-links button.active{background:#eaf1eb;color:var(--green-dark)}
+.quick-nav.collapsed .quick-nav-links{display:none}
+.dish-discovery-tools{display:grid;grid-template-columns:minmax(0,2fr) minmax(170px,1fr);gap:10px;margin:14px 0 6px}
+.dish-discovery-tools input,.dish-discovery-tools select{width:100%;min-width:0;border:1px solid #d5dfd6;border-radius:10px;padding:12px 13px;background:#fff;color:#26352d;font:inherit;font-size:13px}
+.dish-results-count{font-size:11px;color:var(--muted);margin:0 0 10px}
+@media(min-width:1400px){.page{max-width:1160px}}
+@media(max-width:700px){.quick-nav{left:9px;top:auto;bottom:18px;align-items:flex-end}.quick-nav-toggle{width:46px;height:46px;border-radius:50%;box-shadow:0 6px 22px #1b382033}.quick-nav-links{max-width:min(75vw,260px);max-height:55vh;overflow:auto}.quick-nav-links button{font-size:12px;padding:10px}.dish-discovery-tools{grid-template-columns:1fr}}
