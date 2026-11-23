@@ -533,13 +533,3 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
     grid-area:2 / 2 / 3 / 4 !important;
   }
 }
-
-
-/* Hero-Erweiterung: Essensplanung und Angebotsvergleich gleichwertig hervorheben */
-.welcome-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:20px;max-width:620px}
-.welcome-highlight{display:flex;align-items:center;gap:11px;min-width:0;padding:12px 14px;background:#fff;border:1px solid #dce7dc;border-radius:13px;box-shadow:0 3px 12px #203b2408}
-.welcome-highlight-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:#e8f1e8;color:#315c45;font-size:19px;font-weight:800}
-.welcome-highlight strong,.welcome-highlight small{display:block}
-.welcome-highlight strong{font-size:13px;color:#294a37;line-height:1.25}
-.welcome-highlight small{margin-top:3px;font-size:11px;color:#65766a;line-height:1.3}
-@media(max-width:700px){.welcome-highlights{gap:8px;margin-top:15px}.welcome-highlight{padding:10px 9px;gap:8px}.welcome-highlight-icon{flex-basis:30px;width:30px;height:30px;font-size:17px}.welcome-highlight strong{font-size:12px}.welcome-highlight small{font-size:10px}}
