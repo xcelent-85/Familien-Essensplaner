@@ -15,19 +15,23 @@
 <body>
 <header class="topbar"><a class="brand" href="./"><span class="brand-icon">食</span><span>Familien<span class="brand-light">Essensplaner</span></span></a><div class="account-area"><span class="sync-status" id="sync-status"><i></i> Verbindung wird gestartet</span><div id="account-actions" class="account-actions"><button class="account-button secondary" id="open-login" type="button">Anmelden</button><button class="account-button" id="open-signup" type="button">Konto erstellen</button></div><div id="account-logged-in" class="account-actions" hidden><span class="auth-user" id="user-label"></span><button class="account-button secondary" id="logout-button" type="button">Abmelden</button></div></div></header>
 <nav class="quick-nav" id="quick-nav" aria-label="Schnellnavigation"><button class="quick-nav-toggle" id="quick-nav-toggle" type="button" aria-label="Navigation ein- oder ausklappen">☰</button><div class="quick-nav-links" id="quick-nav-links"><button type="button" data-nav-action="home"><span>⌂</span>Startseite</button><button type="button" data-nav-action="week"><span>▦</span>Wochenplanung</button><button type="button" data-nav-action="shopping"><span>🛒</span>Einkaufsliste</button><button type="button" data-nav-action="offers"><span>€</span>Angebote vergleichen</button><button type="button" data-nav-action="dishes"><span>♡</span>Gerichte entdecken</button></div></nav><main class="page">
-<section class="welcome" id="home-section"><div><p class="eyebrow">GEMEINSAM PLANEN · ENTSPANNT ESSEN</p><h1>Was kommt diese Woche<br class="desktop-break"> auf den Tisch?</h1><p class="welcome-copy">Gute Ideen, weniger Einkaufsstress und ein Plan, der für alle passt.</p></div><div class="welcome-art" aria-hidden="true">🥗</div></section>
+<section class="welcome" id="home-section"><div><p class="eyebrow">GEMEINSAM PLANEN · ENTSPANNT ESSEN</p><h1>Gemeinsam planen.<br class="desktop-break"> Lecker essen.</h1><p class="welcome-copy">Entdeckt passende Gerichte, plant eure Woche und behaltet den Einkauf ganz einfach im Blick.</p></div></section>
 <div class="auth-overlay" id="auth-panel" hidden><section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-dialog-title"><button class="auth-close" id="close-auth" type="button" aria-label="Schließen">×</button><p class="eyebrow">FAMILIENKONTO</p><h2 id="auth-dialog-title">Willkommen zurück</h2><p id="auth-dialog-copy">Melde dich an, um euren gemeinsamen Essensplaner zu nutzen.</p><form class="auth-form" id="auth-form"><input id="auth-email" type="email" autocomplete="email" placeholder="E-Mail-Adresse" required><input id="auth-password" type="password" autocomplete="current-password" placeholder="Passwort (mindestens 6 Zeichen)" minlength="6" required><div class="auth-actions"><button type="submit" id="signup-button">Konto erstellen</button><button type="button" class="secondary" id="login-button">Anmelden</button></div></form><div class="auth-message" id="auth-message" role="status"></div></section></div>
-<section class="summary-grid" aria-label="Wochenübersicht">
-<article class="summary-card"><span class="summary-icon">📅</span><div><strong>Wochenplan</strong><span>5 Abendessen gemeinsam festlegen</span></div></article>
-<article class="summary-card"><span class="summary-icon">🛒</span><div><strong>Einkaufsliste</strong><span>Alles gesammelt an einem Ort</span></div></article>
-<article class="summary-card"><span class="summary-icon">💶</span><div><strong>Angebote nutzen</strong><span>Preise vergleichen und sparen</span></div></article>
-</section>
-<section class="section-heading"><div><p class="eyebrow">LOS GEHT'S</p><h2>Dein Essensplaner</h2></div><span class="version">Grundversion 1.5</span></section>
-<section class="feature-grid">
-<article class="feature-card feature-primary"><div class="feature-symbol">🗓️</div><h3>Wochenplan erstellen</h3><p>Plant eure Abendessen für fünf oder sieben Tage übersichtlich und behaltet Zutaten und Einkauf direkt im Blick.</p><button class="button button-light" id="show-week-plan" type="button">Wochenplan öffnen <span>→</span></button></article>
-<article class="feature-card"><div class="feature-symbol">🍽️</div><h3>Gerichte entdecken</h3><p>Entdeckt neue Rezeptideen, sucht nach Gerichten und baut eure Familiensammlung aus.</p><button class="button" id="show-dishes" type="button">Gerichte entdecken →</button></article>
-<article class="feature-card"><div class="feature-symbol">🏷️</div><h3>Angebote vergleichen</h3><p>Vergleicht passende Lebensmittelangebote und plant euren Einkauf günstiger.</p><button class="button" id="show-offers" type="button">Vorgemerkte Angebote →</button></article>
-<article class="feature-card feature-secondary"><div class="feature-symbol">👨‍👩‍👧</div><h3>Als Familie verbunden</h3><p>Teilt eure Rezeptsammlung und den Wochenplan mit weiteren Familienmitgliedern.</p><button class="button" id="show-family" type="button">Familiengruppe öffnen →</button></article>
+<section class="section-heading home-section-heading"><div><p class="eyebrow">ALLES AN EINEM ORT</p><h2>Euer Essensplaner</h2></div></section>
+<section class="feature-grid home-feature-grid">
+<article class="feature-card feature-primary photo-card">
+<img class="feature-photo" src="./assets/spaghetti-bolognese.jpg" alt="Frisch servierte Spaghetti Bolognese" fetchpriority="high">
+<div class="feature-card-content"><span class="feature-kicker">EURE WOCHE, GUT GEPLANT</span><h3>Wochenplan erstellen</h3><p>Plant eure Abendessen für fünf oder sieben Tage und behaltet Zutaten und Einkauf direkt im Blick.</p><button class="button button-light" id="show-week-plan" type="button">Wochenplan starten <span>→</span></button></div>
+</article>
+<article class="feature-card photo-card photo-card-dishes">
+<img class="feature-photo" src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1000&q=85" alt="Frische, bunte Gemüse-Bowl" loading="lazy">
+<div class="feature-card-content"><span class="feature-kicker">INSPIRATION FÜR EUCH</span><h3>Gerichte entdecken</h3><p>Findet neue Lieblingsgerichte und erweitert eure Rezeptsammlung.</p><button class="button button-light" id="show-dishes" type="button">Gerichte entdecken →</button></div>
+</article>
+<article class="feature-card photo-card photo-card-offers">
+<img class="feature-photo" src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1000&q=85" alt="Frisches Obst und Gemüse beim Einkauf" loading="lazy">
+<div class="feature-card-content"><span class="feature-kicker">CLEVER EINKAUFEN</span><h3>Angebote vergleichen</h3><p>Entdeckt passende Angebote und spart beim Einkauf.</p><button class="button button-light" id="show-offers" type="button">Angebote ansehen →</button></div>
+</article>
+<article class="feature-card feature-secondary family-feature-card"><div class="family-feature-icon">♡</div><div><span class="feature-kicker">GEMEINSAM ORGANISIERT</span><h3>Als Familie verbunden</h3><p>Teilt Wochenplan und Rezeptsammlung mit eurer Familie.</p></div><button class="button" id="show-family" type="button">Familiengruppe öffnen →</button></article>
 </section>
 <section class="family-section" id="family-section" hidden>
 <div class="section-heading compact"><div><p class="eyebrow">GEMEINSAM VERBUNDEN</p><h2>Eure Familiengruppe</h2></div><span class="version" id="family-member-count">0 Mitglieder</span></div>
@@ -99,4 +103,4 @@
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>window.FAMILY_APP_CONFIG={supabaseUrl:"https://zguwrjqcjerbgwuumjgr.supabase.co",supabaseKey:"sb_publishable_UHblP1kylwBX8dN2y6sTvA_P08D93lb"};</script>
-<script src="./app.js?v=40" defer></script></body></html>
+<script src="./app.js?v=41" defer></script></body></html>
