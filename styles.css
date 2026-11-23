@@ -250,7 +250,7 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .week-day-heading span{padding:0;background:transparent;color:#e3eee5;font-size:10px}
 .week-dish-visual{height:112px;display:grid;place-items:center;background:radial-gradient(circle at 50% 45%,#fff 0,#f2f5eb 58%,#e8eee2 100%);overflow:hidden}
 .week-dish-visual span{font-size:66px;filter:drop-shadow(0 5px 5px #233c2420);transform:translateY(1px)}
-.week-dish-title{display:flex;align-items:center;justify-content:center;min-height:48px;margin:0 7px 8px;padding:8px 6px;text-align:center;font-size:13px;line-height:1.25;color:#1d3025;background:#eaf2e4;border-radius:9px}
+.week-dish-title{box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:40px;margin:8px 7px 8px;padding:4px 6px;text-align:center;font-size:13px;line-height:1.2;color:#1d3025;background:#eaf2e4;border-radius:9px}
 .week-servings-row{display:flex;align-items:center;justify-content:space-between;gap:5px;margin:0 10px 6px;font-size:10px;font-weight:700;color:#4d5e52}
 .week-serving-control{display:flex;align-items:center;border:1px solid #dce4dc;border-radius:20px;overflow:hidden;background:#fff}
 .week-serving-control button{width:27px;height:26px;border:0;background:#f8faf8;color:#294f39;font-size:17px;cursor:pointer}
