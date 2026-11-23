@@ -98,6 +98,7 @@ async function loadDishes(){
   renderDishes((data||[]).map(dish=>{const starter=starterDishes.find(item=>item.title===dish.title);return {...starter,...dish,instructions:dish.instructions||starter?.instructions||null};}));
 }
 if(showButton)showButton.addEventListener("click",async()=>{
+  setQuickNavActive("dishes");
   if(!dishSection.hidden){dishSection.hidden=true;return;}
   dishSection.hidden=false;
   if(!currentFamilyId){authMode="login";showMessage("Bitte melde dich an, um eure Rezeptsammlung zu entdecken.");authPanel.hidden=false;$("#auth-dialog-title").textContent="Bitte anmelden";$("#auth-dialog-copy").textContent="Nach der Anmeldung kannst du eure Gerichte entdecken und verwalten.";return;}
