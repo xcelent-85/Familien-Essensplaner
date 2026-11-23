@@ -347,6 +347,13 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .home-feature-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(2,minmax(190px,auto));gap:16px}
 .home-feature-grid .feature-card{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;min-height:0;padding:0;border:0;border-radius:20px;background:#e8eee7;box-shadow:0 8px 26px #203b2410}
 .home-feature-grid .feature-primary{grid-column:span 6;grid-row:span 2;min-height:420px;transform:none;box-shadow:0 12px 30px #203b2418}
+/* Hauptkachel Wochenplan wieder ausdrücklich links ausrichten */
+.home-feature-grid > .feature-primary{
+  grid-column:1 / span 6 !important;
+  grid-row:1 / span 2 !important;
+  justify-self:stretch !important;
+  margin-left:0 !important;
+}
 .home-feature-grid .photo-card-dishes{grid-column:span 3;grid-row:span 1;min-height:202px}
 .home-feature-grid .photo-card-offers{grid-column:span 3;grid-row:span 1;min-height:202px}
 .home-feature-grid .family-feature-card{grid-column:span 6;grid-row:span 1;min-height:202px}
@@ -381,7 +388,7 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
  .welcome-copy{font-size:13px}
  .home-section-heading{margin:5px 0 13px}
  .home-feature-grid{grid-template-columns:1fr;gap:12px}
- .home-feature-grid .feature-primary{grid-column:auto;min-height:300px}
+ .home-feature-grid .feature-primary{grid-column:1 / -1 !important;grid-row:auto !important;min-height:300px}
  .home-feature-grid .photo-card-dishes,.home-feature-grid .photo-card-offers{grid-column:auto;min-height:220px}
  .home-feature-grid .family-feature-card{grid-column:auto;grid-template-columns:auto minmax(0,1fr);min-height:0;padding:17px}
  .home-feature-grid .family-feature-card .button{grid-column:1/-1;justify-self:start}
