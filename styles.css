@@ -133,3 +133,22 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .merchant-recommendation-pair{background:#f0f4f0;border-color:#dce7dd}
 .merchant-recommendation-wrap>small{display:block;font-size:10px;line-height:1.45;color:var(--muted);margin-top:9px}
 @media(max-width:520px){.merchant-recommendations-grid{flex-direction:column}.merchant-recommendation-card{width:100%;flex-basis:auto;padding:13px 14px}}
+
+/* Neue Hauptnavigation und Kontoaktionen */
+[hidden]{display:none!important}
+.account-actions{display:flex;align-items:center;gap:8px}
+.account-button{border:0;border-radius:9px;padding:10px 14px;background:var(--green);color:#fff;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.account-button.secondary{background:#edf2ed;color:var(--green-dark);border:1px solid #dce5dc}
+.feature-primary{box-shadow:0 10px 24px #24463320;transform:translateY(-2px)}
+.feature-secondary{background:#f9faf8;border-style:dashed}
+.auth-overlay{position:fixed;inset:0;z-index:1000;background:#14251bb8;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)}
+.auth-dialog{position:relative;width:min(100%,460px);background:#fff;border-radius:22px;padding:32px;box-shadow:0 24px 80px #0003}
+.auth-dialog h2{margin:0 0 8px;font-size:26px;color:var(--green-dark)}
+.auth-dialog>p:not(.eyebrow){color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 20px}
+.auth-close{position:absolute;right:17px;top:13px;border:0;background:#f0f4f0;color:var(--green-dark);border-radius:50%;width:34px;height:34px;font-size:23px;cursor:pointer}
+.auth-dialog .auth-form{max-width:none}
+.auth-dialog .auth-form input{padding:13px;border:1px solid #d6dfd7;border-radius:10px;font:inherit}
+.auth-dialog .auth-actions button{flex:1}
+.week-dish-search{width:100%;min-width:0;padding:9px 7px;border:1px solid #ccd5cd;border-radius:8px;background:#f9fbf9;font:inherit;font-size:11px;color:#26352d}
+.week-day label:has(.week-dish-search){margin-top:7px}
+@media(max-width:700px){.account-area{gap:8px}.account-actions{gap:5px}.account-button{padding:9px 10px;font-size:11px}.auth-dialog{padding:27px 21px}.feature-primary{transform:none}}
