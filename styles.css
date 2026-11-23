@@ -493,3 +493,19 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .quick-nav-links button[aria-current="page"] span{color:#fff}
 .quick-nav-links button.active:hover,
 .quick-nav-links button[aria-current="page"]:hover{background:#264a36;color:#fff}
+
+
+/* Startseiten-Hauptkachel: fest links oben platzieren */
+.home-feature-grid > article.feature-primary.photo-card{
+  grid-column-start:1 !important;
+  grid-column-end:7 !important;
+  grid-row-start:1 !important;
+  grid-row-end:3 !important;
+  justify-self:stretch !important;
+}
+@media(max-width:700px){
+  .home-feature-grid > article.feature-primary.photo-card{
+    grid-column:1 / -1 !important;
+    grid-row:auto !important;
+  }
+}
