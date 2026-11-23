@@ -474,3 +474,15 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
     max-height:220px !important;
   }
 }
+
+/* Aktiven Bereich in der schwebenden Schnellnavigation deutlich markieren */
+.quick-nav-links button.active,
+.quick-nav-links button[aria-current="page"]{
+  background:#315c45;
+  color:#fff;
+  box-shadow:0 2px 8px #315c4533;
+}
+.quick-nav-links button.active span,
+.quick-nav-links button[aria-current="page"] span{color:#fff}
+.quick-nav-links button.active:hover,
+.quick-nav-links button[aria-current="page"]:hover{background:#264a36;color:#fff}
