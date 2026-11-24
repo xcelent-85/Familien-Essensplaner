@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-24.17";
+const APP_BUILD_ID="2026-11-24.18";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -413,6 +413,16 @@ function parseShoppingIngredient(line, factor){
   const name=match[3].trim();
   return {name,amount,unit,key:(name+"|"+unit).toLocaleLowerCase("de-DE")};
 }
+const SHOPPING_CHECKS_KEY="familien-essensplaner-shopping-checks-v1";
+function readShoppingChecks(){
+  try{return JSON.parse(localStorage.getItem(SHOPPING_CHECKS_KEY)||"{}");}
+  catch(error){return {};}
+}
+let shoppingChecks=readShoppingChecks();
+function saveShoppingChecks(){
+  try{localStorage.setItem(SHOPPING_CHECKS_KEY,JSON.stringify(shoppingChecks));}
+  catch(error){console.warn("Einkaufsstatus konnte nicht gespeichert werden:",error);}
+}
 function renderShoppingList(){
   const dates=getWeekDates();
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
@@ -441,7 +451,7 @@ function renderShoppingList(){
   currentShoppingIngredients=list.map(item=>item.name);
   const container=$("#shopping-list-items");
   container.innerHTML=list.length?list.map((item,index)=>{
-    return '<label class="shopping-item"><input type="checkbox" data-shopping-item="'+index+'"><span><strong>'+escapeHtml(formatQuantity(item)+item.name)+'</strong><small>'+escapeHtml(item.days.join(", "))+'</small></span></label>';
+    return '<label class="shopping-item"><input type="checkbox" data-shopping-item="'+index+'" data-shopping-key="'+escapeHtml(item.key)+'" '+(shoppingChecks[item.key]?"checked":"")+'><span><strong>'+escapeHtml(formatQuantity(item)+item.name)+'</strong><small>'+escapeHtml(item.days.join(", "))+'</small></span></label>';
   }).join(""):'<p class="notice">Wähle im Wochenplan zuerst mindestens ein Gericht aus.</p>';
   $("#shopping-list-note").textContent=selected.filter(Boolean).length+" Gerichte berücksichtigt · "+list.length+" zusammengefasste Zutatenpositionen"+(missing.length?" · Für "+[...new Set(missing)].join(", ")+" fehlen noch Zutatenangaben.":"");
   setQuickNavActive("shopping");
@@ -449,6 +459,12 @@ function renderShoppingList(){
   setShoppingView("all");
   $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
 }
+$("#shopping-list-items").addEventListener("change",event=>{
+  const checkbox=event.target.closest('input[data-shopping-key]');
+  if(!checkbox)return;
+  shoppingChecks[checkbox.dataset.shoppingKey]=checkbox.checked;
+  saveShoppingChecks();
+});
 $("#create-shopping-list").addEventListener("click",renderShoppingList);
 
 let currentShoppingIngredients=[];
