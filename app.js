@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-24.24";
+const APP_BUILD_ID="2026-11-24.25";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -291,6 +291,9 @@ function renderRecipeDialog(dish,servings){
   $("#recipe-title").textContent=dish.title;
   const total=(Number(dish.prep_minutes)||0)+(Number(dish.cook_minutes)||0);
   $("#recipe-meta").textContent=[dish.category||"Familienrezept",total?"ca. "+total+" Minuten":""].filter(Boolean).join(" · ");
+  const recipeImage=$("#recipe-image");
+  if(dish.image){recipeImage.src=dish.image;recipeImage.alt="Zubereitetes Gericht: "+dish.title;recipeImage.hidden=false;}
+  else{recipeImage.removeAttribute("src");recipeImage.alt="";recipeImage.hidden=true;}
   $("#recipe-servings").value=Math.max(1,Number(servings)||base);
   const ingredients=Array.isArray(dish.ingredients)?dish.ingredients:[];
   $("#recipe-ingredients").innerHTML=ingredients.length?'<ul class="recipe-ingredient-list">'+ingredients.map(line=>{
