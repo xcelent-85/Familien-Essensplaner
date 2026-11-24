@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-24.22";
+const APP_BUILD_ID="2026-11-24.23";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -29,7 +29,7 @@ function setQuickNavActive(action){
   });
 }
 setQuickNavActive("home");
-if(weeklySection&&dishSection){const featureGrid=document.querySelector(".feature-grid");if(featureGrid)featureGrid.insertAdjacentElement("afterend",weeklySection);weeklySection.insertAdjacentElement("afterend",dishSection);}
+if(weeklySection&&dishSection){const featureGrid=document.querySelector(".feature-grid"),shoppingSection=$("#shopping-section");if(featureGrid)featureGrid.insertAdjacentElement("afterend",weeklySection);if(shoppingSection)shoppingSection.insertAdjacentElement("afterend",dishSection);}
 const cfg=window.FAMILY_APP_CONFIG,statusEl=$("#sync-status"),messageEl=$("#auth-message");
 const authForm=$("#auth-form"),signedIn=$("#account-logged-in"),dishForm=$("#dish-form"),authPanel=$("#auth-panel");
 let supabaseClient=null,currentFamilyId=null,currentUser=null,editingDishId=null,authMode="login";
