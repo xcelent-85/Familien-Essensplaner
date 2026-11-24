@@ -651,3 +651,62 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
   #dishes-section .dish-card-visual{height:190px}
   #dishes-section .dish-card-title strong{font-size:18px}
 }
+
+
+/* Rezeptwelt – gemütlich & familiär */
+.dishes-section{
+  --recipe-cream:#f7f1e7;--recipe-paper:#fffdf8;--recipe-ink:#493b30;
+  --recipe-muted:#837365;--recipe-sage:#687b61;--recipe-terracotta:#a85f43;
+  margin-top:46px;padding:28px 30px 30px;background:var(--recipe-cream);
+  border:1px solid #eadfce;border-radius:24px;box-shadow:0 10px 30px #59442a0b;
+  color:var(--recipe-ink);scroll-margin-top:24px;
+}
+.dishes-section .section-heading{align-items:center;margin-bottom:20px}
+.dishes-section .eyebrow{color:var(--recipe-terracotta);letter-spacing:1.7px}
+.dishes-section .section-heading h2{font-family:Georgia,serif;font-size:clamp(27px,3vw,34px);font-weight:600;letter-spacing:-.7px;color:var(--recipe-ink)}
+.dishes-section .version{background:#eee3d3;color:#796654;border:1px solid #e5d6c2}
+.dishes-section .dish-toolbar .notice{background:#efe6d8;color:#776553;border:1px solid #e8dac7;border-radius:12px}
+.dishes-section .button-green{background:var(--recipe-sage);border-radius:10px}
+.dishes-section .dish-editor{background:var(--recipe-paper);border-color:#e8dccb}
+.dishes-section .dish-discovery-tools{gap:10px;margin:18px 0 12px}
+.dishes-section .dish-discovery-tools input,.dishes-section .dish-discovery-tools select{
+  background:var(--recipe-paper);border:1px solid #dfd2bf;border-radius:12px;
+  color:var(--recipe-ink);padding:13px 14px;box-shadow:0 2px 5px #59442a08;
+}
+.dishes-section .dish-discovery-tools input:focus,.dishes-section .dish-discovery-tools select:focus{
+  outline:2px solid #c9b69b;outline-offset:1px;border-color:#b99d7b;
+}
+.dishes-section .dish-quick-categories{gap:8px;margin:0 0 14px}
+.dishes-section .dish-quick-categories button{
+  background:#fffaf2;border:1px solid #e3d6c4;color:#76634f;border-radius:22px;
+  padding:9px 15px;font-size:12px;transition:background .15s,border-color .15s,transform .15s;
+}
+.dishes-section .dish-quick-categories button:hover{border-color:#bda88b;transform:translateY(-1px)}
+.dishes-section .dish-quick-categories button.active{
+  background:var(--recipe-sage);border-color:var(--recipe-sage);color:#fffdf7;
+}
+.dishes-section .dish-results-count{color:var(--recipe-muted);margin:2px 0 12px}
+.dishes-section .dish-card{
+  background:var(--recipe-paper);border:1px solid #e9dece;border-radius:16px;
+  padding:11px;gap:9px;box-shadow:0 4px 12px #59442a0b;
+  transition:transform .18s,box-shadow .18s,border-color .18s;
+}
+.dishes-section .dish-card:hover{transform:translateY(-3px);box-shadow:0 9px 20px #59442a16;border-color:#d7c5ab}
+.dishes-section .dish-card-visual{
+  height:126px;border-radius:11px;
+  background:linear-gradient(145deg,#eee3d2,#f8f2e8 55%,#e5eadc);
+}
+.dishes-section .dish-card-visual span{font-size:52px;filter:drop-shadow(0 3px 3px #6b584222)}
+.dishes-section .dish-card-title strong{font-family:Georgia,serif;font-size:15px;line-height:1.25;color:var(--recipe-ink)}
+.dishes-section .dish-card>span{font-size:11px;color:var(--recipe-muted)}
+.dishes-section .dish-favorite{background:#f7efe3;border-color:#eadbc7;color:#a58b6e;border-radius:50%;width:30px;height:30px}
+.dishes-section .dish-favorite.active{background:#fff0dc;border-color:#e8c99f;color:#b36d36}
+.dishes-section .dish-details summary{color:var(--recipe-sage)}
+.dishes-section .dish-carousel-arrow{background:#fffaf2;border-color:#e3d6c4;color:var(--recipe-sage);border-radius:12px}
+.dishes-section .dish-carousel-arrow:hover:not(:disabled){background:#e9eee4;border-color:#bdcbb6}
+.dishes-section .dish-actions button{background:#f4eee4;border-color:#e5d8c6;color:#617457}
+@media(max-width:700px){
+  .dishes-section{padding:22px 15px 20px;border-radius:19px;margin-top:32px}
+  .dishes-section .section-heading h2{font-size:27px}
+  .dishes-section .dish-card-visual{height:140px}
+}
