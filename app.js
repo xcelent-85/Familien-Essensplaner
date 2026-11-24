@@ -270,7 +270,7 @@ function renderWeekPlan(){
     const hasDraft=Object.prototype.hasOwnProperty.call(weekDraftSelections,day.iso);
     const selectedValue=hasDraft?weekDraftSelections[day.iso]:(savedDish?getDishOptionValue(savedDish):"");
     const selectedDish=dishes.find(item=>getDishOptionValue(item)===selectedValue)||null;
-    const options='<option value="">Noch kein Gericht ausgewählt</option>'+dishes.map(dish=>'<option value="'+escapeHtml(getDishOptionValue(dish))+'" '+(selectedValue===getDishOptionValue(dish)?'selected':'')+'>'+escapeHtml(dish.title)+'</option>').join("");
+
     const servings=Math.max(1,Number(meal?.servings)||3);
     const recipeButton=selectedDish?'<button type="button" class="week-recipe-button" data-recipe-title="'+escapeHtml(selectedDish.title)+'" data-date="'+day.iso+'">Rezept ansehen →</button>':"";
     const ingredientMarkup=selectedDish&&Array.isArray(selectedDish.ingredients)&&selectedDish.ingredients.length?'<strong class="week-ingredients-title">Zutaten (für '+servings+' Personen)</strong>'+selectedDish.ingredients.map(line=>{
@@ -279,7 +279,7 @@ function renderWeekPlan(){
       return '<label class="week-ingredient"><input type="checkbox"><span>'+escapeHtml(quantity+item.name)+'</span></label>';
     }).join(""):'<p class="week-ingredients-empty">Wähle ein Gericht, um die Zutaten zu sehen.</p>';
     const title=selectedDish?escapeHtml(selectedDish.title):"Noch kein Gericht geplant";
-    return '<article class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><div class="week-dish-visual" aria-hidden="true">'+(selectedDish?.image?'<img src="'+escapeHtml(selectedDish.image)+'" alt="'+escapeHtml(selectedDish.title)+'" loading="lazy">':'<span>'+getDishVisual(selectedDish?.title)+'</span>')+'</div><h3 class="week-dish-title">'+title+'</h3><div class="week-servings-row"><span>Portionen:</span><div class="week-serving-control"><button type="button" data-serving-change="-1" aria-label="Eine Portion weniger">−</button><input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'" aria-label="Portionen für '+day.name+'"><button type="button" data-serving-change="1" aria-label="Eine Portion mehr">+</button></div></div>'+recipeButton+'<details class="week-edit-controls"><summary>Gericht ändern</summary><label>Gericht suchen<input class="week-dish-search" data-date="'+day.iso+'" type="search" placeholder="Gericht finden …" aria-label="Gericht für '+day.name+' suchen"></label><label>Abendessen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label></details><div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></article>';
+    return '<article class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><div class="week-dish-visual" aria-hidden="true">'+(selectedDish?.image?'<img src="'+escapeHtml(selectedDish.image)+'" alt="'+escapeHtml(selectedDish.title)+'" loading="lazy">':'<span>'+getDishVisual(selectedDish?.title)+'</span>')+'</div><h3 class="week-dish-title">'+title+'</h3><div class="week-servings-row"><span>Portionen:</span><div class="week-serving-control"><button type="button" data-serving-change="-1" aria-label="Eine Portion weniger">−</button><input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'" aria-label="Portionen für '+day.name+'"><button type="button" data-serving-change="1" aria-label="Eine Portion mehr">+</button></div></div>'+recipeButton+'<details class="week-edit-controls"><summary>Gericht ändern</summary><label>Gericht suchen<input class="week-dish-search" data-date="'+day.iso+'" type="search" placeholder="z. B. Spaghetti …" aria-label="Gericht für '+day.name+' suchen" autocomplete="off"></label><div class="week-dish-search-results" data-date="'+day.iso+'" aria-live="polite"><p class="week-search-hint">Tippe einen Gerichtenamen ein.</p></div></details><div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></article>';
   }).join("");
   $("#week-help").textContent=currentFamilyId?"Wählt für jeden Tag ein Gericht. Passt die Portionen an und hakt Zutaten direkt ab. Änderungen werden erst nach Klick auf „Wochenplan speichern“ übernommen.":"Vorschau: Zum dauerhaften Speichern bitte anmelden.";
   $("#save-week-plan").disabled=!currentFamilyId;
@@ -331,39 +331,60 @@ $("#recipe-servings").addEventListener("change",()=>{
   if(weekInput){weekInput.value=servings;weekInput.dispatchEvent(new Event("change",{bubbles:true}));}
   if(title)openRecipeForTitle(title,servings);
 });
+function uniqueWeekDishes(dishes){
+  const unique=new Map();
+  dishes.forEach(dish=>{
+    const key=String(dish.title||"").trim().toLocaleLowerCase("de-DE").replace(/\\s+/g," ");
+    if(key&&!unique.has(key))unique.set(key,dish);
+  });
+  return [...unique.values()];
+}
+function applyWeekDishSelection(dayIso,dish){
+  const day=getWeekDates().find(item=>item.iso===dayIso);
+  const card=document.querySelector('.week-dish-search[data-date="'+dayIso+'"]')?.closest(".week-day");
+  if(!day||!card)return;
+  weekDraftSelections[dayIso]=dish?getDishOptionValue(dish):"";
+  const servings=card.querySelector(".week-servings");
+  renderWeekIngredients(day,dish,servings?.value||3);
+  const titleNode=card.querySelector(".week-dish-title"),visualNode=card.querySelector(".week-dish-visual");
+  if(titleNode)titleNode.textContent=dish?.title||"Noch kein Gericht geplant";
+  if(visualNode)visualNode.innerHTML=dish?.image?'<img src="'+escapeHtml(dish.image)+'" alt="'+escapeHtml(dish.title)+'" loading="lazy">':'<span>'+getDishVisual(dish?.title)+'</span>';
+  let recipeButton=card.querySelector(".week-recipe-button");
+  if(dish){
+    if(!recipeButton){$("#week-ingredients-"+dayIso).insertAdjacentHTML("beforebegin",'<button type="button" class="week-recipe-button">Rezept ansehen →</button>');recipeButton=card.querySelector(".week-recipe-button");}
+    if(recipeButton){recipeButton.dataset.recipeTitle=dish.title;recipeButton.dataset.date=dayIso;}
+  }else if(recipeButton)recipeButton.remove();
+  const search=card.querySelector(".week-dish-search"),results=card.querySelector(".week-dish-search-results");
+  if(search)search.value=dish?.title||"";
+  if(results)results.innerHTML=dish?'<p class="week-search-selected">Ausgewählt: <strong>'+escapeHtml(dish.title)+'</strong></p>':'<p class="week-search-hint">Tippe einen Gerichtenamen ein.</p>';
+  renderShoppingList(false);
+}
 $("#week-grid").addEventListener("input",event=>{
   const search=event.target.closest(".week-dish-search");
   if(!search)return;
-  const card=search.closest(".week-day"),select=card?.querySelector(".week-dish-select");
-  if(!select)return;
+  const results=search.closest(".week-edit-controls")?.querySelector(".week-dish-search-results");
+  if(!results)return;
   const term=search.value.trim().toLocaleLowerCase("de-DE");
+  if(!term){results.innerHTML='<p class="week-search-hint">Tippe einen Gerichtenamen ein.</p>';return;}
+  const dishes=uniqueWeekDishes(visibleDishes.length?visibleDishes:starterDishes);
+  const matches=dishes.filter(dish=>String(dish.title||"").toLocaleLowerCase("de-DE").includes(term)).slice(0,12);
+  results.innerHTML=matches.length?matches.map(dish=>'<button type="button" class="week-dish-result" data-week-dish-value="'+escapeHtml(getDishOptionValue(dish))+'" data-date="'+search.dataset.date+'">'+escapeHtml(dish.title)+'<span>Auswählen →</span></button>').join(""):'<p class="week-search-empty">Keine passenden Gerichte gefunden.</p>';
+});
+$("#week-grid").addEventListener("click",event=>{
+  const result=event.target.closest(".week-dish-result");
+  if(!result)return;
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
-  const selectedValue=Object.prototype.hasOwnProperty.call(weekDraftSelections,search.dataset.date)?weekDraftSelections[search.dataset.date]:select.value;
-  let matches=dishes.filter(dish=>dish.title.toLocaleLowerCase("de-DE").includes(term));
-  const selectedDish=dishes.find(dish=>getDishOptionValue(dish)===selectedValue);
-  if(selectedDish&&!matches.some(dish=>getDishOptionValue(dish)===selectedValue))matches=[selectedDish,...matches];
-  select.innerHTML='<option value="">Noch kein Gericht ausgewählt</option>'+matches.map(dish=>'<option value="'+escapeHtml(getDishOptionValue(dish))+'">'+escapeHtml(dish.title)+'</option>').join("");
-  select.value=selectedValue;
+  const dish=dishes.find(item=>getDishOptionValue(item)===result.dataset.weekDishValue);
+  if(dish)applyWeekDishSelection(result.dataset.date,dish);
 });
 $("#week-grid").addEventListener("change",event=>{
-  const control=event.target.closest(".week-dish-select,.week-servings");
+  const control=event.target.closest(".week-servings");
   if(!control)return;
   const day=getWeekDates().find(item=>item.iso===control.dataset.date);
   if(!day)return;
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
-  const select=document.querySelector('.week-dish-select[data-date="'+day.iso+'"]');
-  if(control.matches(".week-dish-select"))weekDraftSelections[day.iso]=select?.value||"";
-  const servings=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
-  const dish=dishes.find(item=>getDishOptionValue(item)===(select?.value||""));
-  renderWeekIngredients(day,dish,servings?.value||3);
-  const card=control.closest(".week-day");
-  const titleNode=card?.querySelector(".week-dish-title");
-  const visualNode=card?.querySelector(".week-dish-visual");
-  if(titleNode)titleNode.textContent=dish?.title||"Noch kein Gericht geplant";
-  if(visualNode)visualNode.innerHTML=dish?.image?'<img src="'+escapeHtml(dish.image)+'" alt="'+escapeHtml(dish.title)+'" loading="lazy">':'<span>'+getDishVisual(dish?.title)+'</span>';
-  let recipeButton=card?.querySelector(".week-recipe-button");
-  if(dish){if(!recipeButton){$("#week-ingredients-"+day.iso).insertAdjacentHTML("beforebegin",'<button type="button" class="week-recipe-button">Rezept ansehen →</button>');recipeButton=card?.querySelector(".week-recipe-button");}if(recipeButton){recipeButton.dataset.recipeTitle=dish.title;recipeButton.dataset.date=day.iso;}}
-  else if(recipeButton)recipeButton.remove();
+  const dish=dishes.find(item=>getDishOptionValue(item)===weekDraftSelections[day.iso])||null;
+  renderWeekIngredients(day,dish,control.value||3);
   renderShoppingList(false);
 });
 async function loadWeekPlan(){
