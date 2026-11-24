@@ -62,7 +62,7 @@ function renderDishes(dishes){
   };
   const filteredDishes=visibleDishes.filter(dish=>{
     const searchable=[dish.title,dish.category,...(dish.ingredients||[])].join(" ");
-    return (viewFilter!=="favorites"||favoriteIds.includes(String(dish.id||dish.title)))&&
+    return (viewFilter!=="favorites"||favoriteIds.includes((dish.is_catalog?"catalog:":"")+String(dish.id||dish.title)))&&
       (!selectedCategory||(dish.category||"Sonstiges")===selectedCategory)&&
       (!maxTime||((Number(dish.prep_minutes)||0)+(Number(dish.cook_minutes)||0))<=maxTime)&&
       (!term||searchable.toLocaleLowerCase("de-DE").includes(term))&&
