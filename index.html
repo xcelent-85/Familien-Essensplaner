@@ -43,11 +43,6 @@
 </div>
 <p class="auth-message" id="family-message" role="status"></p>
 </section>
-<section class="offers-section" id="offers-section" hidden>
-<div class="section-heading compact"><div><p class="eyebrow">DEINE AUSWAHL</p><h2>Vorgemerkte Angebote</h2></div><span class="version" id="offer-count">0 Angebote</span></div>
-<p class="notice">Hier sammelst du mit einem Klick interessante Treffer aus dem Angebotsvergleich. Produkt, Markt und Preis werden automatisch übernommen. Du musst nichts manuell eintragen.</p>
-<div id="offer-list" class="offer-list"></div>
-</section>
 <section class="dishes-section" id="dishes-section" hidden>
 <div class="section-heading compact"><div><p class="eyebrow">EURE REZEPTSAMMLUNG</p><h2>Gerichte entdecken</h2></div><span class="version" id="dish-count"></span></div>
 <div class="dish-toolbar"><p id="dish-help" class="notice">Zum dauerhaften Hinzufügen und Bearbeiten bitte anmelden.</p><button class="button button-green" id="add-dish-button" type="button" hidden>+ Gericht hinzufügen</button></div>
@@ -90,6 +85,11 @@
 </div>
 <section class="shopping-section" id="shopping-section" hidden>
 <div class="section-heading compact"><div><p class="eyebrow">FÜR EUREN EINKAUF</p><h2>Einkaufsliste</h2></div><span class="version">Aus dem Wochenplan</span></div>
+<div class="shopping-view-tabs" role="group" aria-label="Einkaufslistenansicht">
+<button type="button" class="shopping-view-button active" data-shopping-view="all" aria-pressed="true">Alle Produkte</button>
+<button type="button" class="shopping-view-button" data-shopping-view="saved" aria-pressed="false">Vorgemerkte Artikel <span id="saved-offer-tab-count">0</span></button>
+</div>
+<div id="shopping-all-view">
 <p class="notice" id="shopping-list-note">Die Zutaten eurer ausgewählten Gerichte erscheinen hier.</p>
 <details class="shopping-total-details">
 <summary><span><strong>Zusammengefasste Einkaufsliste</strong><small>Alle Zutaten gesammelt und nach Produkt sortiert</small></span><span class="shopping-total-toggle">Anzeigen</span></summary>
@@ -98,9 +98,15 @@
 <label class="offer-search-location">Angebote suchen für PLZ <input id="offer-search-zip" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="5" pattern="[0-9]{5}" value="16816" aria-label="Postleitzahl für die Angebotssuche"></label>
 <div class="week-save-row"><button type="button" class="button button-green" id="search-meal-offers">Passende Angebote suchen →</button><span class="auth-message" id="meal-offer-message" role="status"></span></div>
 <div class="offer-list" id="meal-offer-results"></div>
+</div>
+<div id="shopping-saved-view" hidden>
+<div class="section-heading compact offer-list-heading"><div><p class="eyebrow">DEINE AUSWAHL</p><h3>Vorgemerkte Angebote</h3></div><span class="version" id="offer-count">0 Angebote</span></div>
+<p class="notice">Hier findest du alle Angebote, die du beim Angebotsvergleich vorgemerkt hast. Händler und Preis werden übernommen.</p>
+<div id="offer-list" class="offer-list"></div>
+</div>
 </section>
 <footer><span>Familien-Essensplaner</span><span>Gemeinsam planen. Besser einkaufen. Lecker essen.</span><span id="app-build-version" class="version">Version 2026-11-23.11 · wird geladen …</span></footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>window.FAMILY_APP_CONFIG={supabaseUrl:"https://zguwrjqcjerbgwuumjgr.supabase.co",supabaseKey:"sb_publishable_UHblP1kylwBX8dN2y6sTvA_P08D93lb"};</script>
-<script src="./app.js?v=46" defer></script></body></html>
+<script src="./app.js?v=47" defer></script></body></html>
