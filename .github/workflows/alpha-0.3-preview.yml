@@ -17,39 +17,42 @@ concurrency:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
       - name: Hauptversion auschecken
         uses: actions/checkout@v4
         with:
           ref: main
-          path: public
+          path: site
 
-      - name: Alpha 0.2 unverändert bereitstellen
+      - name: Alpha 0.2 separat auschecken
         uses: actions/checkout@v4
         with:
           ref: alpha-0.2
-          path: public/alpha-0.2
+          path: alpha-0.2-src
 
-      - name: Alpha 0.3 bereitstellen
+      - name: Alpha 0.3 separat auschecken
         uses: actions/checkout@v4
         with:
           ref: alpha-0.3
-          path: public/alpha-0.3
+          path: alpha-0.3-src
+
+      - name: Vorschau-Verzeichnisse zusammenstellen
+        run: |
+          mkdir -p site/alpha-0.2 site/alpha-0.3
+          cp -a alpha-0.2-src/. site/alpha-0.2/
+          cp -a alpha-0.3-src/. site/alpha-0.3/
 
       - name: GitHub Pages konfigurieren
         uses: actions/configure-pages@v5
 
-      - name: Website mit Alpha-Unterordnern bereitstellen
+      - name: Website-Artefakt erstellen
         uses: actions/upload-pages-artifact@v3
         with:
-          path: public
-
-      - name: GitHub Pages Artefakt bereitstellen lassen
-        run: sleep 15
+          path: site
 
       - name: GitHub Pages veröffentlichen
         id: deployment
