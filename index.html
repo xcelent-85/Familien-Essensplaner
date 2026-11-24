@@ -2,7 +2,7 @@
 <html lang="de"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#315c45"><meta name="description" content="Gemeinsamer Familien-Essensplaner mit Wochenplanung und Einkaufsoptimierung.">
-<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./styles.css?v=5">
+<link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./styles.css?v=6">
 <title>Familien-Essensplaner</title>
 <style>
 .auth-panel{background:#fff;border:1px solid #e5e9e5;border-radius:18px;padding:22px;margin:24px 0;box-shadow:0 5px 22px #1b38200a}
@@ -58,6 +58,7 @@
     <p class="eyebrow">AUS EURER REZEPTSAMMLUNG</p>
     <h2 id="recipe-title">Rezept</h2>
     <p class="recipe-meta" id="recipe-meta"></p>
+    <img class="recipe-hero-image" id="recipe-image" alt="" hidden>
     <div class="recipe-servings"><label for="recipe-servings">Portionen</label><input id="recipe-servings" type="number" min="1" max="30" value="3"></div>
     <div class="recipe-content">
       <section><h3>Zutaten</h3><div id="recipe-ingredients"></div></section>
@@ -110,4 +111,4 @@
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>window.FAMILY_APP_CONFIG={supabaseUrl:"https://zguwrjqcjerbgwuumjgr.supabase.co",supabaseKey:"sb_publishable_UHblP1kylwBX8dN2y6sTvA_P08D93lb"};</script>
-<script src="./app.js?v=53" defer></script></body></html>
+<script src="./app.js?v=54" defer></script></body></html>
