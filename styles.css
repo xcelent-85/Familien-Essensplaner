@@ -554,3 +554,11 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 #search-meal-offers:hover{background:var(--green-dark);box-shadow:0 6px 14px #2446332b;transform:translateY(-1px)}
 #search-meal-offers:disabled{opacity:.65;cursor:wait;transform:none}
 @media(max-width:520px){.offer-search-location{gap:9px;padding:13px}.offer-search-location::before{flex-basis:34px;width:34px;height:34px}.offer-search-location input{margin-left:auto;width:105px}.week-save-row:has(#search-meal-offers){align-items:stretch}.week-save-row:has(#search-meal-offers) #search-meal-offers{width:100%}}
+
+/* Direkte Suchergebnisse bei der Wochenplan-Gerichtsauswahl */
+.week-dish-search-results{display:grid;gap:5px;margin-top:7px;max-height:220px;overflow:auto}
+.week-dish-result{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:9px 10px;border:1px solid #d6e1d7;border-radius:9px;background:#fff;color:#26352d;text-align:left;font:inherit;font-size:12px;cursor:pointer}
+.week-dish-result:hover{background:#edf5ee;border-color:#8eae96}
+.week-dish-result span{flex-shrink:0;color:#315c45;font-size:10px;font-weight:700}
+.week-search-hint,.week-search-empty,.week-search-selected{margin:2px 0;color:#64746a;font-size:11px}
+.week-search-selected{padding:8px;border-radius:8px;background:#eaf4eb;color:#28583e}
