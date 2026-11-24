@@ -75,7 +75,7 @@ function renderDishes(dishes){
     const ingredients=Array.isArray(dish.ingredients)?dish.ingredients.join("\n"):"";
     const extra=(ingredients||dish.instructions)?'<details class="dish-details"><summary>Zutaten und Zubereitung</summary>'+(ingredients?'<p><strong>Zutaten:</strong>\n'+escapeHtml(ingredients)+'</p>':'')+(dish.instructions?'<p><strong>Zubereitung:</strong>\n'+escapeHtml(dish.instructions)+'</p>':'')+'</details>':'';
     const actions=currentFamilyId&&!dish.is_catalog?'<div class="dish-actions"><button type="button" data-action="edit" data-id="'+dish.id+'">Bearbeiten</button><button type="button" class="delete" data-action="delete" data-id="'+dish.id+'">Löschen</button></div>':'';
-    const favoriteId=(dish.is_catalog?"catalog:":"family:")+String(dish.id||dish.title),isFavorite=favoriteIds.includes(favoriteId);
+    const favoriteId=(dish.is_catalog?"catalog:":"")+String(dish.id||dish.title),isFavorite=favoriteIds.includes(favoriteId);
     const visual=dish.image?'<img src="'+escapeHtml(dish.image)+'" alt="" loading="lazy">':'<span>'+getDishVisual(dish.title)+'</span>';
     return '<article class="dish-card"><div class="dish-card-visual">'+visual+'</div><div class="dish-card-title"><strong>'+escapeHtml(dish.title)+'</strong><button type="button" class="dish-favorite '+(isFavorite?'active':'')+'" data-favorite-id="'+escapeHtml(favoriteId)+'" aria-label="'+(isFavorite?'Favorit entfernen':'Als Favorit speichern')+'">'+(isFavorite?'★':'☆')+'</button></div><span>'+escapeHtml(detail)+'</span>'+extra+actions+'</article>';
   }).join("");
