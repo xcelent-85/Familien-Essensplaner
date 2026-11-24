@@ -270,6 +270,7 @@ function renderWeekPlan(){
     const hasDraft=Object.prototype.hasOwnProperty.call(weekDraftSelections,day.iso);
     const selectedValue=hasDraft?weekDraftSelections[day.iso]:(savedDish?getDishOptionValue(savedDish):"");
     const selectedDish=dishes.find(item=>getDishOptionValue(item)===selectedValue)||null;
+    const options='<option value="">Noch kein Gericht ausgewählt</option>'+dishes.map(dish=>'<option value="'+escapeHtml(getDishOptionValue(dish))+'" '+(selectedValue===getDishOptionValue(dish)?'selected':'')+'>'+escapeHtml(dish.title)+'</option>').join("");
 
     const servings=Math.max(1,Number(meal?.servings)||3);
     const recipeButton=selectedDish?'<button type="button" class="week-recipe-button" data-recipe-title="'+escapeHtml(selectedDish.title)+'" data-date="'+day.iso+'">Rezept ansehen →</button>':"";
@@ -279,7 +280,7 @@ function renderWeekPlan(){
       return '<label class="week-ingredient"><input type="checkbox"><span>'+escapeHtml(quantity+item.name)+'</span></label>';
     }).join(""):'<p class="week-ingredients-empty">Wähle ein Gericht, um die Zutaten zu sehen.</p>';
     const title=selectedDish?escapeHtml(selectedDish.title):"Noch kein Gericht geplant";
-    return '<article class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><div class="week-dish-visual" aria-hidden="true">'+(selectedDish?.image?'<img src="'+escapeHtml(selectedDish.image)+'" alt="'+escapeHtml(selectedDish.title)+'" loading="lazy">':'<span>'+getDishVisual(selectedDish?.title)+'</span>')+'</div><h3 class="week-dish-title">'+title+'</h3><div class="week-servings-row"><span>Portionen:</span><div class="week-serving-control"><button type="button" data-serving-change="-1" aria-label="Eine Portion weniger">−</button><input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'" aria-label="Portionen für '+day.name+'"><button type="button" data-serving-change="1" aria-label="Eine Portion mehr">+</button></div></div>'+recipeButton+'<details class="week-edit-controls"><summary>Gericht ändern</summary><label>Gericht suchen<input class="week-dish-search" data-date="'+day.iso+'" type="search" placeholder="z. B. Spaghetti …" aria-label="Gericht für '+day.name+' suchen" autocomplete="off"></label><div class="week-dish-search-results" data-date="'+day.iso+'" aria-live="polite"><p class="week-search-hint">Tippe einen Gerichtenamen ein.</p></div></details><div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></article>';
+    return '<article class="week-day"><div class="week-day-heading"><strong>'+day.name+'</strong><span>'+format(day.date)+'</span></div><div class="week-dish-visual" aria-hidden="true">'+(selectedDish?.image?'<img src="'+escapeHtml(selectedDish.image)+'" alt="'+escapeHtml(selectedDish.title)+'" loading="lazy">':'<span>'+getDishVisual(selectedDish?.title)+'</span>')+'</div><h3 class="week-dish-title">'+title+'</h3><div class="week-servings-row"><span>Portionen:</span><div class="week-serving-control"><button type="button" data-serving-change="-1" aria-label="Eine Portion weniger">−</button><input class="week-servings" data-date="'+day.iso+'" type="number" min="1" max="30" value="'+servings+'" aria-label="Portionen für '+day.name+'"><button type="button" data-serving-change="1" aria-label="Eine Portion mehr">+</button></div></div>'+recipeButton+'<details class="week-edit-controls"><summary>Gericht ändern</summary><label>Gericht suchen<input class="week-dish-search" data-date="'+day.iso+'" type="search" placeholder="z. B. Spaghetti …" aria-label="Gericht für '+day.name+' suchen" autocomplete="off"></label><div class="week-dish-search-results" data-date="'+day.iso+'" aria-live="polite"><p class="week-search-hint">Tippe einen Gerichtenamen ein.</p></div><label>Oder Gericht aus der Liste wählen<select class="week-dish-select" data-date="'+day.iso+'">'+options+'</select></label></details><div class="week-ingredients" id="week-ingredients-'+day.iso+'">'+ingredientMarkup+'</div></article>';
   }).join("");
   $("#week-help").textContent=currentFamilyId?"Wählt für jeden Tag ein Gericht. Passt die Portionen an und hakt Zutaten direkt ab. Änderungen werden erst nach Klick auf „Wochenplan speichern“ übernommen.":"Vorschau: Zum dauerhaften Speichern bitte anmelden.";
   $("#save-week-plan").disabled=!currentFamilyId;
@@ -378,6 +379,13 @@ $("#week-grid").addEventListener("click",event=>{
   if(dish)applyWeekDishSelection(result.dataset.date,dish);
 });
 $("#week-grid").addEventListener("change",event=>{
+  const select=event.target.closest(".week-dish-select");
+  if(select){
+    const dishes=visibleDishes.length?visibleDishes:starterDishes;
+    const dish=dishes.find(item=>getDishOptionValue(item)===select.value)||null;
+    applyWeekDishSelection(select.dataset.date,dish);
+    return;
+  }
   const control=event.target.closest(".week-servings");
   if(!control)return;
   const day=getWeekDates().find(item=>item.iso===control.dataset.date);
