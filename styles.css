@@ -280,10 +280,8 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .week-serving-control input{box-sizing:border-box!important;width:23px!important;min-width:23px!important;height:22px!important;min-height:22px!important;padding:0!important;border:0!important;border-radius:0!important;font-size:10px!important;line-height:1!important}
 .week-recipe-button{display:block;box-sizing:border-box;width:calc(100% - 20px);min-height:31px;margin:6px 10px 0;padding:7px 9px;border:1px solid #b8cbbd;border-radius:20px;background:#fff;color:#28583e;text-align:center;font:inherit;font-size:11px;font-weight:750;line-height:1.2;cursor:pointer}
 .week-recipe-button:hover{background:#f2f7f2;border-color:#8eae96}
-.week-edit-controls{order:4;margin:6px 10px 0;font-size:10px;color:#315c45}
-.week-edit-controls summary{display:block;box-sizing:border-box;width:100%;min-height:31px;margin:0;padding:7px 9px;border:1px solid #b8cbbd;border-radius:20px;background:#fff;color:#28583e;text-align:center;font-size:11px;font-weight:750;line-height:1.2;cursor:pointer}
-.week-edit-controls summary:hover{background:#f2f7f2;border-color:#8eae96}
-.week-edit-controls[open]{padding:8px;border-radius:10px;background:#f7faf7}
+.week-edit-controls{order:4;margin:6px 10px 0;padding:8px;border-radius:10px;background:#f7faf7;font-size:10px;color:#315c45}
+
 
 .week-dish-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
 
