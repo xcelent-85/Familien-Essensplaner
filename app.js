@@ -100,7 +100,6 @@ async function loadDishes(){
 }
 if(showButton)showButton.addEventListener("click",async()=>{
   setQuickNavActive("dishes");
-  if(!dishSection.hidden){dishSection.hidden=true;return;}
   dishSection.hidden=false;
   if(!currentFamilyId){setAuthMode("login");showMessage("Bitte melde dich an, um eure Rezeptsammlung zu entdecken.");authPanel.hidden=false;$("#auth-dialog-title").textContent="Bitte anmelden";$("#auth-dialog-copy").textContent="Nach der Anmeldung kannst du eure Gerichte entdecken und verwalten.";return;}
   showMessage("Lade eure gespeicherten Gerichte …");await loadDishes();showMessage(visibleDishes.length+" Gerichte aus eurer Familiensammlung geladen.");
