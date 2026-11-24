@@ -710,3 +710,29 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
   .dishes-section .section-heading h2{font-size:27px}
   .dishes-section .dish-card-visual{height:140px}
 }
+
+
+/* Rezeptkarussell: fünf Gerichte am Desktop, mit Pfeilnavigation */
+#dishes-section .dish-carousel{
+  display:grid;grid-template-columns:34px minmax(0,1fr) 34px;
+  align-items:center;gap:8px;min-width:0
+}
+#dishes-section .dish-carousel-arrow{display:block}
+#dishes-section .dish-grid{
+  display:flex;flex-wrap:nowrap;gap:10px;min-width:0;
+  overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;
+  scroll-snap-type:x mandatory;scrollbar-width:none;padding:2px 1px 8px
+}
+#dishes-section .dish-grid::-webkit-scrollbar{display:none}
+#dishes-section .dish-card{
+  flex:0 0 calc((100% - 40px)/5);min-width:0;
+  scroll-snap-align:start
+}
+@media(max-width:900px){
+  #dishes-section .dish-carousel{grid-template-columns:30px minmax(0,1fr) 30px}
+  #dishes-section .dish-card{flex:0 0 calc((100% - 20px)/3)}
+}
+@media(max-width:560px){
+  #dishes-section .dish-carousel{grid-template-columns:28px minmax(0,1fr) 28px;gap:5px}
+  #dishes-section .dish-card{flex:0 0 82%}
+}
