@@ -778,12 +778,12 @@ if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
   supabaseClient.auth.getSession().then(async({data,error})=>{if(error)showMessage(error.message);setSession(data?.session);if(data?.session?.user)await loadOrCreateFamily(data.session.user);else if(pendingFamilyInvite){setAuthMode("login");authPanel.hidden=false;$("#auth-dialog-title").textContent="Du wurdest eingeladen";$("#auth-dialog-copy").textContent="Melde dich an oder erstelle ein Konto, um der Familie beizutreten.";showMessage("Familieneinladung erkannt. Bitte anmelden oder ein Konto erstellen.");}});
   supabaseClient.auth.onAuthStateChange(async(event,session)=>{setSession(session);if(session?.user&&event!=="INITIAL_SESSION")await loadOrCreateFamily(session.user);});
   $("#signup-button").addEventListener("click",async event=>{
-    event.preventDefault();const email=$("#auth-email").value.trim(),password=$("#auth-password").value;
+    event.preventDefault();if(authMode!=="signup")return;const email=$("#auth-email").value.trim(),password=$("#auth-password").value;
     if(!email||password.length<6){showMessage("Bitte E-Mail und ein Passwort mit mindestens 6 Zeichen eingeben.");return;}
     const {data,error}=await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname+(pendingFamilyInvite?"?familyInvite="+encodeURIComponent(pendingFamilyInvite):"")}});
     showMessage(error?error.message:(data.session?"Konto erstellt und angemeldet.":"Konto erstellt. Bitte bestätige deine E-Mail-Adresse über den zugesandten Link."));
   });
-  $("#login-button").addEventListener("click",async()=>{const email=$("#auth-email").value.trim(),password=$("#auth-password").value;const {error}=await supabaseClient.auth.signInWithPassword({email,password});showMessage(error?error.message:"Anmeldung erfolgreich.");});
+  $("#login-button").addEventListener("click",async()=>{authMode="login";const email=$("#auth-email").value.trim(),password=$("#auth-password").value;if(!email||password.length<6){showMessage("Bitte E-Mail und Passwort eingeben.");return;}const {error}=await supabaseClient.auth.signInWithPassword({email,password});showMessage(error?error.message:"Anmeldung erfolgreich.");});
   $("#logout-button").addEventListener("click",async()=>{const {error}=await supabaseClient.auth.signOut();showMessage(error?error.message:"Du wurdest abgemeldet.");});
 }else{statusEl.textContent="Verbindung nicht verfügbar";showMessage("Die Supabase-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden.");}
 $("#dish-search").addEventListener("input",()=>renderDishes(visibleDishes));
