@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-24.23";
+const APP_BUILD_ID="2026-11-24.24";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -221,6 +221,7 @@ async function loadOrCreateFamily(user){
 
 let weekOffset=0;
 let currentWeekMeals=[];
+let weekDraftSelections={};
 let weekDayCount=Number(localStorage.getItem("familyPlannerWeekDayCount"))===7?7:5;
 const weekDays=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
 function getWeekDates(count=weekDayCount){
@@ -265,8 +266,10 @@ function renderWeekPlan(){
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
   $("#week-grid").innerHTML=dates.map(day=>{
     const meal=currentWeekMeals.find(item=>item.planned_for===day.iso);
-    const selectedDish=findMealDish(meal,dishes);
-    const selectedValue=selectedDish?getDishOptionValue(selectedDish):"";
+    const savedDish=findMealDish(meal,dishes);
+    const hasDraft=Object.prototype.hasOwnProperty.call(weekDraftSelections,day.iso);
+    const selectedValue=hasDraft?weekDraftSelections[day.iso]:(savedDish?getDishOptionValue(savedDish):"");
+    const selectedDish=dishes.find(item=>getDishOptionValue(item)===selectedValue)||null;
     const options='<option value="">Noch kein Gericht ausgewählt</option>'+dishes.map(dish=>'<option value="'+escapeHtml(getDishOptionValue(dish))+'" '+(selectedValue===getDishOptionValue(dish)?'selected':'')+'>'+escapeHtml(dish.title)+'</option>').join("");
     const servings=Math.max(1,Number(meal?.servings)||3);
     const recipeButton=selectedDish?'<button type="button" class="week-recipe-button" data-recipe-title="'+escapeHtml(selectedDish.title)+'" data-date="'+day.iso+'">Rezept ansehen →</button>':"";
@@ -330,7 +333,17 @@ $("#recipe-servings").addEventListener("change",()=>{
 });
 $("#week-grid").addEventListener("input",event=>{
   const search=event.target.closest(".week-dish-search");
-  if(search){const select=search.closest(".week-day").querySelector(".week-dish-select");const term=search.value.trim().toLocaleLowerCase("de-DE");if(select)[...select.options].forEach((option,index)=>{option.hidden=index>0&&term&&!option.textContent.toLocaleLowerCase("de-DE").includes(term);});return;}
+  if(!search)return;
+  const card=search.closest(".week-day"),select=card?.querySelector(".week-dish-select");
+  if(!select)return;
+  const term=search.value.trim().toLocaleLowerCase("de-DE");
+  const dishes=visibleDishes.length?visibleDishes:starterDishes;
+  const selectedValue=Object.prototype.hasOwnProperty.call(weekDraftSelections,search.dataset.date)?weekDraftSelections[search.dataset.date]:select.value;
+  let matches=dishes.filter(dish=>dish.title.toLocaleLowerCase("de-DE").includes(term));
+  const selectedDish=dishes.find(dish=>getDishOptionValue(dish)===selectedValue);
+  if(selectedDish&&!matches.some(dish=>getDishOptionValue(dish)===selectedValue))matches=[selectedDish,...matches];
+  select.innerHTML='<option value="">Noch kein Gericht ausgewählt</option>'+matches.map(dish=>'<option value="'+escapeHtml(getDishOptionValue(dish))+'">'+escapeHtml(dish.title)+'</option>').join("");
+  select.value=selectedValue;
 });
 $("#week-grid").addEventListener("change",event=>{
   const control=event.target.closest(".week-dish-select,.week-servings");
@@ -339,6 +352,7 @@ $("#week-grid").addEventListener("change",event=>{
   if(!day)return;
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
   const select=document.querySelector('.week-dish-select[data-date="'+day.iso+'"]');
+  if(control.matches(".week-dish-select"))weekDraftSelections[day.iso]=select?.value||"";
   const servings=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
   const dish=dishes.find(item=>getDishOptionValue(item)===(select?.value||""));
   renderWeekIngredients(day,dish,servings?.value||3);
@@ -390,6 +404,7 @@ $("#save-week-plan").addEventListener("click",async()=>{
   button.disabled=false;
   if(insertError){$("#week-message").textContent="Der Plan konnte nicht vollständig gespeichert werden: "+insertError.message;return;}
   $("#week-message").textContent=meals.length+" Abendessen gespeichert.";
+  weekDraftSelections={};
   await loadWeekPlan();
   renderShoppingList(false,true);
 });
