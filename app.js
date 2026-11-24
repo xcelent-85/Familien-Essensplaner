@@ -356,8 +356,8 @@ function applyWeekDishSelection(dayIso,dish){
     if(recipeButton){recipeButton.dataset.recipeTitle=dish.title;recipeButton.dataset.date=dayIso;}
   }else if(recipeButton)recipeButton.remove();
   const search=card.querySelector(".week-dish-search"),results=card.querySelector(".week-dish-search-results");
-  if(search)search.value=dish?.title||"";
-  if(results)results.innerHTML=dish?'<p class="week-search-selected">Ausgewählt: <strong>'+escapeHtml(dish.title)+'</strong></p>':'<p class="week-search-hint">Tippe einen Gerichtenamen ein.</p>';
+  if(search)search.value="";
+  if(results)results.innerHTML='<p class="week-search-hint">Tippe einen Gerichtenamen ein.</p>';
   renderShoppingList(false);
 }
 $("#week-grid").addEventListener("input",event=>{
