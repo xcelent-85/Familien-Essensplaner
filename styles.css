@@ -312,8 +312,8 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .dish-grid{display:flex;gap:10px;min-width:0;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;scroll-snap-type:x mandatory;scrollbar-width:none;padding:2px 1px 8px}
 .dish-grid::-webkit-scrollbar{display:none}
 .dish-card{flex:0 0 calc((100% - 40px)/5);min-width:0;scroll-snap-align:start;padding:10px;border-radius:13px;display:flex;flex-direction:column;gap:7px}
-.dish-card-visual{height:100px;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:radial-gradient(circle at 50% 45%,#fff 0,#f2f5eb 58%,#e8eee2 100%)}
-.dish-card-visual img{width:100%;height:100%;object-fit:cover}
+.dish-card-visual{height:120px;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:radial-gradient(circle at 50% 45%,#fff 0,#f2f5eb 58%,#e8eee2 100%)}
+.dish-card-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
 .dish-card-visual span{font-size:48px}
 .dish-card-title{align-items:flex-start}
 .dish-card-title strong{font-size:12px;line-height:1.3;overflow-wrap:anywhere}
@@ -321,7 +321,7 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .dish-card .dish-details{margin-top:2px}
 .dish-card .dish-actions{flex-wrap:wrap}
 @media(max-width:900px){.dish-card{flex-basis:calc((100% - 20px)/3)}}
-@media(max-width:600px){.dishes-section{padding:0 12px 14px}.dish-discovery-tools{grid-template-columns:1fr 1fr}.dish-discovery-tools input{grid-column:1/-1}.dish-card{flex-basis:78%}.dish-carousel{grid-template-columns:28px minmax(0,1fr) 28px;gap:5px}.dish-carousel-arrow{width:28px;height:38px}.dish-card-visual{height:125px}}
+@media(max-width:600px){.dishes-section{padding:0 12px 14px}.dish-discovery-tools{grid-template-columns:1fr 1fr}.dish-discovery-tools input{grid-column:1/-1}.dish-card{flex-basis:78%}.dish-carousel{grid-template-columns:28px minmax(0,1fr) 28px;gap:5px}.dish-carousel-arrow{width:28px;height:38px}.dish-card-visual{height:145px}}
 
 
 /* Angebots-Merkliste: direkt aus Suchtreffern vormerken */
@@ -738,5 +738,5 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 }
 
 /* Rezeptfoto in der großen Detailansicht */
-.recipe-hero-image{display:block;width:100%;max-height:320px;aspect-ratio:16/9;object-fit:cover;border-radius:16px;margin:12px 0 20px;background:#f2eee5}
+.recipe-hero-image{display:block;width:100%;max-width:100%;max-height:320px;aspect-ratio:16/9;object-fit:cover;object-position:center;border-radius:16px;margin:12px 0 20px;background:#f2eee5}@media(max-width:600px){.recipe-hero-image{max-height:220px;border-radius:12px;margin:10px 0 16px}}
 .recipe-hero-image[hidden]{display:none}
