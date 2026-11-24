@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-24.20";
+const APP_BUILD_ID="2026-11-24.21";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -341,6 +341,7 @@ $("#week-grid").addEventListener("change",event=>{
   let recipeButton=card?.querySelector(".week-recipe-button");
   if(dish){if(!recipeButton){$("#week-ingredients-"+day.iso).insertAdjacentHTML("beforebegin",'<button type="button" class="week-recipe-button">Rezept ansehen →</button>');recipeButton=card?.querySelector(".week-recipe-button");}if(recipeButton){recipeButton.dataset.recipeTitle=dish.title;recipeButton.dataset.date=day.iso;}}
   else if(recipeButton)recipeButton.remove();
+  renderShoppingList(false);
 });
 async function loadWeekPlan(){
   if(!currentFamilyId){currentWeekMeals=[];renderWeekPlan();return;}
