@@ -1,0 +1,56 @@
+name: Alpha 0.3 Vorschau
+
+on:
+  push:
+    branches:
+      - alpha-0.3
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: alpha-0.3-preview
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hauptversion auschecken
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: public
+
+      - name: Alpha 0.2 unverändert bereitstellen
+        uses: actions/checkout@v4
+        with:
+          ref: alpha-0.2
+          path: public/alpha-0.2
+
+      - name: Alpha 0.3 bereitstellen
+        uses: actions/checkout@v4
+        with:
+          ref: alpha-0.3
+          path: public/alpha-0.3
+
+      - name: GitHub Pages konfigurieren
+        uses: actions/configure-pages@v5
+
+      - name: Website mit Alpha-Unterordnern bereitstellen
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: GitHub Pages Artefakt bereitstellen lassen
+        run: sleep 15
+
+      - name: GitHub Pages veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4
