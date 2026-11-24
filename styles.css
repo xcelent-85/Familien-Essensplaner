@@ -560,3 +560,94 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 .week-dish-result span{flex-shrink:0;color:#315c45;font-size:10px;font-weight:700}
 .week-search-hint,.week-search-empty,.week-search-selected{margin:2px 0;color:#64746a;font-size:11px}
 .week-search-selected{padding:8px;border-radius:8px;background:#eaf4eb;color:#28583e}
+
+
+/* Alpha 0.3 – Rezeptbereich im warmen Kochbuchstil */
+#dishes-section{
+  --recipe-ink:#382416;
+  --recipe-brown:#80502b;
+  --recipe-gold:#c58a43;
+  --recipe-paper:#fffaf0;
+  color:var(--recipe-ink);
+  padding:26px;
+  border:1px solid #ead8bd;
+  border-radius:24px;
+  background:
+    radial-gradient(ellipse at 12% 0%,#fffdf6 0,transparent 42%),
+    linear-gradient(135deg,#fffaf0 0%,#f7ead5 52%,#fff8ec 100%);
+  box-shadow:0 12px 34px #5d351410;
+}
+#dishes-section .section-heading{padding:4px 2px 16px;border-bottom:1px solid #e8d6bb}
+#dishes-section .eyebrow{color:#9b7045}
+#dishes-section .section-heading h2{
+  color:#422918;font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(27px,3vw,36px);letter-spacing:-.7px
+}
+#dishes-section .version{color:#8b633c;background:#f2e2c9;border:1px solid #e5cfad;border-radius:20px;padding:7px 12px}
+#dishes-section .dish-toolbar .notice{color:#765b40}
+#dishes-section .button-green{background:#80502b;color:#fff;border:1px solid #704322}
+#dishes-section .dish-editor{background:#fffaf1;border-color:#e8d6bb}
+#dishes-section .dish-discovery-tools{
+  grid-template-columns:minmax(220px,2fr) repeat(3,minmax(130px,1fr));
+  gap:10px;margin:20px 0 14px
+}
+#dishes-section .dish-discovery-tools input,
+#dishes-section .dish-discovery-tools select{
+  min-height:46px;border:1px solid #e3cba8;border-radius:24px;
+  background:#fffdf8;color:#493321;padding:11px 16px;
+  box-shadow:0 2px 7px #7043220a
+}
+#dishes-section .dish-discovery-tools input:focus,
+#dishes-section .dish-discovery-tools select:focus{outline:2px solid #c58a43;outline-offset:1px}
+#dishes-section .dish-quick-categories{gap:9px;margin:4px 0 18px}
+#dishes-section .dish-quick-categories button{
+  border:1px solid #e2c9a5;border-radius:22px;background:#fff9ef;
+  color:#704b2a;padding:9px 16px;font-size:12px
+}
+#dishes-section .dish-quick-categories button.active{
+  background:#80502b;border-color:#80502b;color:#fff
+}
+#dishes-section .dish-results-count{color:#8a6b4c;margin-bottom:12px}
+#dishes-section .dish-carousel{display:block}
+#dishes-section .dish-carousel-arrow{display:none}
+#dishes-section .dish-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;overflow:visible;padding:0;scroll-snap-type:none
+}
+#dishes-section .dish-card{
+  min-width:0;display:flex;flex-direction:column;gap:9px;
+  padding:12px;border:1px solid #ead8bd;border-radius:17px;
+  background:linear-gradient(180deg,#fffdf8 0%,#fff8ec 100%);
+  box-shadow:0 5px 14px #68432312;transition:transform .18s ease,box-shadow .18s ease
+}
+#dishes-section .dish-card:hover{transform:translateY(-3px);box-shadow:0 10px 22px #68432320}
+#dishes-section .dish-card-visual{
+  height:168px;border-radius:12px;background:#f0e2cd;overflow:hidden
+}
+#dishes-section .dish-card-visual img{width:100%;height:100%;object-fit:cover}
+#dishes-section .dish-card-title{align-items:center;gap:8px}
+#dishes-section .dish-card-title strong{font-family:Georgia,"Times New Roman",serif;font-size:17px;line-height:1.25;color:#402918}
+#dishes-section .dish-favorite{
+  width:34px;height:32px;border-radius:50%;border:1px solid #ead8bd;
+  background:#fffaf1;color:#986b40;font-size:19px
+}
+#dishes-section .dish-favorite.active{color:#b97820;background:#fff0cf;border-color:#e8c78e}
+#dishes-section .dish-card>span{font-size:12px;color:#8a6b4c}
+#dishes-section .dish-details summary{color:#80502b}
+#dishes-section .dish-details p{color:#654a32;font-size:12px}
+#dishes-section .dish-actions button{background:#f5e8d4;border-color:#e6cfad;color:#704b2a}
+#dishes-section .dish-actions button.delete{color:#9a3c35}
+@media(max-width:900px){
+  #dishes-section .dish-discovery-tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #dishes-section .dish-discovery-tools input{grid-column:1/-1}
+  #dishes-section .dish-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #dishes-section .dish-card{flex:auto}
+}
+@media(max-width:560px){
+  #dishes-section{padding:16px 12px;border-radius:18px}
+  #dishes-section .dish-discovery-tools{grid-template-columns:1fr}
+  #dishes-section .dish-discovery-tools input{grid-column:auto}
+  #dishes-section .dish-grid{grid-template-columns:1fr;gap:13px}
+  #dishes-section .dish-card-visual{height:190px}
+  #dishes-section .dish-card-title strong{font-size:18px}
+}
