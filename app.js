@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-23.16";
+const APP_BUILD_ID="2026-11-24.17";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -446,6 +446,7 @@ function renderShoppingList(){
   $("#shopping-list-note").textContent=selected.filter(Boolean).length+" Gerichte berücksichtigt · "+list.length+" zusammengefasste Zutatenpositionen"+(missing.length?" · Für "+[...new Set(missing)].join(", ")+" fehlen noch Zutatenangaben.":"");
   setQuickNavActive("shopping");
   $("#shopping-section").hidden=false;
+  setShoppingView("all");
   $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
 }
 $("#create-shopping-list").addEventListener("click",renderShoppingList);
@@ -705,8 +706,10 @@ function renderOffers(){
   const list=$("#offer-list");
   if(!list)return;
   $("#offer-count").textContent=savedOffers.length+" "+(savedOffers.length===1?"Angebot":"Angebote");
+  const tabCount=$("#saved-offer-tab-count");
+  if(tabCount)tabCount.textContent=String(savedOffers.length);
   if(!savedOffers.length){
-    list.innerHTML='<p class="notice">Noch keine Angebote vorgemerkt. Suche oben nach passenden Angeboten und tippe bei einem Treffer auf „Vormerken“.</p>';
+    list.innerHTML='<p class="notice">Noch keine Angebote vorgemerkt. Wechsle zu „Alle Produkte“ und suche passende Angebote. Mit „Vormerken“ erscheinen sie hier.</p>';
     return;
   }
   list.innerHTML=savedOffers.slice().sort((a,b)=>(a.store||"").localeCompare(b.store||"","de")||(a.product||"").localeCompare(b.product||"","de")).map(item=>
@@ -722,11 +725,25 @@ function saveFoundOffer(item){
   renderOffers();
   return true;
 }
+function setShoppingView(view){
+  const saved=view==="saved";
+  $("#shopping-all-view").hidden=saved;
+  $("#shopping-saved-view").hidden=!saved;
+  document.querySelectorAll("[data-shopping-view]").forEach(button=>{
+    const active=button.dataset.shoppingView===(saved?"saved":"all");
+    button.classList.toggle("active",active);
+    button.setAttribute("aria-pressed",String(active));
+  });
+  if(saved)renderOffers();
+}
+$("#shopping-section .shopping-view-tabs").addEventListener("click",event=>{
+  const button=event.target.closest("[data-shopping-view]");
+  if(button)setShoppingView(button.dataset.shoppingView);
+});
 $("#show-offers").addEventListener("click",()=>{
   setQuickNavActive("offers");
-  $("#offers-section").hidden=false;
-  renderOffers();
-  $("#offers-section").scrollIntoView({behavior:"smooth",block:"start"});
+  renderShoppingList();
+  $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
 });
 $("#offer-list").addEventListener("click",event=>{
   const button=event.target.closest("[data-offer-id]");
