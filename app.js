@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-24.19";
+const APP_BUILD_ID="2026-11-24.20";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -381,7 +381,7 @@ $("#save-week-plan").addEventListener("click",async()=>{
   if(insertError){$("#week-message").textContent="Der Plan konnte nicht vollständig gespeichert werden: "+insertError.message;return;}
   $("#week-message").textContent=meals.length+" Abendessen gespeichert.";
   await loadWeekPlan();
-  renderShoppingList(false);
+  renderShoppingList(false,true);
 });
 
 function formatIngredientAmount(amount,unit){
@@ -424,10 +424,15 @@ function saveShoppingChecks(){
   try{localStorage.setItem(SHOPPING_CHECKS_KEY,JSON.stringify(shoppingChecks));}
   catch(error){console.warn("Einkaufsstatus konnte nicht gespeichert werden:",error);}
 }
-function renderShoppingList(reveal=true){
+function renderShoppingList(reveal=true,useSavedPlan=false){
   const dates=getWeekDates();
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
   const selected=dates.map(day=>{
+    if(useSavedPlan&&currentFamilyId){
+      const meal=currentWeekMeals.find(item=>item.planned_for===day.iso);
+      const dish=meal?dishes.find(item=>item.id===meal.dish_id):null;
+      return dish?{day,dish,servings:Math.max(1,Number(meal.servings)||3)}:null;
+    }
     const select=document.querySelector('.week-dish-select[data-date="'+day.iso+'"]');
     const servingsInput=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
     const value=select?.value||"";
