@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-24.25";
+const APP_BUILD_ID="2026-11-24.26";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -43,7 +43,8 @@ function showFamilyMessage(message){const familyMessage=$("#family-message");if(
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
 function setDishFormMessage(message){$("#dish-form-message").textContent=message;}
 function renderDishes(dishes){
-  visibleDishes=dishes||[];
+  const previousScrollLeft=dishGrid.scrollLeft;
+  visibleDishes=[...(dishes||[])].sort((a,b)=>(a.title||"").localeCompare(b.title||"","de",{sensitivity:"base"}));
   const categoryFilter=$("#dish-category-filter");
   const previousCategory=categoryFilter?.value||"";
   const categories=[...new Set(visibleDishes.map(dish=>dish.category||"Sonstiges"))].sort((a,b)=>a.localeCompare(b,"de"));
@@ -79,9 +80,10 @@ function renderDishes(dishes){
     const visual=dish.image?'<img src="'+escapeHtml(dish.image)+'" alt="" loading="lazy">':'<span>'+getDishVisual(dish.title)+'</span>';
     return '<article class="dish-card"><div class="dish-card-visual">'+visual+'</div><div class="dish-card-title"><strong>'+escapeHtml(dish.title)+'</strong><button type="button" class="dish-favorite '+(isFavorite?'active':'')+'" data-favorite-id="'+escapeHtml(favoriteId)+'" aria-label="'+(isFavorite?'Favorit entfernen':'Als Favorit speichern')+'">'+(isFavorite?'★':'☆')+'</button></div><span>'+escapeHtml(detail)+'</span>'+extra+actions+'</article>';
   }).join("");
-  dishGrid.scrollLeft=0;
-  $("#dish-carousel-prev").disabled=true;
-  $("#dish-carousel-next").disabled=filteredDishes.length<=5;
+  dishGrid.scrollLeft=previousScrollLeft;
+  const carouselMax=dishGrid.scrollWidth-dishGrid.clientWidth;
+  $("#dish-carousel-prev").disabled=dishGrid.scrollLeft<=4;
+  $("#dish-carousel-next").disabled=filteredDishes.length<=5||dishGrid.scrollLeft>=carouselMax-4;
   $("#dish-quick-categories").querySelectorAll("[data-quick-category]").forEach(button=>{
     const active=button.dataset.quickCategory===dishQuickCategory;
     button.classList.toggle("active",active);
