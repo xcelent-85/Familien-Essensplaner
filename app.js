@@ -384,6 +384,8 @@ $("#week-grid").addEventListener("change",event=>{
     const dishes=visibleDishes.length?visibleDishes:starterDishes;
     const dish=dishes.find(item=>getDishOptionValue(item)===select.value)||null;
     applyWeekDishSelection(select.dataset.date,dish);
+    const searchField=select.closest(".week-day")?.querySelector(".week-dish-search");
+    if(searchField){searchField.value="";searchField.dispatchEvent(new Event("input",{bubbles:true}));}
     return;
   }
   const control=event.target.closest(".week-servings");
