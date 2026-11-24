@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-24.18";
+const APP_BUILD_ID="2026-11-24.19";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -381,6 +381,7 @@ $("#save-week-plan").addEventListener("click",async()=>{
   if(insertError){$("#week-message").textContent="Der Plan konnte nicht vollständig gespeichert werden: "+insertError.message;return;}
   $("#week-message").textContent=meals.length+" Abendessen gespeichert.";
   await loadWeekPlan();
+  renderShoppingList(false);
 });
 
 function formatIngredientAmount(amount,unit){
@@ -423,7 +424,7 @@ function saveShoppingChecks(){
   try{localStorage.setItem(SHOPPING_CHECKS_KEY,JSON.stringify(shoppingChecks));}
   catch(error){console.warn("Einkaufsstatus konnte nicht gespeichert werden:",error);}
 }
-function renderShoppingList(){
+function renderShoppingList(reveal=true){
   const dates=getWeekDates();
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
   const selected=dates.map(day=>{
@@ -454,10 +455,12 @@ function renderShoppingList(){
     return '<label class="shopping-item"><input type="checkbox" data-shopping-item="'+index+'" data-shopping-key="'+escapeHtml(item.key)+'" '+(shoppingChecks[item.key]?"checked":"")+'><span><strong>'+escapeHtml(formatQuantity(item)+item.name)+'</strong><small>'+escapeHtml(item.days.join(", "))+'</small></span></label>';
   }).join(""):'<p class="notice">Wähle im Wochenplan zuerst mindestens ein Gericht aus.</p>';
   $("#shopping-list-note").textContent=selected.filter(Boolean).length+" Gerichte berücksichtigt · "+list.length+" zusammengefasste Zutatenpositionen"+(missing.length?" · Für "+[...new Set(missing)].join(", ")+" fehlen noch Zutatenangaben.":"");
-  setQuickNavActive("shopping");
-  $("#shopping-section").hidden=false;
-  setShoppingView("all");
-  $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
+  if(reveal){
+    setQuickNavActive("shopping");
+    $("#shopping-section").hidden=false;
+    setShoppingView("all");
+    $("#shopping-section").scrollIntoView({behavior:"smooth",block:"start"});
+  }
 }
 $("#shopping-list-items").addEventListener("change",event=>{
   const checkbox=event.target.closest('input[data-shopping-key]');
