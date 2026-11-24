@@ -1,4 +1,4 @@
-const APP_BUILD_ID="2026-11-24.21";
+const APP_BUILD_ID="2026-11-24.22";
 const buildVersionElement=document.querySelector("#app-build-version");
 if(buildVersionElement)buildVersionElement.textContent="Version "+APP_BUILD_ID+" · geladen "+new Date().toLocaleString("de-DE");
 const starterDishes = [
@@ -74,8 +74,8 @@ function renderDishes(dishes){
     const detail=[dish.category||"Gericht",total?("ca. "+total+" Min."):""].filter(Boolean).join(" · ");
     const ingredients=Array.isArray(dish.ingredients)?dish.ingredients.join("\n"):"";
     const extra=(ingredients||dish.instructions)?'<details class="dish-details"><summary>Zutaten und Zubereitung</summary>'+(ingredients?'<p><strong>Zutaten:</strong>\n'+escapeHtml(ingredients)+'</p>':'')+(dish.instructions?'<p><strong>Zubereitung:</strong>\n'+escapeHtml(dish.instructions)+'</p>':'')+'</details>':'';
-    const actions=currentFamilyId?'<div class="dish-actions"><button type="button" data-action="edit" data-id="'+dish.id+'">Bearbeiten</button><button type="button" class="delete" data-action="delete" data-id="'+dish.id+'">Löschen</button></div>':'';
-    const favoriteId=String(dish.id||dish.title),isFavorite=favoriteIds.includes(favoriteId);
+    const actions=currentFamilyId&&!dish.is_catalog?'<div class="dish-actions"><button type="button" data-action="edit" data-id="'+dish.id+'">Bearbeiten</button><button type="button" class="delete" data-action="delete" data-id="'+dish.id+'">Löschen</button></div>':'';
+    const favoriteId=(dish.is_catalog?"catalog:":"family:")+String(dish.id||dish.title),isFavorite=favoriteIds.includes(favoriteId);
     const visual=dish.image?'<img src="'+escapeHtml(dish.image)+'" alt="" loading="lazy">':'<span>'+getDishVisual(dish.title)+'</span>';
     return '<article class="dish-card"><div class="dish-card-visual">'+visual+'</div><div class="dish-card-title"><strong>'+escapeHtml(dish.title)+'</strong><button type="button" class="dish-favorite '+(isFavorite?'active':'')+'" data-favorite-id="'+escapeHtml(favoriteId)+'" aria-label="'+(isFavorite?'Favorit entfernen':'Als Favorit speichern')+'">'+(isFavorite?'★':'☆')+'</button></div><span>'+escapeHtml(detail)+'</span>'+extra+actions+'</article>';
   }).join("");
@@ -94,9 +94,15 @@ function renderDishes(dishes){
 function showStarterDishes(){renderDishes(starterDishes);dishSection.scrollIntoView({behavior:"smooth",block:"start"});}
 async function loadDishes(){
   if(!currentFamilyId)return;
-  const {data,error}=await supabaseClient.from("dishes").select("id,title,description,category,prep_minutes,cook_minutes,servings,ingredients,instructions").eq("family_id",currentFamilyId).order("title");
-  if(error){showMessage("Gerichte konnten nicht geladen werden: "+error.message);return;}
-  renderDishes((data||[]).map(dish=>{const starter=starterDishes.find(item=>item.title===dish.title);return {...starter,...dish,instructions:dish.instructions||starter?.instructions||null};}));
+  const [familyResult,catalogResult]=await Promise.all([
+    supabaseClient.from("dishes").select("id,title,description,category,prep_minutes,cook_minutes,servings,ingredients,instructions").eq("family_id",currentFamilyId).order("title"),
+    supabaseClient.from("recipe_catalog").select("id,title,description,category,prep_minutes,cook_minutes,servings,ingredients,instructions,image_url").eq("is_published",true).order("title")
+  ]);
+  if(familyResult.error){showMessage("Eigene Gerichte konnten nicht geladen werden: "+familyResult.error.message);return;}
+  if(catalogResult.error){showMessage("Der gemeinsame Rezeptkatalog konnte nicht geladen werden: "+catalogResult.error.message);return;}
+  const familyDishes=(familyResult.data||[]).map(dish=>{const starter=starterDishes.find(item=>item.title===dish.title);return {...starter,...dish,is_catalog:false,instructions:dish.instructions||starter?.instructions||null};});
+  const catalogDishes=(catalogResult.data||[]).map(dish=>({...dish,is_catalog:true,image:dish.image_url||null}));
+  renderDishes([...familyDishes,...catalogDishes]);
 }
 if(showButton)showButton.addEventListener("click",async()=>{
   setQuickNavActive("dishes");
@@ -248,6 +254,8 @@ function getDishVisual(title){
   if(/fisch|lachs/.test(value))return "🐟";
   return "🍽️";
 }
+function getDishOptionValue(dish){return dish.is_catalog?"catalog:"+dish.id:dish.id?"family:"+dish.id:"preview:"+dish.title;}
+function findMealDish(meal,dishes){if(!meal)return null;if(meal.catalog_recipe_id)return dishes.find(dish=>dish.is_catalog&&dish.id===meal.catalog_recipe_id)||null;if(meal.dish_id)return dishes.find(dish=>!dish.is_catalog&&dish.id===meal.dish_id)||null;return meal.preview_title?dishes.find(dish=>dish.title===meal.preview_title)||null:null;}
 function renderWeekPlan(){
   const dates=getWeekDates(),first=dates[0].date,last=dates[dates.length-1].date;
   const format=date=>date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
@@ -257,8 +265,9 @@ function renderWeekPlan(){
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
   $("#week-grid").innerHTML=dates.map(day=>{
     const meal=currentWeekMeals.find(item=>item.planned_for===day.iso);
-    const options='<option value="">Noch kein Gericht ausgewählt</option>'+dishes.map(dish=>'<option value="'+escapeHtml(dish.id||dish.title)+'" '+((meal&&(meal.dish_id===dish.id||meal.preview_title===dish.title))?'selected':'')+'>'+escapeHtml(dish.title)+'</option>').join("");
-    const selectedDish=meal?dishes.find(dish=>dish.id===meal.dish_id||dish.title===meal.preview_title):null;
+    const selectedDish=findMealDish(meal,dishes);
+    const selectedValue=selectedDish?getDishOptionValue(selectedDish):"";
+    const options='<option value="">Noch kein Gericht ausgewählt</option>'+dishes.map(dish=>'<option value="'+escapeHtml(getDishOptionValue(dish))+'" '+(selectedValue===getDishOptionValue(dish)?'selected':'')+'>'+escapeHtml(dish.title)+'</option>').join("");
     const servings=Math.max(1,Number(meal?.servings)||3);
     const recipeButton=selectedDish?'<button type="button" class="week-recipe-button" data-recipe-title="'+escapeHtml(selectedDish.title)+'" data-date="'+day.iso+'">Rezept ansehen →</button>':"";
     const ingredientMarkup=selectedDish&&Array.isArray(selectedDish.ingredients)&&selectedDish.ingredients.length?'<strong class="week-ingredients-title">Zutaten (für '+servings+' Personen)</strong>'+selectedDish.ingredients.map(line=>{
@@ -331,7 +340,7 @@ $("#week-grid").addEventListener("change",event=>{
   const dishes=visibleDishes.length?visibleDishes:starterDishes;
   const select=document.querySelector('.week-dish-select[data-date="'+day.iso+'"]');
   const servings=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
-  const dish=dishes.find(item=>String(item.id||item.title)===(select?.value||""));
+  const dish=dishes.find(item=>getDishOptionValue(item)===(select?.value||""));
   renderWeekIngredients(day,dish,servings?.value||3);
   const card=control.closest(".week-day");
   const titleNode=card?.querySelector(".week-dish-title");
@@ -346,7 +355,7 @@ $("#week-grid").addEventListener("change",event=>{
 async function loadWeekPlan(){
   if(!currentFamilyId){currentWeekMeals=[];renderWeekPlan();return;}
   const dates=getWeekDates(7);
-  const {data,error}=await supabaseClient.from("weekly_meals").select("id,dish_id,planned_for,servings").eq("family_id",currentFamilyId).eq("meal_slot","dinner").gte("planned_for",dates[0].iso).lte("planned_for",dates[6].iso);
+  const {data,error}=await supabaseClient.from("weekly_meals").select("id,dish_id,catalog_recipe_id,planned_for,servings").eq("family_id",currentFamilyId).eq("meal_slot","dinner").gte("planned_for",dates[0].iso).lte("planned_for",dates[6].iso);
   if(error){$("#week-message").textContent="Wochenplan konnte nicht geladen werden: "+error.message;return;}
   currentWeekMeals=data||[];renderWeekPlan();
 }
@@ -368,14 +377,14 @@ $("#save-week-plan").addEventListener("click",async()=>{
     const servings=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
     return {day,dishId:select?.value||"",servings:Math.max(1,Math.min(30,Number(servings?.value)||3))};
   }).filter(item=>item.dishId);
-  const invalid=meals.find(item=>!visibleDishes.some(dish=>dish.id===item.dishId));
+  const invalid=meals.find(item=>!visibleDishes.some(dish=>getDishOptionValue(dish)===item.dishId));
   if(invalid){$("#week-message").textContent="Bitte zuerst anmelden und eure Gerichte laden.";return;}
   const button=$("#save-week-plan");button.disabled=true;$("#week-message").textContent="Speichere Wochenplan …";
   const {error:deleteError}=await supabaseClient.from("weekly_meals").delete().eq("family_id",currentFamilyId).eq("meal_slot","dinner").gte("planned_for",dates[0].iso).lte("planned_for",dates[dates.length-1].iso);
   if(deleteError){button.disabled=false;$("#week-message").textContent="Speichern fehlgeschlagen: "+deleteError.message;return;}
   let insertError=null;
   if(meals.length){
-    const {error}=await supabaseClient.from("weekly_meals").insert(meals.map(item=>({family_id:currentFamilyId,dish_id:item.dishId,planned_for:item.day.iso,meal_slot:"dinner",servings:item.servings,created_by:currentUser.id})));
+    const {error}=await supabaseClient.from("weekly_meals").insert(meals.map(item=>{const isCatalog=item.dishId.startsWith("catalog:");const id=item.dishId.replace(/^(catalog|family|preview):/,"");return {family_id:currentFamilyId,dish_id:isCatalog?null:id,catalog_recipe_id:isCatalog?id:null,planned_for:item.day.iso,meal_slot:"dinner",servings:item.servings,created_by:currentUser.id};}));
     insertError=error;
   }
   button.disabled=false;
@@ -431,13 +440,13 @@ function renderShoppingList(reveal=true,useSavedPlan=false){
   const selected=dates.map(day=>{
     if(useSavedPlan&&currentFamilyId){
       const meal=currentWeekMeals.find(item=>item.planned_for===day.iso);
-      const dish=meal?dishes.find(item=>item.id===meal.dish_id):null;
+      const dish=findMealDish(meal,dishes);
       return dish?{day,dish,servings:Math.max(1,Number(meal.servings)||3)}:null;
     }
     const select=document.querySelector('.week-dish-select[data-date="'+day.iso+'"]');
     const servingsInput=document.querySelector('.week-servings[data-date="'+day.iso+'"]');
     const value=select?.value||"";
-    const dish=dishes.find(item=>String(item.id||item.title)===value);
+    const dish=dishes.find(item=>getDishOptionValue(item)===value);
     return dish?{day,dish,servings:Math.max(1,Number(servingsInput?.value)||3)}:null;
   });
   const totals=new Map(),missing=[];
