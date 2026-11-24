@@ -344,11 +344,14 @@ function applyWeekDishSelection(dayIso,dish){
   const day=getWeekDates().find(item=>item.iso===dayIso);
   const card=document.querySelector('.week-dish-search[data-date="'+dayIso+'"]')?.closest(".week-day");
   if(!day||!card)return;
-  weekDraftSelections[dayIso]=dish?getDishOptionValue(dish):"";
+  const selectedValue=dish?getDishOptionValue(dish):"";
+  weekDraftSelections[dayIso]=selectedValue;
+  const select=card.querySelector(".week-dish-select");
+  if(select)select.value=selectedValue;
   const servings=card.querySelector(".week-servings");
   renderWeekIngredients(day,dish,servings?.value||3);
   const titleNode=card.querySelector(".week-dish-title"),visualNode=card.querySelector(".week-dish-visual");
-  if(titleNode)titleNode.textContent=dish?.title||"Noch kein Gericht geplant";
+  if(titleNode)titleNode.replaceChildren(document.createTextNode(dish?.title||"Noch kein Gericht geplant"));
   if(visualNode)visualNode.innerHTML=dish?.image?'<img src="'+escapeHtml(dish.image)+'" alt="'+escapeHtml(dish.title)+'" loading="lazy">':'<span>'+getDishVisual(dish?.title)+'</span>';
   let recipeButton=card.querySelector(".week-recipe-button");
   if(dish){
