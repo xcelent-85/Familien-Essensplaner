@@ -33,6 +33,7 @@ if(weeklySection&&dishSection){const featureGrid=document.querySelector(".featur
 const cfg=window.FAMILY_APP_CONFIG,statusEl=$("#sync-status"),messageEl=$("#auth-message");
 const authForm=$("#auth-form"),signedIn=$("#account-logged-in"),dishForm=$("#dish-form"),authPanel=$("#auth-panel");
 let supabaseClient=null,currentFamilyId=null,currentUser=null,editingDishId=null,authMode="login";
+function setAuthMode(mode){authMode=mode;$("#signup-button").hidden=mode!=="signup";$("#login-button").hidden=mode!=="login";}
 let pendingFamilyInvite=new URLSearchParams(window.location.search).get("familyInvite");
 let inviteAcceptanceInProgress=false,acceptedFamilyInviteToken=null;
 let visibleDishes=[];
@@ -101,7 +102,7 @@ if(showButton)showButton.addEventListener("click",async()=>{
   setQuickNavActive("dishes");
   if(!dishSection.hidden){dishSection.hidden=true;return;}
   dishSection.hidden=false;
-  if(!currentFamilyId){authMode="login";showMessage("Bitte melde dich an, um eure Rezeptsammlung zu entdecken.");authPanel.hidden=false;$("#auth-dialog-title").textContent="Bitte anmelden";$("#auth-dialog-copy").textContent="Nach der Anmeldung kannst du eure Gerichte entdecken und verwalten.";return;}
+  if(!currentFamilyId){setAuthMode("login");showMessage("Bitte melde dich an, um eure Rezeptsammlung zu entdecken.");authPanel.hidden=false;$("#auth-dialog-title").textContent="Bitte anmelden";$("#auth-dialog-copy").textContent="Nach der Anmeldung kannst du eure Gerichte entdecken und verwalten.";return;}
   showMessage("Lade eure gespeicherten Gerichte …");await loadDishes();showMessage(visibleDishes.length+" Gerichte aus eurer Familiensammlung geladen.");
   dishSection.scrollIntoView({behavior:"smooth",block:"start"});
 });
@@ -746,10 +747,10 @@ $("#meal-offer-results").addEventListener("click",event=>{
   button.classList.add("is-saved");
 });
 renderOffers();
-$("#open-login").addEventListener("click",()=>{authMode="login";authPanel.hidden=false;$("#auth-dialog-title").textContent="Anmelden";$("#auth-dialog-copy").textContent="Melde dich an, um euren gemeinsamen Essensplaner zu nutzen.";});
-$("#open-signup").addEventListener("click",()=>{authMode="signup";authPanel.hidden=false;$("#auth-dialog-title").textContent="Konto erstellen";$("#auth-dialog-copy").textContent=pendingFamilyInvite?"Erstelle dein Konto, um der eingeladenen Familie beizutreten.":"Erstelle dein Konto und starte euren gemeinsamen Essensplaner.";});
+$("#open-login").addEventListener("click",()=>{setAuthMode("login");authPanel.hidden=false;$("#auth-dialog-title").textContent="Anmelden";$("#auth-dialog-copy").textContent="Melde dich an, um euren gemeinsamen Essensplaner zu nutzen.";});
+$("#open-signup").addEventListener("click",()=>{setAuthMode("signup");authPanel.hidden=false;$("#auth-dialog-title").textContent="Konto erstellen";$("#auth-dialog-copy").textContent=pendingFamilyInvite?"Erstelle dein Konto, um der eingeladenen Familie beizutreten.":"Erstelle dein Konto und starte euren gemeinsamen Essensplaner.";});
 $("#show-family").addEventListener("click",async()=>{
-  if(!currentFamilyId){authMode="login";authPanel.hidden=false;$("#auth-dialog-title").textContent=pendingFamilyInvite?"Du wurdest eingeladen":"Familienkonto";$("#auth-dialog-copy").textContent=pendingFamilyInvite?"Melde dich an oder erstelle ein Konto, um der Familie beizutreten.":"Bitte melde dich an, um eure Familiengruppe zu öffnen.";return;}
+  if(!currentFamilyId){setAuthMode("login");authPanel.hidden=false;$("#auth-dialog-title").textContent=pendingFamilyInvite?"Du wurdest eingeladen":"Familienkonto";$("#auth-dialog-copy").textContent=pendingFamilyInvite?"Melde dich an oder erstelle ein Konto, um der Familie beizutreten.":"Bitte melde dich an, um eure Familiengruppe zu öffnen.";return;}
   setQuickNavActive("family");
   $("#family-section").hidden=false;await loadFamilyInfo();$("#family-section").scrollIntoView({behavior:"smooth",block:"start"});
 });
@@ -774,7 +775,7 @@ $("#close-auth").addEventListener("click",()=>{authPanel.hidden=true;});
 authPanel.addEventListener("click",event=>{if(event.target===authPanel)authPanel.hidden=true;});
 if(window.supabase&&cfg?.supabaseUrl&&cfg?.supabaseKey){
   supabaseClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
-  supabaseClient.auth.getSession().then(async({data,error})=>{if(error)showMessage(error.message);setSession(data?.session);if(data?.session?.user)await loadOrCreateFamily(data.session.user);else if(pendingFamilyInvite){authMode="login";authPanel.hidden=false;$("#auth-dialog-title").textContent="Du wurdest eingeladen";$("#auth-dialog-copy").textContent="Melde dich an oder erstelle ein Konto, um der Familie beizutreten.";showMessage("Familieneinladung erkannt. Bitte anmelden oder ein Konto erstellen.");}});
+  supabaseClient.auth.getSession().then(async({data,error})=>{if(error)showMessage(error.message);setSession(data?.session);if(data?.session?.user)await loadOrCreateFamily(data.session.user);else if(pendingFamilyInvite){setAuthMode("login");authPanel.hidden=false;$("#auth-dialog-title").textContent="Du wurdest eingeladen";$("#auth-dialog-copy").textContent="Melde dich an oder erstelle ein Konto, um der Familie beizutreten.";showMessage("Familieneinladung erkannt. Bitte anmelden oder ein Konto erstellen.");}});
   supabaseClient.auth.onAuthStateChange(async(event,session)=>{setSession(session);if(session?.user&&event!=="INITIAL_SESSION")await loadOrCreateFamily(session.user);});
   $("#signup-button").addEventListener("click",async event=>{
     event.preventDefault();const email=$("#auth-email").value.trim(),password=$("#auth-password").value;
