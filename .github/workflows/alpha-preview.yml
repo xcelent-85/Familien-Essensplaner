@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - alpha-0.2
+      - alpha-0.3
   workflow_dispatch:
 
 permissions:
@@ -34,6 +35,13 @@ jobs:
         with:
           ref: alpha-0.2
           path: public/alpha-0.2
+
+      - name: Alpha 0.3 in separaten Unterordner auschecken
+        if: github.ref == 'refs/heads/alpha-0.3'
+        uses: actions/checkout@v4
+        with:
+          ref: alpha-0.3
+          path: public/alpha-0.3
 
       - name: GitHub Pages konfigurieren
         uses: actions/configure-pages@v5
