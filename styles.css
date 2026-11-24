@@ -533,3 +533,13 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
     grid-area:2 / 2 / 3 / 4 !important;
   }
 }
+
+
+/* Einkaufsliste: Umschalten zwischen allen Wochenplan-Produkten und vorgemerkten Angeboten */
+.shopping-view-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 16px;padding:5px;background:#edf2ed;border:1px solid #e0e8e0;border-radius:12px;width:fit-content;max-width:100%}
+.shopping-view-button{display:flex;align-items:center;gap:8px;border:1px solid transparent;border-radius:9px;background:transparent;color:#526457;padding:10px 14px;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.shopping-view-button.active{background:#315c45;color:#fff;box-shadow:0 2px 7px #315c4526}
+.shopping-view-button span{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:20px;background:#dfe9df;color:#315c45;font-size:10px}
+.shopping-view-button.active span{background:#ffffff30;color:#fff}
+.shopping-section{scroll-margin-top:24px}
+@media(max-width:520px){.shopping-view-tabs{display:grid;grid-template-columns:1fr 1fr;width:100%;gap:4px}.shopping-view-button{justify-content:center;padding:10px 7px;font-size:11px}}
