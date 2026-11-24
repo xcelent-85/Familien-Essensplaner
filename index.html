@@ -43,25 +43,7 @@
 </div>
 <p class="auth-message" id="family-message" role="status"></p>
 </section>
-<section class="dishes-section" id="dishes-section" hidden>
-<div class="section-heading compact"><div><p class="eyebrow">EURE REZEPTSAMMLUNG</p><h2>Gerichte entdecken</h2></div><span class="version" id="dish-count"></span></div>
-<div class="dish-toolbar"><p id="dish-help" class="notice">Zum dauerhaften Hinzufügen und Bearbeiten bitte anmelden.</p><button class="button button-green" id="add-dish-button" type="button" hidden>+ Gericht hinzufügen</button></div>
-<form class="dish-editor" id="dish-form" hidden>
-<h3 id="dish-form-title">Neues Gericht</h3>
-<div class="dish-form-grid">
-<label>Gerichtname *<input id="dish-title" maxlength="100" required placeholder="z. B. Gemüse-Lasagne"></label>
-<label>Kategorie<input id="dish-category" maxlength="40" placeholder="z. B. Italienisch"></label>
-<label>Vorbereitung (Min.)<input id="dish-prep" type="number" min="0" max="600" value="10"></label>
-<label>Koch-/Backzeit (Min.)<input id="dish-cook" type="number" min="0" max="600" value="10"></label>
-<label>Portionen<input id="dish-servings" type="number" min="1" max="30" value="3"></label>
-</div>
-<label>Zutaten und Mengen (je eine Zeile)<textarea id="dish-ingredients" rows="4" placeholder="300 g Nudeln&#10;1 Dose Tomaten&#10;1 Zwiebel"></textarea></label>
-<label>Zubereitung<textarea id="dish-instructions" rows="3" placeholder="Kurze Beschreibung der Zubereitung (optional)"></textarea></label>
-<div class="auth-actions"><button type="submit" id="save-dish-button">Speichern</button><button type="button" class="secondary" id="cancel-dish-button">Abbrechen</button></div>
-<p class="auth-message" id="dish-form-message" role="status"></p>
-</form>
-<div class="dish-discovery-tools"><input id="dish-search" type="search" placeholder="Gericht oder Zutat suchen …" aria-label="Gerichte durchsuchen"><select id="dish-category-filter" aria-label="Gerichte nach Kategorie filtern"><option value="">Alle Kategorien</option></select><select id="dish-time-filter" aria-label="Gerichte nach Zubereitungszeit filtern"><option value="0">Alle Zeiten</option><option value="20">Bis 20 Minuten</option><option value="30">Bis 30 Minuten</option></select><select id="dish-view-filter" aria-label="Gerichte anzeigen"><option value="all">Alle Gerichte</option><option value="favorites">Nur Favoriten</option></select></div><div class="dish-quick-categories" id="dish-quick-categories" aria-label="Gerichte nach Art auswählen"><button type="button" class="active" data-quick-category="Alle" aria-pressed="true">Alle</button><button type="button" data-quick-category="Fleisch" aria-pressed="false">Fleisch</button><button type="button" data-quick-category="Fisch" aria-pressed="false">Fisch</button><button type="button" data-quick-category="Suppen" aria-pressed="false">Suppen</button><button type="button" data-quick-category="Vegetarisch" aria-pressed="false">Vegetarisch</button><button type="button" data-quick-category="Nudelgerichte" aria-pressed="false">Nudelgerichte</button></div><p class="dish-results-count" id="dish-results-count"></p><div class="dish-carousel"><button type="button" class="dish-carousel-arrow" id="dish-carousel-prev" aria-label="Vorherige fünf Gerichte" disabled>‹</button><div class="dish-grid" id="dish-grid" aria-live="polite"></div><button type="button" class="dish-carousel-arrow" id="dish-carousel-next" aria-label="Nächste fünf Gerichte" disabled>›</button></div>
-</section>
+
 <section class="weekly-section" id="weekly-section" hidden>
 <div class="section-heading compact"><div><p class="eyebrow">EURE WOCHENÜBERSICHT</p><h2>Wochenplan erstellen</h2></div><span class="version" id="week-day-range">Montag bis Freitag</span></div>
 <div class="week-toolbar"><button type="button" class="week-nav" id="previous-week">← Vorherige</button><strong id="week-label">Diese Woche</strong><button type="button" class="week-nav" id="next-week">Nächste →</button></div>
@@ -104,6 +86,25 @@
 <p class="notice">Hier findest du alle Angebote, die du beim Angebotsvergleich vorgemerkt hast. Händler und Preis werden übernommen.</p>
 <div id="offer-list" class="offer-list"></div>
 </div>
+</section>
+<section class="dishes-section" id="dishes-section" hidden>
+<div class="section-heading compact"><div><p class="eyebrow">EURE REZEPTSAMMLUNG</p><h2>Gerichte entdecken</h2></div><span class="version" id="dish-count"></span></div>
+<div class="dish-toolbar"><p id="dish-help" class="notice">Zum dauerhaften Hinzufügen und Bearbeiten bitte anmelden.</p><button class="button button-green" id="add-dish-button" type="button" hidden>+ Gericht hinzufügen</button></div>
+<form class="dish-editor" id="dish-form" hidden>
+<h3 id="dish-form-title">Neues Gericht</h3>
+<div class="dish-form-grid">
+<label>Gerichtname *<input id="dish-title" maxlength="100" required placeholder="z. B. Gemüse-Lasagne"></label>
+<label>Kategorie<input id="dish-category" maxlength="40" placeholder="z. B. Italienisch"></label>
+<label>Vorbereitung (Min.)<input id="dish-prep" type="number" min="0" max="600" value="10"></label>
+<label>Koch-/Backzeit (Min.)<input id="dish-cook" type="number" min="0" max="600" value="10"></label>
+<label>Portionen<input id="dish-servings" type="number" min="1" max="30" value="3"></label>
+</div>
+<label>Zutaten und Mengen (je eine Zeile)<textarea id="dish-ingredients" rows="4" placeholder="300 g Nudeln&#10;1 Dose Tomaten&#10;1 Zwiebel"></textarea></label>
+<label>Zubereitung<textarea id="dish-instructions" rows="3" placeholder="Kurze Beschreibung der Zubereitung (optional)"></textarea></label>
+<div class="auth-actions"><button type="submit" id="save-dish-button">Speichern</button><button type="button" class="secondary" id="cancel-dish-button">Abbrechen</button></div>
+<p class="auth-message" id="dish-form-message" role="status"></p>
+</form>
+<div class="dish-discovery-tools"><input id="dish-search" type="search" placeholder="Gericht oder Zutat suchen …" aria-label="Gerichte durchsuchen"><select id="dish-category-filter" aria-label="Gerichte nach Kategorie filtern"><option value="">Alle Kategorien</option></select><select id="dish-time-filter" aria-label="Gerichte nach Zubereitungszeit filtern"><option value="0">Alle Zeiten</option><option value="20">Bis 20 Minuten</option><option value="30">Bis 30 Minuten</option></select><select id="dish-view-filter" aria-label="Gerichte anzeigen"><option value="all">Alle Gerichte</option><option value="favorites">Nur Favoriten</option></select></div><div class="dish-quick-categories" id="dish-quick-categories" aria-label="Gerichte nach Art auswählen"><button type="button" class="active" data-quick-category="Alle" aria-pressed="true">Alle</button><button type="button" data-quick-category="Fleisch" aria-pressed="false">Fleisch</button><button type="button" data-quick-category="Fisch" aria-pressed="false">Fisch</button><button type="button" data-quick-category="Suppen" aria-pressed="false">Suppen</button><button type="button" data-quick-category="Vegetarisch" aria-pressed="false">Vegetarisch</button><button type="button" data-quick-category="Nudelgerichte" aria-pressed="false">Nudelgerichte</button></div><p class="dish-results-count" id="dish-results-count"></p><div class="dish-carousel"><button type="button" class="dish-carousel-arrow" id="dish-carousel-prev" aria-label="Vorherige fünf Gerichte" disabled>‹</button><div class="dish-grid" id="dish-grid" aria-live="polite"></div><button type="button" class="dish-carousel-arrow" id="dish-carousel-next" aria-label="Nächste fünf Gerichte" disabled>›</button></div>
 </section>
 <footer><span>Familien-Essensplaner</span><span>Gemeinsam planen. Besser einkaufen. Lecker essen.</span><span id="app-build-version" class="version">Version 2026-11-23.11 · wird geladen …</span></footer>
 </main>
