@@ -83,7 +83,7 @@ function renderDishes(dishes){
   dishGrid.scrollLeft=previousScrollLeft;
   const carouselMax=dishGrid.scrollWidth-dishGrid.clientWidth;
   $("#dish-carousel-prev").disabled=dishGrid.scrollLeft<=4;
-  $("#dish-carousel-next").disabled=filteredDishes.length<=5||dishGrid.scrollLeft>=carouselMax-4;
+  $("#dish-carousel-next").disabled=filteredDishes.length<=4||dishGrid.scrollLeft>=carouselMax-4;
   $("#dish-quick-categories").querySelectorAll("[data-quick-category]").forEach(button=>{
     const active=button.dataset.quickCategory===dishQuickCategory;
     button.classList.toggle("active",active);
