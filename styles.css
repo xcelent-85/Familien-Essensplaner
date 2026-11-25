@@ -769,3 +769,13 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
   #dishes-section .dish-card{flex:0 0 92%}
   #dishes-section .dish-card-visual{aspect-ratio:16 / 9}
 }
+
+
+/* Korrektur: exakt vier sichtbare Rezeptkarten auf großen Bildschirmen */
+@media (min-width:901px){
+  #dishes-section .dish-grid{display:flex !important;gap:10px !important;overflow:hidden !important}
+  #dishes-section .dish-card{flex:0 0 calc((100% - 30px)/4) !important;width:calc((100% - 30px)/4) !important;max-width:calc((100% - 30px)/4) !important}
+}
+@media (min-width:601px) and (max-width:900px){
+  #dishes-section .dish-card{flex:0 0 calc((100% - 10px)/2) !important;width:calc((100% - 10px)/2) !important;max-width:calc((100% - 10px)/2) !important}
+}
