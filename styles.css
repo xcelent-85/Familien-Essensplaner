@@ -771,11 +771,20 @@ footer{display:flex;justify-content:space-between;border-top:1px solid var(--lin
 }
 
 
-/* Korrektur: exakt vier sichtbare Rezeptkarten auf großen Bildschirmen */
-@media (min-width:901px){
-  #dishes-section .dish-grid{display:flex !important;gap:10px !important;overflow:hidden !important}
-  #dishes-section .dish-card{flex:0 0 calc((100% - 30px)/4) !important;width:calc((100% - 30px)/4) !important;max-width:calc((100% - 30px)/4) !important}
+/* Alpha 0.3 – vier Rezeptkacheln pro Ansicht, Navigation bleibt aktiv */
+@media (min-width:561px){
+  #dishes-section .dish-carousel{display:grid !important;grid-template-columns:34px minmax(0,1fr) 34px !important}
+  #dishes-section .dish-carousel-arrow{display:block !important}
+  #dishes-section .dish-grid{
+    display:flex !important;flex-wrap:nowrap !important;gap:10px !important;
+    overflow-x:auto !important;overflow-y:hidden !important;
+  }
+  #dishes-section .dish-card{
+    flex:0 0 calc((100% - 30px)/4) !important;
+    width:calc((100% - 30px)/4) !important;
+    max-width:calc((100% - 30px)/4) !important;
+  }
 }
-@media (min-width:601px) and (max-width:900px){
-  #dishes-section .dish-card{flex:0 0 calc((100% - 10px)/2) !important;width:calc((100% - 10px)/2) !important;max-width:calc((100% - 10px)/2) !important}
+@media (max-width:560px){
+  #dishes-section .dish-card{flex:0 0 92% !important;width:92% !important;max-width:92% !important}
 }
