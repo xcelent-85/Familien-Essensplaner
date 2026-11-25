@@ -1039,6 +1039,11 @@ set description = 'Blech-Gnocchi mit Gemüse – ein herzhaftes Familiengericht 
     updated_at = now()
 where slug = 'blech-gnocchi-mit-gemuse';
 
+-- Das bereits vorhandene erste KI-Food-Bild direkt dem Rezept zuordnen.
+update public.recipe_catalog
+set image_url = './assets/recipes/spaghetti-bolognese.webp', updated_at = now()
+where slug = 'spaghetti-bolognese';
+
 commit;
 
 -- Kontrolle: Anzahl veröffentlichter Rezepte und verbleibende leere Inhalte
