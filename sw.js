@@ -1,6 +1,6 @@
-const CACHE_NAME="familien-essensplaner-v95";
-const APP_FILES=["./","./index.html","./styles.css?v=8","./app.js?v=56","./manifest.webmanifest","./assets/icon.svg","./assets/recipes/spaghetti-bolognese.webp"];
+const CACHE_NAME="familien-essensplaner-v96";
+const APP_FILES=["./","./index.html","./styles.css?v=9","./app.js?v=56","./manifest.webmanifest","./assets/icon.svg","./assets/recipes/spaghetti-bolognese.webp"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_FILES)));self.skipWaiting();});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))));self.clients.claim();});
 self.addEventListener("fetch",event=>{if(event.request.method!=="GET"||new URL(event.request.url).origin!==location.origin)return;event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put(event.request,copy));return response;})));});
-// Alpha 0.2 Startseite mit Fotokacheln – Cache-Stand 2026-11-24.41
+// Alpha 0.2 Startseite mit Fotokacheln – Cache-Stand 2026-11-25.1
